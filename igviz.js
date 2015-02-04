@@ -15,12 +15,16 @@
 			this.drawScatterPlot(canvas, config, dataTable);
 		} else if (config.chartType == "singleNumber") {
 			this.drawSingleNumberDiagram(canvas, config, dataTable);
+		} else if (config.chartType == "line") {
+			this.drawLineChart(canvas, config, dataTable);
+		} else if (config.chartType == "table") {
+			this.drawTableChart(canvas, config, dataTable);
 		}
 	};
 
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
-		var width = chartConfig.chartWidth;
-		var height = chartConfig.chartHight;
+		var width = chartConfig.width;
+		var height = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		var dataset = dataTable.data.map(function(d) {
@@ -50,30 +54,28 @@
 
 		//Now we really drwa by creating rectangles. The layout is done such a way that (0,0)
 		// starts from bottom left corner as usual.
-		//TODO handle multiple column groups using color
-		//http://bl.ocks.org/mbostock/3887051
 		svg.selectAll(".bar")
 			.data(dataset)
 			.enter().append("rect")
 			.attr("class", "bar")
 			.attr("x", function(d) {
-				//console.log(d.data[d.config.xAxisData]);
-				return xScale(d.data[d.config.xAxisData]);
+				//console.log(d.data[d.config.xAxis]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("width", xScale.rangeBand())
 			.attr("y", function(d) {
-				return yScale(d.data[d.config.yAxisData]);
+				return yScale(d.data[d.config.yAxis]);
 			})
 			.attr("height", function(d) {
-				return height - yScale(d.data[d.config.yAxisData]) - padding;
+				return height - yScale(d.data[d.config.yAxis]) - padding;
 			});
 	};
 
 
 	igviz.drawScatterPlot = function(divId, chartConfig, dataTable) {
 		//Width and height
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
@@ -130,8 +132,8 @@
 	igviz.drawSingleNumberDiagram = function(divId, chartConfig, dataTable) {
 
 		//Width and height
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//configure font sizes
@@ -170,7 +172,7 @@
 		var tableData = dataTable.data;
 
 		//parse a column to calculate the data for the single number diagram
-		var selectedColumn = parseColumnFrom2DArray(tableData, dataset[0].config.xAxisData);
+		var selectedColumn = parseColumnFrom2DArray(tableData, dataset[0].config.xAxis);
 
 		//appending a group to the diagram
 		var SingleNumberDiagram = svg
@@ -223,6 +225,413 @@
 
 	};
 
+	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
+		var w = chartConfig.width; //Width and height and margins
+		var h = chartConfig.height;
+		var margin = {
+			top: 20,
+			right: 80,
+			bottom: 30,
+			left: 50
+		};
+
+		var dataSet = dataTable.data.map(function(d) {
+			return {
+				"data": d,
+				"config": chartConfig
+			}
+		});
+
+		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
+		var yAxis = chartConfig.yAxis;
+
+		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
+		var yAxisName = dataTable.metadata.names[yAxis];
+
+		var columnNames = [xAxisName, yAxisName];
+
+		dataSet.sort(function(a, b) { //sort the data set with respect to the x coordinates
+			return a.data[xAxis] - b.data[xAxis];
+		});
+
+		var data = []; //empty array to load the selected data and organize in the required format
+		for (var i = 0; i < dataSet.length; i++) {
+			data.push({
+				key: dataSet[i].data[xAxis], //x axis data
+				y1: dataSet[i].data[yAxis]
+			});
+		}
+
+		var svgID = divId + "_svg"; //svg container in which the chart shall be drawn
+		d3.select(svgID).remove(); //Remove current SVG if it is already there
+
+		var svg = d3.select(divId) //Create SVG element
+			.append("svg")
+			.attr("id", svgID.replace("#", ""))
+			.attr("width", w + 100) //width
+			.attr("height", h + 50) //height
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
+
+		var interpolationMode = "cardinal"; //interpolation mode [linear, basis, step before, step after, cardinal]
+		if (chartConfig.interpolationMode != undefined) {
+			interpolationMode = chartConfig.interpolationMode;
+		}
+
+		var ordinal = d3.scale.ordinal(); //scale to map y coordinates
+
+		var x = d3.scale.linear() //scale for x axis
+			.range([0, w]);
+
+		var y = d3.scale.linear() //scale for y axis
+			.range([h, 0]);
+
+		var xAxis = d3.svg.axis() //define x axis
+			.scale(x)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis() //define y axis
+			.scale(y)
+			.orient("left");
+
+		var line = d3.svg.line() //svg element to connect the coordinates as a path
+			.x(function(d) {
+				return x(d.key); //scale x coordinates
+			})
+			.y(function(d) {
+				return y(d.value); //scale y coordinates
+			});
+
+		ordinal.domain(d3.keys(data[0]).filter(function(d) {
+			return d !== "key"; //get key list as the scale domain except the one which is exactly "key" as it should be the x variable set
+		}));
+
+		x.domain(d3.extent(data, function(d) {
+			return d.key; //define the domain of x scale
+		}));
+
+		var graphs = ordinal.domain().map(function(name) { //organize data in the format, {name,{key,value}}, {key,value}-values
+			return {
+				name: name,
+				values: data.map(function(d) {
+					return {
+						key: d.key,
+						value: +d[name]
+					};
+				})
+			};
+		});
+
+		y.domain([ //define the domain of y scale i.e- minimum value of all y coordinates to max of all y coordinates
+			d3.min(graphs, function(c) {
+				return d3.min(c.values, function(v) {
+					return v.value;
+				});
+			}),
+			d3.max(graphs, function(c) {
+				return d3.max(c.values, function(v) {
+					return v.value;
+				});
+			})
+		]);
+
+		svg.append("g") //append x axis to the chart and move(translate to the bottom
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + h + ")")
+			.call(xAxis)
+			.append("text") //append the label for the x axis
+			.attr("x", w) //move to the right hand end
+			.attr("y", 25) //set as -10 to move on top of the x axis
+			.style("text-anchor", "end")
+			.style("font-weight", "bold")
+			.text(columnNames[0]);
+
+		svg.append("g") //append y axis
+			.attr("class", "y axis")
+			.call(yAxis)
+			.append("text") //y axis label
+			.attr("transform", "rotate(-90)") //rotate 90 degrees
+			.attr("y", 6)
+			.attr("dy", ".71em") //distance from y axis to the label
+			.style("text-anchor", "end")
+			.style("font-weight", "bold")
+			.text("Value");
+
+		var graph = svg.selectAll(".graph") //create graphs for the data set
+			.data(graphs)
+			.enter().append("g")
+			.attr("class", "label"); //change text style
+
+		graph.append("path") //add path to the graphs
+			.attr("class", "line")
+			.attr("d", function(d) {
+				return line.interpolate(interpolationMode)(d.values); //interpolate in given interpolationMode and render line
+			})
+			.style("stroke", "steelblue");
+
+		graph.append("text")
+			.datum(function(d) { //to bind data to a single svg element
+				return {
+					name: d.name,
+					value: d.values[d.values.length - 1]
+				};
+			})
+			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
+				return "translate(" + x(d.value.key) + "," + y(d.value.value) + ")";
+			})
+			.attr("x", 3)
+			.attr("dy", ".35em")
+			.text(function(d, i) {
+				return columnNames[i + 1];
+			});
+
+	}
+
+	/**
+	 * By : Fawsan M. <--fawsanm@wso2.com-->
+	 * Function to draw the Table
+	 * @param divId
+	 * @param chartConfig
+	 * @param dataTable
+	 */
+	igviz.drawTableChart = function(divId, chartConfig, dataTable) {
+		var w = chartConfig.width;
+		var h = chartConfig.height;
+		var padding = chartConfig.padding;
+
+		var dataset = dataTable.data.map(function(d) {
+			return {
+				"data": d,
+				"config": chartConfig
+			}
+		});
+		//remove the current table if it is already exist
+		d3.select(divId).select("table").remove();
+
+		var rowLabel = dataTable.metadata.names;
+		var tableData = dataTable.data;
+
+		//Using RGB color code to represent colors
+		//Because the alpha() function use these property change the contrast of the color
+		//
+		var colors = [{
+			r: 255,
+			g: 0,
+			b: 0
+		}, {
+			r: 0,
+			g: 255,
+			b: 0
+		}, {
+			r: 200,
+			g: 100,
+			b: 100
+		}, {
+			r: 200,
+			g: 255,
+			b: 250
+		}, {
+			r: 255,
+			g: 140,
+			b: 100
+		}, {
+			r: 230,
+			g: 100,
+			b: 250
+		}, {
+			r: 0,
+			g: 138,
+			b: 230
+		}, {
+			r: 165,
+			g: 42,
+			b: 42
+		}, {
+			r: 127,
+			g: 0,
+			b: 255
+		}, {
+			r: 0,
+			g: 255,
+			b: 255
+		}];
+
+		//function to change the color depth
+		//default domain is set to [0, 100], but it can be changed according to the dataset
+		var alpha = d3.scale.linear().domain([0, 100]).range([0, 1]);
+
+		//append the Table to the div
+		var table = d3.select(divId).append("table").attr('class', 'table table-bordered');
+
+
+		var colorRows = d3.scale.linear()
+			.domain([2.5, 4])
+			.range(['#F5BFE8', '#E305AF']);
+
+		var fontSize = d3.scale.linear()
+			.domain([0, 100])
+			.range([15, 20]);
+
+		//create the table head
+		thead = table.append("thead");
+
+		//create the table body
+		tbody = table.append("tbody")
+
+		//Append the header to the table
+		thead.append("tr")
+			.selectAll("th")
+			.data(rowLabel)
+			.enter()
+			.append("th")
+			.text(function(d) {
+				return d;
+			});
+
+
+
+		//beginning of jQuery mixed crap
+		var isColorBasedSet = false;
+		var isFontBasedSet = false;
+
+		var rows = tbody.selectAll("tr")
+			.data(tableData)
+			.enter()
+			.append("tr")
+
+		var cells;
+
+		if (isColorBasedSet == true && isFontBasedSet == true) {
+
+
+			//adding the  data to the table rows
+			cells = rows.selectAll("td")
+
+			//Lets do a callback when we get each array from the data set
+			.data(function(d, i) {
+					return d;
+				})
+				//select the table rows (<tr>) and append table data (<td>)
+				.enter()
+				.append("td")
+				.text(function(d, i) {
+					return d;
+				})
+				.style("font-size", function(d, i) {
+
+
+					fontSize.domain([
+						getMin(parseColumnFrom2DArray(tableData, i)),
+						getMax(parseColumnFrom2DArray(tableData, i))
+					]);
+					return fontSize(d) + "px";
+				})
+				.style('background-color', function(d, i) {
+
+					//This is where the color is decided for the cell
+					//The domain set according to the data set we have now
+					//Minimum & maximum values for the particular data column is used as the domain
+					alpha.domain([getMin(parseColumnFrom2DArray(tableData, i)), getMax(parseColumnFrom2DArray(tableData, i))]);
+
+					//return the color for the cell
+					return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
+
+				});
+
+		} else if (isColorBasedSet && !isFontBasedSet) {
+
+			//adding the  data to the table rows
+			cells = rows.selectAll("td")
+
+			//Lets do a callback when we get each array from the data set
+			.data(function(d, i) {
+					return d;
+				})
+				//select the table rows (<tr>) and append table data (<td>)
+				.enter()
+				.append("td")
+				.text(function(d, i) {
+					return d;
+				})
+				.style('background-color', function(d, i) {
+
+					//This is where the color is decided for the cell
+					//The domain set according to the data set we have now
+					//Minimum & maximum values for the particular data column is used as the domain
+					alpha.domain([
+						getMin(parseColumnFrom2DArray(tableData, i)),
+						getMax(parseColumnFrom2DArray(tableData, i))
+					]);
+
+					//return the color for the cell
+					return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
+
+				});
+
+		} else if (!isColorBasedSet && isFontBasedSet) {
+
+			//adding the  data to the table rows
+			cells = rows.selectAll("td")
+
+			//Lets do a callback when we get each array from the data set
+			.data(function(d, i) {
+					return d;
+				})
+				//select the table rows (<tr>) and append table data (<td>)
+				.enter()
+				.append("td")
+				.text(function(d, i) {
+					return d;
+				})
+				.style("font-size", function(d, i) {
+
+					fontSize.domain([
+						getMin(parseColumnFrom2DArray(tableData, i)),
+						getMax(parseColumnFrom2DArray(tableData, i))
+					]);
+					return fontSize(d) + "px";
+				});
+
+		} else {
+
+			//appending the rows inside the table body
+			rows.style('background-color', function(d, i) {
+
+					colorRows.domain([
+						getMin(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
+						getMax(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
+					]);
+					return colorRows(d[chartConfig.xAxis]);
+				})
+				.style("font-size", function(d, i) {
+
+					fontSize.domain([
+						getMin(parseColumnFrom2DArray(tableData, i)),
+						getMax(parseColumnFrom2DArray(tableData, i))
+					]);
+					return fontSize(d) + "px";
+				});
+
+
+			//adding the  data to the table rows
+			cells = rows.selectAll("td")
+				//Lets do a callback when we get each array from the data set
+				.data(function(d, i) {
+					return d;
+				})
+				//select the table rows (<tr>) and append table data (<td>)
+				.enter()
+				.append("td")
+				.text(function(d, i) {
+					return d;
+				})
+
+
+		}
+
+	}
+
+
 	/**
 	 * Util Methods
 	 */
@@ -235,41 +644,39 @@
 	 * @returns {{xScale: *, yScale: *, rScale: *, colorScale: *}}
 	 */
 	function createScales(dataset, chartConfig, dataTable) {
-		//Create scale functions
-
 		var xScale;
 		var yScale;
 		var colorScale;
-		if (dataTable.metadata.types[chartConfig.xAxisData] == 'N') {
+		if (dataTable.metadata.types[chartConfig.xAxis] == 'N') {
 			xScale = d3.scale.linear()
 				.domain([0, d3.max(dataset, function(d) {
-					return d.data[d.config.xAxisData];
+					return d.data[d.config.xAxis];
 				})])
-				.range([chartConfig.padding, chartConfig.chartWidth - chartConfig.padding]);
+				.range([chartConfig.padding, chartConfig.width - chartConfig.padding]);
 		} else {
 			xScale = d3.scale.ordinal()
 				.domain(dataset.map(function(d) {
-					return d.data[chartConfig.xAxisData];
+					return d.data[chartConfig.xAxis];
 				}))
-				.rangeRoundBands([chartConfig.padding, chartConfig.chartWidth - chartConfig.padding], .1)
+				.rangeRoundBands([chartConfig.padding, chartConfig.width - chartConfig.padding], .1)
 		}
 
 		//TODO hanle case r and color are missing
 
-		if (dataTable.metadata.types[chartConfig.yAxisData] == 'N') {
+		if (dataTable.metadata.types[chartConfig.yAxis] == 'N') {
 			yScale = d3.scale.linear()
 				.domain([0, d3.max(dataset, function(d) {
-					return d.data[d.config.yAxisData];
+					return d.data[d.config.yAxis];
 				})])
-				.range([chartConfig.chartHight - chartConfig.padding, chartConfig.padding]);
+				.range([chartConfig.height - chartConfig.padding, chartConfig.padding]);
 			//var yScale = d3.scale.linear()
 			//    .range([height, 0])
-			//    .domain([0, d3.max(dataset, function(d) { return d.data[d.config.yAxisData]; })])
+			//    .domain([0, d3.max(dataset, function(d) { return d.data[d.config.yAxis]; })])
 		} else {
 			yScale = d3.scale.ordinal()
-				.rangeRoundBands([0, chartConfig.chartWidth], .1)
+				.rangeRoundBands([0, chartConfig.width], .1)
 				.domain(dataset.map(function(d) {
-					return d.data[chartConfig.yAxisData];
+					return d.data[chartConfig.yAxis];
 				}))
 		}
 
@@ -316,8 +723,8 @@
 	 */
 
 	function createXYAxises(svg, plotCtx, chartConfig, dataTable) {
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//Define X axis
@@ -339,7 +746,7 @@
 			.call(xAxis);
 
 		//if categroical, we slant the text
-		if (dataTable.metadata.types[chartConfig.xAxisData] == 'C') {
+		if (dataTable.metadata.types[chartConfig.xAxis] == 'C') {
 			axis.selectAll("text")
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
@@ -355,7 +762,7 @@
 			.attr("x", w - padding / 5)
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
-			.text(dataTable.metadata.names[chartConfig.xAxisData]);
+			.text(dataTable.metadata.names[chartConfig.xAxis]);
 
 
 		//Create Y axis
@@ -370,7 +777,7 @@
 			.attr("transform", "rotate(-90)")
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
-			.text(dataTable.metadata.names[chartConfig.yAxisData]);
+			.text(dataTable.metadata.names[chartConfig.yAxis]);
 	}
 
 
@@ -386,10 +793,10 @@
 		//TODO have to handle the case color scale is categorical
 		group1.append("circle")
 			.attr("cx", function(d) {
-				return xScale(d.data[d.config.xAxisData]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("cy", function(d) {
-				return yScale(d.data[d.config.yAxisData]);
+				return yScale(d.data[d.config.yAxis]);
 			})
 			.attr("r", function(d) {
 				if (d.config.pointSize != -1) {
@@ -422,10 +829,10 @@
 		//TODO make this nicer
 		group1.append("text")
 			.attr("x", function(d) {
-				return xScale(d.data[d.config.xAxisData]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("y", function(d) {
-				return yScale(d.data[d.config.yAxisData]) - 10;
+				return yScale(d.data[d.config.yAxis]) - 10;
 			})
 			.style("font-family", "sans-serif")
 			.style("font-size", "10px")
@@ -437,6 +844,142 @@
 					return "3";
 				}
 			});
+	}
+
+
+
+	//++++++++++++++++++++++++++++++++++++++++++++++ Utils functions written by Fawsan ++++++++++++++++++++++++++++++++
+
+	/**
+	 * Get teh maximum of a numaric array
+	 * @param data
+	 * @returns {*}
+	 */
+	function getMax(data) {
+
+		var max = data[0];
+
+		for (var i = 0; i < data.length; i++) {
+			if (max < data[i]) {
+				max = data[i];
+			}
+		}
+		return max;
+	}
+
+	/**
+	 * Get the minimum value of a numeric array
+	 * @param data
+	 * @returns {*}
+	 */
+	function getMin(data) {
+
+		var min = data[0];
+
+		for (var i = 0; i < data.length; i++) {
+			if (min > data[i]) {
+				min = data[i];
+			}
+		}
+		return min;
+	}
+
+	/**
+	 * Get the average of a numeric array
+	 * @param data
+	 * @returns average
+	 */
+	function getAvg(data) {
+
+		var sum = 0;
+
+		for (var i = 0; i < data.length; i++) {
+			sum = sum + data[i];
+		}
+
+		var average = (sum / data.length).toFixed(4);
+		return average;
+	}
+
+	/**
+	 * Function to calculate the standard deviation
+	 * @param values
+	 * @returns sigma(standard deviation)
+	 */
+	function standardDeviation(values) {
+		var avg = getAvg(values);
+
+		var squareDiffs = values.map(function(value) {
+			var diff = value - avg;
+			var sqrDiff = diff * diff;
+			return sqrDiff;
+		});
+
+		var avgSquareDiff = getAvg(squareDiffs);
+
+		var stdDev = Math.sqrt(avgSquareDiff);
+		return stdDev;
+	}
+
+	/**
+	 * Get the p(x) : Helper function for the standard deviation
+	 * @param x
+	 * @param sigma
+	 * @param u
+	 * @returns {number|*}
+	 */
+	function pX(x, sigma, u) {
+
+		p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
+
+		return p;
+	}
+
+
+	/**
+	 * Get the normalized values for a list of elements
+	 * @param xVals
+	 * @returns {Array} of normalized values
+	 *
+	 */
+	function NormalizationCoordinates(xVals) {
+
+		var coordinates = [];
+
+		var u = getAvg(xVals);
+		var sigma = standardDeviation(xVals);
+
+		for (var i = 0; i < xVals.length; i++) {
+
+			coordinates[i] = {
+				x: xVals[i],
+				y: pX(xVals[i], sigma, u)
+			};
+		}
+
+		return coordinates;
+	}
+
+	/**
+	 * This function will extract a column from a multi dimensional array
+	 * @param 2D array
+	 * @param index of column to be extracted
+	 * @return array of values
+	 */
+
+	function parseColumnFrom2DArray(dataset, index) {
+
+		var array = [];
+
+		//console.log(dataset.length);
+		//console.log(dataset[0].data);
+		//console.log(dataset[1].data);
+
+		for (var i = 0; i < dataset.length; i++) {
+			array.push(dataset[i][index])
+		}
+
+		return array;
 	}
 
 
