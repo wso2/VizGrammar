@@ -167,18 +167,21 @@
 		d3.select(svgID).remove();
 
 
+
 		var svg = d3.select(divId)
 			.append("svg")
 			.attr("id", svgID.replace("#", ""))
 			.attr("width", width)
 			.attr("height", height);
 
+		console.log('teets');
 		createXYAxises(svg, plotCtx, chartConfig, dataTable);
 
 		//Now we really drwa by creating rectangles. The layout is done such a way that (0,0)
 		// starts from bottom left corner as usual.
 		//TODO handle multiple column groups using color
 		//http://bl.ocks.org/mbostock/3887051
+
 		svg.selectAll(".bar")
 			.data(dataset)
 			.enter().append("rect")
@@ -192,7 +195,10 @@
 			})
 			.attr("height", function(d) {
 				return height - yScale(d.data[d.config.yAxis]) - padding;
-			});
+			}).style("fill",chartConfig.barColor);
+
+		//d3.selectAll('.bar');
+
 	};
 
 
@@ -242,6 +248,7 @@
 			.data(dataset)
 			.enter()
 			.append("g");
+
 		configurePoints(group1, xScale, yScale, rScale, colorScale);
 		configurePointLabels(group1, xScale, yScale);
 	};
@@ -416,7 +423,7 @@
 				.domain([-1, d3.max(dataset, function(d) {
 					return d.config.pointColor ? d.data[d.config.pointColor] : 20;
 				})])
-				.range(["blue", "green"]);
+				.range([chartConfig.dotColorLowerLimit, chartConfig.dotColorUpperLimit]);
 		} else {
 			colorScale = d3.scale.category20c();
 		}
@@ -466,12 +473,13 @@
 
 		//if categroical, we slant the text
 		if (dataTable.metadata.types[chartConfig.xAxis] == 'C') {
+
 			axis.selectAll("text")
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
 				.attr("dy", ".15em")
 				.attr("transform", function(d) {
-					return "rotate(-65)"
+					return "rotate("+chartConfig.textAngle+")"
 				});
 		}
 
