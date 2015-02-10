@@ -4,7 +4,9 @@
   <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
   <link rel="stylesheet" href="bootstrap.min.css">
   <link rel="stylesheet" href="../igviz.css">
-<meta charset="utf-8">
+    <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+
+    <meta charset="utf-8">
 
     <style type="text/css">
         body{ padding-top: 40px;}
@@ -54,6 +56,7 @@
             </div>
              <!-- /.row -->
 
+
              <div class="row">
                 <h3>Sample code for above charts</h3>
                 <pre>
@@ -88,26 +91,30 @@
 
                         var barChartConfig = {
                             "title": "Area By Country",
-                            "yAxisData": 1,
-                            "xAxisData": 0,
-                            "pointLabel": 0,
-                            "chartWidth": width,
-                            "chartHight": height,
+                            "yAxis": 1,
+                            "xAxis": 0,
+                            "width": width,
+                            "height": height,
                             "padding": 60,
-                            "chartType": "bar"
+                            "chartType": "bar",
+                            "barColor": "green",
+                            "textAngle":-90
                         }
 
                         var scatterChartConfig = {
                             "title": "Area By Country",
-                            "yAxisData": 1,
-                            "xAxisData": 0,
+                            "yAxis": 1,
+                            "xAxis": 0,
                             "pointLabel": 0,
-                            "chartWidth": width,
-                            "chartHight": height,
+                            "width": width,
+                            "height": height,
                             "padding": 60,
                             "pointColor": 3,
                             "pointSize": 4,
-                            "chartType": "scatter"
+                            "chartType": "scatter",
+                            "textAngle":-90,
+                            "dotColorUpperLimit":"red",
+                            "dotColorLowerLimit":"blue"
                         }
 
                         //draw a bar chart on div #bar
@@ -158,28 +165,30 @@ var dataTable = {
 
     var barChartConfig = {
         "title": "Area By Country",
-        "yAxisData": 1,
-        "xAxisData": 0,
-        "pointLabel": 0,
-        "chartWidth": width,
-        "chartHight": height,
+        "yAxis": 1,
+        "xAxis": 0,
+        "width": width,
+        "height": height,
         "padding": 60,
         "chartType": "bar",
-        "textAngle" : -90
+        "barColor": "green",
+        "textAngle":-90
     }
 
     var scatterChartConfig = {
         "title": "Area By Country",
-        "yAxisData": 1,
-        "xAxisData": 0,
+        "yAxis": 1,
+        "xAxis": 0,
         "pointLabel": 0,
-        "chartWidth": width,
-        "chartHight": height,
+        "width": width,
+        "height": height,
         "padding": 60,
         "pointColor": 3,
         "pointSize": 4,
         "chartType": "scatter",
-        "textAngle" : -90
+        "textAngle":-90,
+        "dotColorUpperLimit":"red",
+        "dotColorLowerLimit":"blue"
     }
 
     //draw a bar chart on div #bar
