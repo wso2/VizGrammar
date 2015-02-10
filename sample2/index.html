@@ -2,11 +2,14 @@
 <html>
 <head>
   <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
+
   <link rel="stylesheet" href="bootstrap.min.css">
   <link rel="stylesheet" href="../igviz.css">
-    <script type='text/javascript' src='https://www.google.com/jsapi'></script>
 
-    <meta charset="utf-8">
+  <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+
+
+<meta charset="utf-8">
 
     <style type="text/css">
         body{ padding-top: 40px;}
@@ -54,8 +57,30 @@
               </div>
 
             </div>
-             <!-- /.row -->
 
+
+          <div class="row">
+
+              <div class="col-md-6">
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <h3 class="panel-title">
+                              Map  Sample
+                          </h3>
+                      </div>
+                      <div class="panel-body">
+                          <div id="map">
+
+                          </div>
+                      </div>
+
+                  </div>
+              </div>
+
+
+          </div>
+
+             <!-- /.row -->
 
              <div class="row">
                 <h3>Sample code for above charts</h3>
@@ -91,31 +116,55 @@
 
                         var barChartConfig = {
                             "title": "Area By Country",
-                            "yAxis": 1,
-                            "xAxis": 0,
-                            "width": width,
-                            "height": height,
+                            "yAxisData": 1,
+                            "xAxisData": 0,
+                            "pointLabel": 0,
+                            "chartWidth": width,
+                            "chartHight": height,
                             "padding": 60,
                             "chartType": "bar"
                         }
 
                         var scatterChartConfig = {
                             "title": "Area By Country",
-                            "yAxis": 1,
-                            "xAxis": 0,
+                            "yAxisData": 1,
+                            "xAxisData": 0,
                             "pointLabel": 0,
-                            "width": width,
-                            "height": height,
+                            "chartWidth": width,
+                            "chartHight": height,
                             "padding": 60,
                             "pointColor": 3,
                             "pointSize": 4,
                             "chartType": "scatter"
                         }
 
+
+                        var mapConfig={
+                            "title": "Map By Country",
+                            "chartWidth": width,
+                            "chartHight": height,
+                            "padding": 60,
+                            "pointColor": 3,
+                            "pointSize": 1,
+                            "chartType": "map",
+                            "mapLocation" : 0,
+                            "mode" :"regions",     //possible options for mode:"markers"| "normal" | "satellite"
+                            "region" : 150    //possible options for region:"LK" | "US" ... OR any value which matches with "ISO 3166-1 alpha-2"
+
+                        }
+
+
+
                         //draw a bar chart on div #bar
                         igviz.plot("#bar",barChartConfig,dataTable);
+
                         //draw a scatter chart on div #scatter
                         igviz.plot("#scatter",scatterChartConfig,dataTable);
+
+                        //draw a Map on #map
+                        //for this operation
+                        igviz.plot("#map",mapConfig,dataTable);
+
                 </pre>
             </div>
 
@@ -160,31 +209,51 @@ var dataTable = {
 
     var barChartConfig = {
         "title": "Area By Country",
-        "yAxis": 1,
-        "xAxis": 0,
-        "width": width,
-        "height": height,
+        "yAxisData": 1,
+        "xAxisData": 0,
+        "pointLabel": 0,
+        "chartWidth": width,
+        "chartHight": height,
         "padding": 60,
         "chartType": "bar"
     }
 
     var scatterChartConfig = {
         "title": "Area By Country",
-        "yAxis": 1,
-        "xAxis": 0,
+        "yAxisData": 1,
+        "xAxisData": 0,
         "pointLabel": 0,
-        "width": width,
-        "height": height,
+        "chartWidth": width,
+        "chartHight": height,
         "padding": 60,
         "pointColor": 3,
         "pointSize": 4,
         "chartType": "scatter"
     }
 
+    var mapConfig={
+        "title": "Map By Country",
+        //"yAxisData": 1,
+       // "xAxisData": 0,
+      //  "pointLabel": 0,
+        "chartWidth": width,
+        "chartHight": height,
+        "padding": 60,
+        "pointColor": 3,
+        "pointSize": 1,
+        "chartType": "map",
+        "mapLocation" : 0,
+        "mode" :"regions",   // "markers"| "normal" | "satellite"
+        "region" : 150       //  "LK" | "US" | "GB" ...
+    }
+
     //draw a bar chart on div #bar
     igviz.plot("#bar",barChartConfig,dataTable);
     //draw a scatter chart on div #scatter
     igviz.plot("#scatter",scatterChartConfig,dataTable);
+
+
+    igviz.plot("#map",mapConfig,dataTable);
 
 
 </script>

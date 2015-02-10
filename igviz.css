@@ -1,4 +1,8 @@
 
+.buttonContainer {
+    margin: 10px;
+}
+
 svg {
     background-color: white;
 }
@@ -7,8 +11,8 @@ svg {
 .axis line {
     fill: none;
     shape-rendering: crispEdges;
-    stroke: black;
-    stroke-width: 1;
+    stroke: grey;
+    stroke-width: 2;
 }
 
 .axis text {
@@ -58,20 +62,30 @@ svg {
     background-color: AliceBlue;
 }
 
-/*path {
+#normalizationCurve path {
     stroke: steelblue;
     stroke-width: 2;
     fill: none;
-}*/
+}
 
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    /*stroke-width: 1;*/
+    shape-rendering: crispEdges;
+}
 
-
-/*.line {
+.line {
     fill: none;
     stroke: steelblue;
     stroke-width: 1.5px;
-}*/
+}
 
+p {
+    display: inline;
+    font-size: 14px;
+}
 
 .top-buffer {
     margin-top: 50px;
@@ -97,10 +111,4 @@ svg {
     fill:none;
    stroke-width:3;
    stroke:rgb(0,0,0);
-}
-
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
 }
