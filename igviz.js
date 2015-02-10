@@ -1,7 +1,6 @@
 (function() {
-
+	
 	var igviz = window.igviz || {};
-
 
 	igviz.version = '1.0.0';
 	igviz.dev = true; //set false when in production
@@ -15,12 +14,136 @@
 			this.drawScatterPlot(canvas, config, dataTable);
 		} else if (config.chartType == "singleNumber") {
 			this.drawSingleNumberDiagram(canvas, config, dataTable);
-		} else if (config.chartType == "line") {
-			this.drawLineChart(canvas, config, dataTable);
-		} else if (config.chartType == "table") {
-			this.drawTableChart(canvas, config, dataTable);
+		} else if (config.chartType == "map") {
+			this.drawMap(canvas, config, dataTable);
 		}
 	};
+
+	igviz.drawMap = function(divId, chartConfig, dataTable) { //add this
+		//Width and height
+		divId = divId.substr(1);
+		var w = chartConfig.width;
+		var h = chartConfig.height;
+
+		var mode = chartConfig.mode;
+		var regionO = chartConfig.region;
+
+
+		//prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
+		//so you can use util methods
+		var dataset = dataTable.data.map(function(d, i) {
+			return {
+				"data": d,
+				"config": chartConfig,
+				"name": dataTable.metadata.names[i]
+			}
+		});
+
+		var tempArray = [];
+		var mainArray = [];
+
+		var locIndex = dataset[0].config.mapLocation;
+		var pColIndex = dataset[0].config.pointColor;
+		var pSizIndex = dataset[0].config.pointSize;
+		tempArray.push(dataset[locIndex].name, dataset[pColIndex].name, dataset[pSizIndex].name);
+		mainArray.push(tempArray);
+
+		for (var counter = 0; counter < dataset.length; counter++) {
+			tempArray = [];
+			tempArray.push(dataset[counter].data[locIndex], dataset[counter].data[pColIndex], dataset[counter].data[pSizIndex]);
+			mainArray.push(tempArray);
+		}
+
+		var mainStrArray = [];
+
+		for (var i = 0; i < mainArray.length; i++) {
+			var tempArr = mainArray[i];
+			var str = '';
+			for (var j = 1; j < tempArr.length; j++) {
+				str += mainArray[0][j] + ':' + tempArr[j] + ' , '
+			}
+			str = str.substring(0, str.length - 3);
+			str = mainArray[i][0].toUpperCase() + "\n" + str;
+			tempArray = [];
+			tempArray.push(mainArray[i][0]);
+			tempArray.push(str);
+			mainStrArray.push(tempArray);
+		};
+
+		//hardcoded
+		// alert(divId);
+		document.getElementById(divId).setAttribute("style", "width: " + w + "px; height: " + h + "px;");
+
+
+		update(mainStrArray, mainArray);
+
+		function update(arrayStr, array) {
+
+			//hardcoded options
+			//            var dropDown = document.getElementById("mapType");        //select dropdown box Element
+			//            var option = dropDown.options[dropDown.selectedIndex].text;     //get Text selected in drop down box to the 'Option' variable
+			//
+			//            var dropDownReg = document.getElementById("regionType");        //select dropdown box Element
+			//            regionO = dropDownReg.options[dropDownReg.selectedIndex].value;     //get Text selected in drop down box to the 'Option' variable
+
+
+			if (mode == 'satellite' || mode == "terrain" || mode == 'normal') {
+				drawMap(arrayStr);
+			}
+			if (mode == 'regions' || mode == "markers") {
+
+				drawMarkersMap(array);
+			}
+
+		}
+
+
+		function drawMap(array) {
+			var data = google.visualization.arrayToDataTable(array
+				// ['City', 'Population'],
+				// ['Bandarawela', 'Bandarawela:2761477'],
+				// ['Jaffna', 'Jaffna:1924110'],
+				// ['Kandy', 'Kandy:959574']
+			);
+
+			var options = {
+				showTip: true,
+				useMapTypeControl: true,
+				mapType: mode
+			};
+
+			//hardcoded
+			var map = new google.visualization.Map(document.getElementById(divId));
+			map.draw(data, options);
+		};
+
+		function drawMarkersMap(array) {
+			console.log(google)
+			console.log(google.visualization);
+			var data = google.visualization.arrayToDataTable(array);
+
+			var options = {
+				region: regionO,
+				displayMode: mode,
+				colorAxis: {
+					colors: ['red', 'blue']
+				},
+				magnifyingGlass: {
+					enable: true,
+					zoomFactor: 3.0
+				},
+				enableRegionInteractivity: true
+					//legend:{textStyle: {color: 'blue', fontSize: 16}}
+			};
+
+			//hardcoded
+			var chart = new google.visualization.GeoChart(document.getElementById(divId));
+			chart.draw(data, options);
+		};
+
+
+	}
+
 
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
 		var width = chartConfig.width;
@@ -54,12 +177,13 @@
 
 		//Now we really drwa by creating rectangles. The layout is done such a way that (0,0)
 		// starts from bottom left corner as usual.
+		//TODO handle multiple column groups using color
+		//http://bl.ocks.org/mbostock/3887051
 		svg.selectAll(".bar")
 			.data(dataset)
 			.enter().append("rect")
 			.attr("class", "bar")
 			.attr("x", function(d) {
-				//console.log(d.data[d.config.xAxis]);
 				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("width", xScale.rangeBand())
@@ -225,413 +349,6 @@
 
 	};
 
-	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
-		var w = chartConfig.width; //Width and height and margins
-		var h = chartConfig.height;
-		var margin = {
-			top: 20,
-			right: 80,
-			bottom: 30,
-			left: 50
-		};
-
-		var dataSet = dataTable.data.map(function(d) {
-			return {
-				"data": d,
-				"config": chartConfig
-			}
-		});
-
-		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
-		var yAxis = chartConfig.yAxis;
-
-		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
-		var yAxisName = dataTable.metadata.names[yAxis];
-
-		var columnNames = [xAxisName, yAxisName];
-
-		dataSet.sort(function(a, b) { //sort the data set with respect to the x coordinates
-			return a.data[xAxis] - b.data[xAxis];
-		});
-
-		var data = []; //empty array to load the selected data and organize in the required format
-		for (var i = 0; i < dataSet.length; i++) {
-			data.push({
-				key: dataSet[i].data[xAxis], //x axis data
-				y1: dataSet[i].data[yAxis]
-			});
-		}
-
-		var svgID = divId + "_svg"; //svg container in which the chart shall be drawn
-		d3.select(svgID).remove(); //Remove current SVG if it is already there
-
-		var svg = d3.select(divId) //Create SVG element
-			.append("svg")
-			.attr("id", svgID.replace("#", ""))
-			.attr("width", w + 100) //width
-			.attr("height", h + 50) //height
-			.append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
-
-		var interpolationMode = "cardinal"; //interpolation mode [linear, basis, step before, step after, cardinal]
-		if (chartConfig.interpolationMode != undefined) {
-			interpolationMode = chartConfig.interpolationMode;
-		}
-
-		var ordinal = d3.scale.ordinal(); //scale to map y coordinates
-
-		var x = d3.scale.linear() //scale for x axis
-			.range([0, w]);
-
-		var y = d3.scale.linear() //scale for y axis
-			.range([h, 0]);
-
-		var xAxis = d3.svg.axis() //define x axis
-			.scale(x)
-			.orient("bottom");
-
-		var yAxis = d3.svg.axis() //define y axis
-			.scale(y)
-			.orient("left");
-
-		var line = d3.svg.line() //svg element to connect the coordinates as a path
-			.x(function(d) {
-				return x(d.key); //scale x coordinates
-			})
-			.y(function(d) {
-				return y(d.value); //scale y coordinates
-			});
-
-		ordinal.domain(d3.keys(data[0]).filter(function(d) {
-			return d !== "key"; //get key list as the scale domain except the one which is exactly "key" as it should be the x variable set
-		}));
-
-		x.domain(d3.extent(data, function(d) {
-			return d.key; //define the domain of x scale
-		}));
-
-		var graphs = ordinal.domain().map(function(name) { //organize data in the format, {name,{key,value}}, {key,value}-values
-			return {
-				name: name,
-				values: data.map(function(d) {
-					return {
-						key: d.key,
-						value: +d[name]
-					};
-				})
-			};
-		});
-
-		y.domain([ //define the domain of y scale i.e- minimum value of all y coordinates to max of all y coordinates
-			d3.min(graphs, function(c) {
-				return d3.min(c.values, function(v) {
-					return v.value;
-				});
-			}),
-			d3.max(graphs, function(c) {
-				return d3.max(c.values, function(v) {
-					return v.value;
-				});
-			})
-		]);
-
-		svg.append("g") //append x axis to the chart and move(translate to the bottom
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + h + ")")
-			.call(xAxis)
-			.append("text") //append the label for the x axis
-			.attr("x", w) //move to the right hand end
-			.attr("y", 25) //set as -10 to move on top of the x axis
-			.style("text-anchor", "end")
-			.style("font-weight", "bold")
-			.text(columnNames[0]);
-
-		svg.append("g") //append y axis
-			.attr("class", "y axis")
-			.call(yAxis)
-			.append("text") //y axis label
-			.attr("transform", "rotate(-90)") //rotate 90 degrees
-			.attr("y", 6)
-			.attr("dy", ".71em") //distance from y axis to the label
-			.style("text-anchor", "end")
-			.style("font-weight", "bold")
-			.text("Value");
-
-		var graph = svg.selectAll(".graph") //create graphs for the data set
-			.data(graphs)
-			.enter().append("g")
-			.attr("class", "label"); //change text style
-
-		graph.append("path") //add path to the graphs
-			.attr("class", "line")
-			.attr("d", function(d) {
-				return line.interpolate(interpolationMode)(d.values); //interpolate in given interpolationMode and render line
-			})
-			.style("stroke", "steelblue");
-
-		graph.append("text")
-			.datum(function(d) { //to bind data to a single svg element
-				return {
-					name: d.name,
-					value: d.values[d.values.length - 1]
-				};
-			})
-			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
-				return "translate(" + x(d.value.key) + "," + y(d.value.value) + ")";
-			})
-			.attr("x", 3)
-			.attr("dy", ".35em")
-			.text(function(d, i) {
-				return columnNames[i + 1];
-			});
-
-	}
-
-	/**
-	 * By : Fawsan M. <--fawsanm@wso2.com-->
-	 * Function to draw the Table
-	 * @param divId
-	 * @param chartConfig
-	 * @param dataTable
-	 */
-	igviz.drawTableChart = function(divId, chartConfig, dataTable) {
-		var w = chartConfig.width;
-		var h = chartConfig.height;
-		var padding = chartConfig.padding;
-
-		var dataset = dataTable.data.map(function(d) {
-			return {
-				"data": d,
-				"config": chartConfig
-			}
-		});
-		//remove the current table if it is already exist
-		d3.select(divId).select("table").remove();
-
-		var rowLabel = dataTable.metadata.names;
-		var tableData = dataTable.data;
-
-		//Using RGB color code to represent colors
-		//Because the alpha() function use these property change the contrast of the color
-		//
-		var colors = [{
-			r: 255,
-			g: 0,
-			b: 0
-		}, {
-			r: 0,
-			g: 255,
-			b: 0
-		}, {
-			r: 200,
-			g: 100,
-			b: 100
-		}, {
-			r: 200,
-			g: 255,
-			b: 250
-		}, {
-			r: 255,
-			g: 140,
-			b: 100
-		}, {
-			r: 230,
-			g: 100,
-			b: 250
-		}, {
-			r: 0,
-			g: 138,
-			b: 230
-		}, {
-			r: 165,
-			g: 42,
-			b: 42
-		}, {
-			r: 127,
-			g: 0,
-			b: 255
-		}, {
-			r: 0,
-			g: 255,
-			b: 255
-		}];
-
-		//function to change the color depth
-		//default domain is set to [0, 100], but it can be changed according to the dataset
-		var alpha = d3.scale.linear().domain([0, 100]).range([0, 1]);
-
-		//append the Table to the div
-		var table = d3.select(divId).append("table").attr('class', 'table table-bordered');
-
-
-		var colorRows = d3.scale.linear()
-			.domain([2.5, 4])
-			.range(['#F5BFE8', '#E305AF']);
-
-		var fontSize = d3.scale.linear()
-			.domain([0, 100])
-			.range([15, 20]);
-
-		//create the table head
-		thead = table.append("thead");
-
-		//create the table body
-		tbody = table.append("tbody")
-
-		//Append the header to the table
-		thead.append("tr")
-			.selectAll("th")
-			.data(rowLabel)
-			.enter()
-			.append("th")
-			.text(function(d) {
-				return d;
-			});
-
-
-
-		//beginning of jQuery mixed crap
-		var isColorBasedSet = false;
-		var isFontBasedSet = false;
-
-		var rows = tbody.selectAll("tr")
-			.data(tableData)
-			.enter()
-			.append("tr")
-
-		var cells;
-
-		if (isColorBasedSet == true && isFontBasedSet == true) {
-
-
-			//adding the  data to the table rows
-			cells = rows.selectAll("td")
-
-			//Lets do a callback when we get each array from the data set
-			.data(function(d, i) {
-					return d;
-				})
-				//select the table rows (<tr>) and append table data (<td>)
-				.enter()
-				.append("td")
-				.text(function(d, i) {
-					return d;
-				})
-				.style("font-size", function(d, i) {
-
-
-					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
-					]);
-					return fontSize(d) + "px";
-				})
-				.style('background-color', function(d, i) {
-
-					//This is where the color is decided for the cell
-					//The domain set according to the data set we have now
-					//Minimum & maximum values for the particular data column is used as the domain
-					alpha.domain([getMin(parseColumnFrom2DArray(tableData, i)), getMax(parseColumnFrom2DArray(tableData, i))]);
-
-					//return the color for the cell
-					return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
-
-				});
-
-		} else if (isColorBasedSet && !isFontBasedSet) {
-
-			//adding the  data to the table rows
-			cells = rows.selectAll("td")
-
-			//Lets do a callback when we get each array from the data set
-			.data(function(d, i) {
-					return d;
-				})
-				//select the table rows (<tr>) and append table data (<td>)
-				.enter()
-				.append("td")
-				.text(function(d, i) {
-					return d;
-				})
-				.style('background-color', function(d, i) {
-
-					//This is where the color is decided for the cell
-					//The domain set according to the data set we have now
-					//Minimum & maximum values for the particular data column is used as the domain
-					alpha.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
-					]);
-
-					//return the color for the cell
-					return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
-
-				});
-
-		} else if (!isColorBasedSet && isFontBasedSet) {
-
-			//adding the  data to the table rows
-			cells = rows.selectAll("td")
-
-			//Lets do a callback when we get each array from the data set
-			.data(function(d, i) {
-					return d;
-				})
-				//select the table rows (<tr>) and append table data (<td>)
-				.enter()
-				.append("td")
-				.text(function(d, i) {
-					return d;
-				})
-				.style("font-size", function(d, i) {
-
-					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
-					]);
-					return fontSize(d) + "px";
-				});
-
-		} else {
-
-			//appending the rows inside the table body
-			rows.style('background-color', function(d, i) {
-
-					colorRows.domain([
-						getMin(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
-						getMax(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
-					]);
-					return colorRows(d[chartConfig.xAxis]);
-				})
-				.style("font-size", function(d, i) {
-
-					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
-					]);
-					return fontSize(d) + "px";
-				});
-
-
-			//adding the  data to the table rows
-			cells = rows.selectAll("td")
-				//Lets do a callback when we get each array from the data set
-				.data(function(d, i) {
-					return d;
-				})
-				//select the table rows (<tr>) and append table data (<td>)
-				.enter()
-				.append("td")
-				.text(function(d, i) {
-					return d;
-				})
-
-
-		}
-
-	}
-
-
 	/**
 	 * Util Methods
 	 */
@@ -644,6 +361,8 @@
 	 * @returns {{xScale: *, yScale: *, rScale: *, colorScale: *}}
 	 */
 	function createScales(dataset, chartConfig, dataTable) {
+		//Create scale functions
+
 		var xScale;
 		var yScale;
 		var colorScale;
@@ -844,142 +563,6 @@
 					return "3";
 				}
 			});
-	}
-
-
-
-	//++++++++++++++++++++++++++++++++++++++++++++++ Utils functions written by Fawsan ++++++++++++++++++++++++++++++++
-
-	/**
-	 * Get teh maximum of a numaric array
-	 * @param data
-	 * @returns {*}
-	 */
-	function getMax(data) {
-
-		var max = data[0];
-
-		for (var i = 0; i < data.length; i++) {
-			if (max < data[i]) {
-				max = data[i];
-			}
-		}
-		return max;
-	}
-
-	/**
-	 * Get the minimum value of a numeric array
-	 * @param data
-	 * @returns {*}
-	 */
-	function getMin(data) {
-
-		var min = data[0];
-
-		for (var i = 0; i < data.length; i++) {
-			if (min > data[i]) {
-				min = data[i];
-			}
-		}
-		return min;
-	}
-
-	/**
-	 * Get the average of a numeric array
-	 * @param data
-	 * @returns average
-	 */
-	function getAvg(data) {
-
-		var sum = 0;
-
-		for (var i = 0; i < data.length; i++) {
-			sum = sum + data[i];
-		}
-
-		var average = (sum / data.length).toFixed(4);
-		return average;
-	}
-
-	/**
-	 * Function to calculate the standard deviation
-	 * @param values
-	 * @returns sigma(standard deviation)
-	 */
-	function standardDeviation(values) {
-		var avg = getAvg(values);
-
-		var squareDiffs = values.map(function(value) {
-			var diff = value - avg;
-			var sqrDiff = diff * diff;
-			return sqrDiff;
-		});
-
-		var avgSquareDiff = getAvg(squareDiffs);
-
-		var stdDev = Math.sqrt(avgSquareDiff);
-		return stdDev;
-	}
-
-	/**
-	 * Get the p(x) : Helper function for the standard deviation
-	 * @param x
-	 * @param sigma
-	 * @param u
-	 * @returns {number|*}
-	 */
-	function pX(x, sigma, u) {
-
-		p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
-
-		return p;
-	}
-
-
-	/**
-	 * Get the normalized values for a list of elements
-	 * @param xVals
-	 * @returns {Array} of normalized values
-	 *
-	 */
-	function NormalizationCoordinates(xVals) {
-
-		var coordinates = [];
-
-		var u = getAvg(xVals);
-		var sigma = standardDeviation(xVals);
-
-		for (var i = 0; i < xVals.length; i++) {
-
-			coordinates[i] = {
-				x: xVals[i],
-				y: pX(xVals[i], sigma, u)
-			};
-		}
-
-		return coordinates;
-	}
-
-	/**
-	 * This function will extract a column from a multi dimensional array
-	 * @param 2D array
-	 * @param index of column to be extracted
-	 * @return array of values
-	 */
-
-	function parseColumnFrom2DArray(dataset, index) {
-
-		var array = [];
-
-		//console.log(dataset.length);
-		//console.log(dataset[0].data);
-		//console.log(dataset[1].data);
-
-		for (var i = 0; i < dataset.length; i++) {
-			array.push(dataset[i][index])
-		}
-
-		return array;
 	}
 
 
