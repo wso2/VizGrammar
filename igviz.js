@@ -7,6 +7,34 @@
 
 	window.igviz = igviz;
 
+
+	//Chart class that represents a single chart
+	function Chart (canvas,config, dataTable) {
+		this.dataTable = dataTable;
+		this.config = config;
+		this.canvas = canvas;
+	}
+
+
+	//Redraw the chart with newly populated data
+	//@data An array of arrays that holds new data 
+	//E.g
+	// chart.load([
+    //                ["Belgium",64589,16800,4.4,72.93,1.1,-0.6,12.8],
+    //                ["Italy",601340,30500,2.9,81.86,1.8,0.38,8.4]
+    //            ]);
+	Chart.prototype.load = function(data) {
+		for (var i = 0; i < data.length; i++) {
+			this.dataTable.addRow(data[i])
+		};
+		igviz.plot(this.canvas, this.config, this.dataTable);
+	};
+
+	Chart.prototype.unload = function() {
+		//TODO implement me!
+	};
+
+
 	igviz.plot = function(canvas, config, dataTable) {
 		if (config.chartType == "bar") {
 			this.drawBarChart(canvas, config, dataTable);
@@ -21,6 +49,7 @@
 		} else if (config.chartType == "table") {
 			this.drawTableChart(canvas, config, dataTable);
 		}
+		return new Chart(canvas,config, dataTable);
 	};
 
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
@@ -72,7 +101,6 @@
 				return height - yScale(d.data[d.config.yAxis]) - padding;
 			});
 	};
-
 
 	igviz.drawScatterPlot = function(divId, chartConfig, dataTable) {
 		//Width and height
@@ -223,8 +251,6 @@
 			.style("fill", "black")
 			.style("text-anchor", "middle")
 			.style("lignment-baseline", "middle");
-
-
 	};
 
 	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
@@ -386,8 +412,7 @@
 			.text(function(d, i) {
 				return columnNames[i + 1];
 			});
-
-	}
+	};
 
 	/**
 	 * By : Fawsan M. <--fawsanm@wso2.com-->
@@ -632,7 +657,6 @@
 		}
 
 	};
-
 
 	igviz.drawMap = function(divId, chartConfig, dataTable) { //add this
 		//Width and height
