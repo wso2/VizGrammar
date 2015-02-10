@@ -1,10 +1,6 @@
 (function() {
-    google.load('visualization', '1', {'packages': ['map', 'geochart']});
-
-
-
-    var igviz = window.igviz || {};
-
+	
+	var igviz = window.igviz || {};
 
 	igviz.version = '1.0.0';
 	igviz.dev = true; //set false when in production
@@ -18,132 +14,140 @@
 			this.drawScatterPlot(canvas, config, dataTable);
 		} else if (config.chartType == "singleNumber") {
 			this.drawSingleNumberDiagram(canvas, config, dataTable);
+		} else if (config.chartType == "map") {
+			this.drawMap(canvas, config, dataTable);
 		}
-        else if (config.chartType == "map")
-        {
-            this.drawMap(canvas, config, dataTable);
-        }
 	};
 
-    igviz.drawMap= function (divId, chartConfig, dataTable) {   //add this
-        //Width and height
-        divId=divId.substr(1);
-        var w = chartConfig.chartWidth;
-        var h = chartConfig.chartHight;
+	igviz.drawMap = function(divId, chartConfig, dataTable) { //add this
+		//Width and height
+		divId = divId.substr(1);
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 
-        var mode = chartConfig.mode;
-        var regionO = chartConfig.region;
-
-
-        //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
-        //so you can use util methods
-        var dataset = dataTable.data.map(function (d, i) {
-            return {"data": d, "config": chartConfig, "name": dataTable.metadata.names[i]}
-        });
-
-        var tempArray = [];
-        var mainArray = [];
-
-        var locIndex = dataset[0].config.mapLocation;
-        var pColIndex = dataset[0].config.pointColor;
-        var pSizIndex = dataset[0].config.pointSize;
-        tempArray.push(dataset[locIndex].name, dataset[pColIndex].name, dataset[pSizIndex].name);
-        mainArray.push(tempArray);
-
-        for (var counter = 0; counter < dataset.length; counter++) {
-            tempArray = [];
-            tempArray.push(dataset[counter].data[locIndex], dataset[counter].data[pColIndex], dataset[counter].data[pSizIndex]);
-            mainArray.push(tempArray);
-        }
-
-        var mainStrArray = [];
-
-        for (var i = 0; i < mainArray.length; i++) {
-            var tempArr = mainArray[i];
-            var str = '';
-            for (var j = 1; j < tempArr.length; j++) {
-                str += mainArray[0][j] + ':' + tempArr[j] + ' , '
-            }
-            str = str.substring(0, str.length - 3);
-            str = mainArray[i][0].toUpperCase() + "\n" + str;
-            tempArray = [];
-            tempArray.push(mainArray[i][0]);
-            tempArray.push(str);
-            mainStrArray.push(tempArray);
-        }
-        ;
-
-        //hardcoded
-      // alert(divId);
-        document.getElementById(divId).setAttribute("style", "width: " + w + "px; height: " + h + "px;");
+		var mode = chartConfig.mode;
+		var regionO = chartConfig.region;
 
 
-        update(mainStrArray, mainArray);
+		//prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
+		//so you can use util methods
+		var dataset = dataTable.data.map(function(d, i) {
+			return {
+				"data": d,
+				"config": chartConfig,
+				"name": dataTable.metadata.names[i]
+			}
+		});
 
-        function update(arrayStr, array) {
+		var tempArray = [];
+		var mainArray = [];
 
-            //hardcoded options
-//            var dropDown = document.getElementById("mapType");        //select dropdown box Element
-//            var option = dropDown.options[dropDown.selectedIndex].text;     //get Text selected in drop down box to the 'Option' variable
-//
-//            var dropDownReg = document.getElementById("regionType");        //select dropdown box Element
-//            regionO = dropDownReg.options[dropDownReg.selectedIndex].value;     //get Text selected in drop down box to the 'Option' variable
+		var locIndex = dataset[0].config.mapLocation;
+		var pColIndex = dataset[0].config.pointColor;
+		var pSizIndex = dataset[0].config.pointSize;
+		tempArray.push(dataset[locIndex].name, dataset[pColIndex].name, dataset[pSizIndex].name);
+		mainArray.push(tempArray);
 
+		for (var counter = 0; counter < dataset.length; counter++) {
+			tempArray = [];
+			tempArray.push(dataset[counter].data[locIndex], dataset[counter].data[pColIndex], dataset[counter].data[pSizIndex]);
+			mainArray.push(tempArray);
+		}
 
-            if (mode == 'satellite' || mode== "terrain" || mode=='normal') {
-                drawMap(arrayStr);
-            }
-            if (mode == 'regions' || mode=="markers") {
+		var mainStrArray = [];
 
-                drawMarkersMap(array);
-            }
+		for (var i = 0; i < mainArray.length; i++) {
+			var tempArr = mainArray[i];
+			var str = '';
+			for (var j = 1; j < tempArr.length; j++) {
+				str += mainArray[0][j] + ':' + tempArr[j] + ' , '
+			}
+			str = str.substring(0, str.length - 3);
+			str = mainArray[i][0].toUpperCase() + "\n" + str;
+			tempArray = [];
+			tempArray.push(mainArray[i][0]);
+			tempArray.push(str);
+			mainStrArray.push(tempArray);
+		};
 
-        }
-
-
-        function drawMap(array) {
-            var data = google.visualization.arrayToDataTable(array
-                // ['City', 'Population'],
-                // ['Bandarawela', 'Bandarawela:2761477'],
-                // ['Jaffna', 'Jaffna:1924110'],
-                // ['Kandy', 'Kandy:959574']
-            );
-
-            var options = {showTip: true, useMapTypeControl: true, mapType: mode};
-
-            //hardcoded
-            var map = new google.visualization.Map(document.getElementById(divId));
-            map.draw(data, options);
-        }
-        ;
-
-        function drawMarkersMap(array) {
-            console.log(google)
-           console.log(google.visualization);
-            var data = google.visualization.arrayToDataTable(array);
-
-            var options = {
-                region: regionO,
-                displayMode: mode,
-                colorAxis: {colors: ['red', 'blue']},
-                magnifyingGlass: {enable: true, zoomFactor: 3.0},
-                enableRegionInteractivity: true
-                //legend:{textStyle: {color: 'blue', fontSize: 16}}
-            };
-
-            //hardcoded
-            var chart = new google.visualization.GeoChart(document.getElementById(divId));
-            chart.draw(data, options);
-        }
-        ;
+		//hardcoded
+		// alert(divId);
+		document.getElementById(divId).setAttribute("style", "width: " + w + "px; height: " + h + "px;");
 
 
-    }
+		update(mainStrArray, mainArray);
+
+		function update(arrayStr, array) {
+
+			//hardcoded options
+			//            var dropDown = document.getElementById("mapType");        //select dropdown box Element
+			//            var option = dropDown.options[dropDown.selectedIndex].text;     //get Text selected in drop down box to the 'Option' variable
+			//
+			//            var dropDownReg = document.getElementById("regionType");        //select dropdown box Element
+			//            regionO = dropDownReg.options[dropDownReg.selectedIndex].value;     //get Text selected in drop down box to the 'Option' variable
+
+
+			if (mode == 'satellite' || mode == "terrain" || mode == 'normal') {
+				drawMap(arrayStr);
+			}
+			if (mode == 'regions' || mode == "markers") {
+
+				drawMarkersMap(array);
+			}
+
+		}
+
+
+		function drawMap(array) {
+			var data = google.visualization.arrayToDataTable(array
+				// ['City', 'Population'],
+				// ['Bandarawela', 'Bandarawela:2761477'],
+				// ['Jaffna', 'Jaffna:1924110'],
+				// ['Kandy', 'Kandy:959574']
+			);
+
+			var options = {
+				showTip: true,
+				useMapTypeControl: true,
+				mapType: mode
+			};
+
+			//hardcoded
+			var map = new google.visualization.Map(document.getElementById(divId));
+			map.draw(data, options);
+		};
+
+		function drawMarkersMap(array) {
+			console.log(google)
+			console.log(google.visualization);
+			var data = google.visualization.arrayToDataTable(array);
+
+			var options = {
+				region: regionO,
+				displayMode: mode,
+				colorAxis: {
+					colors: ['red', 'blue']
+				},
+				magnifyingGlass: {
+					enable: true,
+					zoomFactor: 3.0
+				},
+				enableRegionInteractivity: true
+					//legend:{textStyle: {color: 'blue', fontSize: 16}}
+			};
+
+			//hardcoded
+			var chart = new google.visualization.GeoChart(document.getElementById(divId));
+			chart.draw(data, options);
+		};
+
+
+	}
 
 
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
-		var width = chartConfig.chartWidth;
-		var height = chartConfig.chartHight;
+		var width = chartConfig.width;
+		var height = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		var dataset = dataTable.data.map(function(d) {
@@ -180,23 +184,22 @@
 			.enter().append("rect")
 			.attr("class", "bar")
 			.attr("x", function(d) {
-				//console.log(d.data[d.config.xAxisData]);
-				return xScale(d.data[d.config.xAxisData]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("width", xScale.rangeBand())
 			.attr("y", function(d) {
-				return yScale(d.data[d.config.yAxisData]);
+				return yScale(d.data[d.config.yAxis]);
 			})
 			.attr("height", function(d) {
-				return height - yScale(d.data[d.config.yAxisData]) - padding;
+				return height - yScale(d.data[d.config.yAxis]) - padding;
 			});
 	};
 
 
 	igviz.drawScatterPlot = function(divId, chartConfig, dataTable) {
 		//Width and height
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
@@ -253,8 +256,8 @@
 	igviz.drawSingleNumberDiagram = function(divId, chartConfig, dataTable) {
 
 		//Width and height
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//configure font sizes
@@ -293,7 +296,7 @@
 		var tableData = dataTable.data;
 
 		//parse a column to calculate the data for the single number diagram
-		var selectedColumn = parseColumnFrom2DArray(tableData, dataset[0].config.xAxisData);
+		var selectedColumn = parseColumnFrom2DArray(tableData, dataset[0].config.xAxis);
 
 		//appending a group to the diagram
 		var SingleNumberDiagram = svg
@@ -363,36 +366,36 @@
 		var xScale;
 		var yScale;
 		var colorScale;
-		if (dataTable.metadata.types[chartConfig.xAxisData] == 'N') {
+		if (dataTable.metadata.types[chartConfig.xAxis] == 'N') {
 			xScale = d3.scale.linear()
 				.domain([0, d3.max(dataset, function(d) {
-					return d.data[d.config.xAxisData];
+					return d.data[d.config.xAxis];
 				})])
-				.range([chartConfig.padding, chartConfig.chartWidth - chartConfig.padding]);
+				.range([chartConfig.padding, chartConfig.width - chartConfig.padding]);
 		} else {
 			xScale = d3.scale.ordinal()
 				.domain(dataset.map(function(d) {
-					return d.data[chartConfig.xAxisData];
+					return d.data[chartConfig.xAxis];
 				}))
-				.rangeRoundBands([chartConfig.padding, chartConfig.chartWidth - chartConfig.padding], .1)
+				.rangeRoundBands([chartConfig.padding, chartConfig.width - chartConfig.padding], .1)
 		}
 
 		//TODO hanle case r and color are missing
 
-		if (dataTable.metadata.types[chartConfig.yAxisData] == 'N') {
+		if (dataTable.metadata.types[chartConfig.yAxis] == 'N') {
 			yScale = d3.scale.linear()
 				.domain([0, d3.max(dataset, function(d) {
-					return d.data[d.config.yAxisData];
+					return d.data[d.config.yAxis];
 				})])
-				.range([chartConfig.chartHight - chartConfig.padding, chartConfig.padding]);
+				.range([chartConfig.height - chartConfig.padding, chartConfig.padding]);
 			//var yScale = d3.scale.linear()
 			//    .range([height, 0])
-			//    .domain([0, d3.max(dataset, function(d) { return d.data[d.config.yAxisData]; })])
+			//    .domain([0, d3.max(dataset, function(d) { return d.data[d.config.yAxis]; })])
 		} else {
 			yScale = d3.scale.ordinal()
-				.rangeRoundBands([0, chartConfig.chartWidth], .1)
+				.rangeRoundBands([0, chartConfig.width], .1)
 				.domain(dataset.map(function(d) {
-					return d.data[chartConfig.yAxisData];
+					return d.data[chartConfig.yAxis];
 				}))
 		}
 
@@ -439,8 +442,8 @@
 	 */
 
 	function createXYAxises(svg, plotCtx, chartConfig, dataTable) {
-		var w = chartConfig.chartWidth;
-		var h = chartConfig.chartHight;
+		var w = chartConfig.width;
+		var h = chartConfig.height;
 		var padding = chartConfig.padding;
 
 		//Define X axis
@@ -462,7 +465,7 @@
 			.call(xAxis);
 
 		//if categroical, we slant the text
-		if (dataTable.metadata.types[chartConfig.xAxisData] == 'C') {
+		if (dataTable.metadata.types[chartConfig.xAxis] == 'C') {
 			axis.selectAll("text")
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
@@ -478,7 +481,7 @@
 			.attr("x", w - padding / 5)
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
-			.text(dataTable.metadata.names[chartConfig.xAxisData]);
+			.text(dataTable.metadata.names[chartConfig.xAxis]);
 
 
 		//Create Y axis
@@ -493,7 +496,7 @@
 			.attr("transform", "rotate(-90)")
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
-			.text(dataTable.metadata.names[chartConfig.yAxisData]);
+			.text(dataTable.metadata.names[chartConfig.yAxis]);
 	}
 
 
@@ -509,10 +512,10 @@
 		//TODO have to handle the case color scale is categorical
 		group1.append("circle")
 			.attr("cx", function(d) {
-				return xScale(d.data[d.config.xAxisData]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("cy", function(d) {
-				return yScale(d.data[d.config.yAxisData]);
+				return yScale(d.data[d.config.yAxis]);
 			})
 			.attr("r", function(d) {
 				if (d.config.pointSize != -1) {
@@ -545,10 +548,10 @@
 		//TODO make this nicer
 		group1.append("text")
 			.attr("x", function(d) {
-				return xScale(d.data[d.config.xAxisData]);
+				return xScale(d.data[d.config.xAxis]);
 			})
 			.attr("y", function(d) {
-				return yScale(d.data[d.config.yAxisData]) - 10;
+				return yScale(d.data[d.config.yAxis]) - 10;
 			})
 			.style("font-family", "sans-serif")
 			.style("font-size", "10px")
