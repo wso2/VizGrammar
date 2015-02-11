@@ -124,6 +124,41 @@
 
              <!-- /.row -->
 
+          <div class="row">
+              <a href="bar/" class="tile">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Table Chart Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="table"></div>
+                          </div>
+
+                      </div>
+                  </div>
+              </a>
+
+              <a href="scatterd/">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Single Number Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="singleNumber"></div>
+                          </div>
+                      </div>
+                  </div>
+              </a>
+          </div>
+
+
+
 
       </div><!-- /.container -->
 
@@ -186,7 +221,7 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "pointColor": 3,
-        "pointSize": 4,
+        "pointSize": 7,
         "chartType": "scatter",
         "textAngle":-90,
         "dotColorUpperLimit":"red",
@@ -207,12 +242,28 @@ var dataTable = {
         "region" : 150       //  "LK" | "US" | "GB" ...
     }
 
+
+
+
+        var lineChartConfig = {
+            "title": "Title",
+            "yAxis": [3,5,7],
+            "lineColors":["yellow","red","blue"],
+            "xAxis": 5,
+            "interpolationMode":"basis",
+            "pointLabel": 0,
+            "width": document.getElementById("line").offsetWidth-90,
+            "height": height-60,
+            "padding": 60,
+            "chartType": "line"
+        }
+
     //draw a bar chart on div #bar
     igviz.plot("#bar",barChartConfig,dataTable);
     //draw a scatter chart on div #scatter
     igviz.plot("#scatter",scatterChartConfig,dataTable);
 
-
+    igviz.plot("#line",lineChartConfig,dataTable);
     igviz.plot("#map",mapConfig,dataTable);
 
 

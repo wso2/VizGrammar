@@ -267,7 +267,7 @@
 			top: 20,
 			right: 80,
 			bottom: 30,
-			left: 50
+			left: 30
 		};
 
 		var dataSet = dataTable.data.map(function(d) {
@@ -280,21 +280,40 @@
 		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
 		var yAxis = chartConfig.yAxis;
 
-		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
-		var yAxisName = dataTable.metadata.names[yAxis];
 
-		var columnNames = [xAxisName, yAxisName];
+		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
+
+		var yAxisNames=[];
+
+
+		var columnNames = [xAxisName];
+		for( var i=0;i<yAxis.length;i++)
+		{
+			yAxisNames[i]=dataTable.metadata.names[yAxis[i]];
+			columnNames.push(yAxisNames[i]);
+		}
+
+		//var yAxisName = dataTable.metadata.names[yAxis];
+
+
+
 
 		dataSet.sort(function(a, b) { //sort the data set with respect to the x coordinates
 			return a.data[xAxis] - b.data[xAxis];
 		});
 
+
 		var data = []; //empty array to load the selected data and organize in the required format
 		for (var i = 0; i < dataSet.length; i++) {
-			data.push({
-				key: dataSet[i].data[xAxis], //x axis data
-				y1: dataSet[i].data[yAxis]
-			});
+			var obj={};
+			obj['key']=dataSet[i].data[xAxis];
+	    	for(var j=0;j<yAxis.length;j++)
+			{
+				obj['y'+j]=dataSet[i].data[yAxis[j]];
+			}
+
+
+			data.push(obj);
 		}
 
 		var svgID = divId + "_svg"; //svg container in which the chart shall be drawn
@@ -321,11 +340,11 @@
 		var y = d3.scale.linear() //scale for y axis
 			.range([h, 0]);
 
-		var xAxis = d3.svg.axis() //define x axis
+		var XAxis = d3.svg.axis() //define x axis
 			.scale(x)
 			.orient("bottom");
 
-		var yAxis = d3.svg.axis() //define y axis
+		var YAxis = d3.svg.axis() //define y axis
 			.scale(y)
 			.orient("left");
 
@@ -373,7 +392,7 @@
 		svg.append("g") //append x axis to the chart and move(translate to the bottom
 			.attr("class", "x axis")
 			.attr("transform", "translate(0," + h + ")")
-			.call(xAxis)
+			.call(XAxis)
 			.append("text") //append the label for the x axis
 			.attr("x", w) //move to the right hand end
 			.attr("y", 25) //set as -10 to move on top of the x axis
@@ -383,7 +402,7 @@
 
 		svg.append("g") //append y axis
 			.attr("class", "y axis")
-			.call(yAxis)
+			.call(YAxis)
 			.append("text") //y axis label
 			.attr("transform", "rotate(-90)") //rotate 90 degrees
 			.attr("y", 6)
@@ -402,7 +421,9 @@
 			.attr("d", function(d) {
 				return line.interpolate(interpolationMode)(d.values); //interpolate in given interpolationMode and render line
 			})
-			.style("stroke", "steelblue");
+			.style("stroke", function (d, i) {
+				return chartConfig.lineColors[i];              //get different colors for each graph
+			});
 
 		graph.append("text")
 			.datum(function(d) { //to bind data to a single svg element
