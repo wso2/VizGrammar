@@ -105,6 +105,8 @@
                       </div>
                       <div class="panel-body">
                           <div id="scatter">
+
+                            
                      <p>Java Script dependencies :</p>
                               <textarea rows="8" cols="80" disabled>
   <!--dependencies for igviz -->
@@ -230,7 +232,7 @@ var dataTable = {
     var width = document.getElementById("bar").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
-    var barChartConfig = {
+    var config = {
         "title": "Area By Country",
         "yAxis": 1,
         "xAxis": 0,
@@ -243,38 +245,10 @@ var dataTable = {
         "textAngle":-90
     }
 
-    var scatterChartConfig = {
-        "title": "Area By Country",
-        "yAxis": 1,
-        "xAxis": 0,
-        "pointLabel": 0,
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 4,
-        "chartType": "scatter",
-        "textAngle":-90,
-        "dotColorUpperLimit":"red",
-        "dotColorLowerLimit":"blue"
-
-    }
-
-    var mapConfig={
-        "title": "Map By Country",
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 1,
-        "chartType": "map",
-        "mapLocation" : 0,
-        "mode" :"regions",   // "markers"| "normal" | "satellite"
-        "region" : 150       //  "LK" | "US" | "GB" ...
-    }
+  
 
     //draw a bar chart on div #bar
-    igviz.plot("#bar",barChartConfig,dataTable);
+    igviz.plot("#bar",config,dataTable);
     //draw a scatter chart on div #scatter
 
 </script>
