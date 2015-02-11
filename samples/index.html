@@ -51,7 +51,7 @@
         </div>
 
         <div class="row">
-             <a href="bar/" class="tile">
+             <a href="bar/index.html" class="tile">
               <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
                       <div class="panel-heading">
@@ -67,25 +67,29 @@
               </div>
                  </a>
 
-            <a href="scatter/">
-              <div class="col-md-6" class="tile">
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
+
+            <a href="line/index.html">
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
                         <h3 class="panel-title">
-                          Scatter Chart Sample
+                            Line Graph  Sample
                         </h3>
-                      </div>
-                      <div class="panel-body">
-                        <div id="scatter"></div>
-                      </div>  
-                  </div>
-              </div>
-            </a>
+                    </div>
+                    <div class="panel-body">
+                        <div id="line">
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+                </a>
             </div>
 
 
           <div class="row">
-              <a href="map/">
+              <a href="map/index.html">
               <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
                       <div class="panel-heading">
@@ -102,35 +106,35 @@
                   </div>
               </div>
               </a>
-              <a href="line/">
-              <div class="col-md-6" class="tile">
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
+
+
+              <a href="scatter/index.html">
+                <div class="col-md-6" class="tile">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
                           <h3 class="panel-title">
-                              Line Graph  Sample
+                            Scatter Chart Sample
                           </h3>
-                      </div>
-                      <div class="panel-body">
-                          <div id="line">
-
-                          </div>
-                      </div>
-
-                  </div>
-              </div>
-                  </a>
+                        </div>
+                        <div class="panel-body">
+                          <div id="scatter"></div>
+                        </div>  
+                    </div>
+                </div>
+              </a>
+             
 
           </div>
 
              <!-- /.row -->
 
           <div class="row">
-              <a href="bar/" class="tile">
-                  <div class="col-md-6" class="tile">
+              <a href="table/index.html" class="tile">
+                  <div class="col-md-12" class="tile">
                       <div class="panel panel-default">
                           <div class="panel-heading">
                               <h3 class="panel-title">
-                                  Table Chart Sample
+                                  Table Sample
                               </h3>
                           </div>
                           <div class="panel-body">
@@ -141,20 +145,7 @@
                   </div>
               </a>
 
-              <a href="scatterd/">
-                  <div class="col-md-6" class="tile">
-                      <div class="panel panel-default">
-                          <div class="panel-heading">
-                              <h3 class="panel-title">
-                                  Single Number Sample
-                              </h3>
-                          </div>
-                          <div class="panel-body">
-                              <div id="singleNumber"></div>
-                          </div>
-                      </div>
-                  </div>
-              </a>
+              
           </div>
 
 
@@ -165,8 +156,7 @@
       
 
 </body>
-<script src="d3.min.js"></script>
-<script src="../igviz.js"></script>
+
 <script>
 
 
@@ -208,7 +198,7 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "chartType": "bar",
-        "barColor": "green",
+        "barColor": "steelblue",
         "textAngle":-90
     }
 
@@ -243,20 +233,30 @@ var dataTable = {
     }
 
 
+    var lineChartConfig = {
+        "title": "Title",
+        "yAxis": [3,5,7],
+        "lineColors":["yellow","red","blue"],
+        "xAxis": 5,
+        "interpolationMode":"basis",
+        "pointLabel": 0,
+        "width": document.getElementById("line").offsetWidth-90,
+        "height": height-60,
+        "padding": 60,
+        "chartType": "line"
+    }
 
+    var tableConfig = {
+        "title": "Area By Country",
+        "xAxis": 0,
+        "yAxis": 1,
+        "padding": 60,
+        "width": width,
+        "height": height,
+        "chartType": "table",
+    }
 
-        var lineChartConfig = {
-            "title": "Title",
-            "yAxis": [3,5,7],
-            "lineColors":["yellow","red","blue"],
-            "xAxis": 5,
-            "interpolationMode":"basis",
-            "pointLabel": 0,
-            "width": document.getElementById("line").offsetWidth-90,
-            "height": height-60,
-            "padding": 60,
-            "chartType": "line"
-        }
+   
 
     //draw a bar chart on div #bar
     igviz.plot("#bar",barChartConfig,dataTable);
@@ -270,6 +270,8 @@ var dataTable = {
     //draw a line chart on 
     igviz.plot("#line",lineChartConfig,dataTable);
 
+    //draw a table on div #table
+    igviz.plot("#table",tableConfig,dataTable);
 
 
 </script>
