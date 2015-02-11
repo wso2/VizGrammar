@@ -3,8 +3,8 @@
 <head>
   <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
     <!--dependencies for igviz -->
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <script src="../lib/d3.min.js"></script>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="d3.min.js"></script>
 
     <script type='text/javascript' src='https://www.google.com/jsapi'></script>
 
@@ -28,13 +28,13 @@
         body{ padding-top: 40px;}
 
 
-        a:hover .panel-heading{
+        /*a:hover .panel-heading{
             background-color: cornflowerblue;
         }
 
         a:hover .panel{
             border:2px groove  ;
-        }
+        }*/
 
 
     </style>
@@ -186,7 +186,7 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "pointColor": 3,
-        "pointSize": 4,
+        "pointSize": 2,
         "chartType": "scatter",
         "textAngle":-90,
         "dotColorUpperLimit":"red",
@@ -207,13 +207,31 @@ var dataTable = {
         "region" : 150       //  "LK" | "US" | "GB" ...
     }
 
+    var lineChartConfig = {
+        "title": "Area By Country",
+        "yAxis": 2,
+        "xAxis": 1,
+        "pointLabel": 0,
+        "width": width,
+        "height": height,
+        "padding": 60,
+        "chartType": "line",
+        "textAngle":-95,
+        "interpolationMode": "cardinal"
+    }
+
     //draw a bar chart on div #bar
     igviz.plot("#bar",barChartConfig,dataTable);
+    
     //draw a scatter chart on div #scatter
     igviz.plot("#scatter",scatterChartConfig,dataTable);
 
-
+    //draw a map on div #
     igviz.plot("#map",mapConfig,dataTable);
+    
+    //draw a line chart on 
+    igviz.plot("#line",lineChartConfig,dataTable);
+
 
 
 </script>

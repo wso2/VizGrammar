@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
-
-    <!--dependencies for igviz -->
-    <link rel="stylesheet" href="../../css/bootstrap.min.css">
-    <script src="../../lib/d3.min.js"></script>
+  <title>IGViz.js - Scatter Chart Sample</title>
+    <link rel="stylesheet" href="../bootstrap.min.css">
+    
+    <script src="../d3.min.js"></script>
 
     <!-- Intergration of igviz  -->
     <script src="../../igviz.js"></script>
@@ -16,13 +15,7 @@
 
     <style type="text/css">
         body{ padding-top: 40px;}
-        a:hover .jumbotron{
-            background-color: #46b8da;
-        }
-
-        a:hover .jumbotron{
-            border: 1px groove  ;
-        }
+      
     </style>
 </head>
 
@@ -105,7 +98,7 @@
                             "height": height,
                             "padding": 60,
                             "pointColor": 3,
-                            "pointSize": 4,
+                            "pointSize": 2,
                             "chartType": "scatter"
                         }
 
@@ -163,7 +156,7 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "pointColor": 3,
-        "pointSize": 4,
+        "pointSize": 2,
         "chartType": "scatter",
         "textAngle":-90,
         "dotColorUpperLimit":"red",
