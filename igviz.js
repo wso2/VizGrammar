@@ -48,7 +48,7 @@
 		} else if (config.chartType == "line") {
 			this.drawLineChart(canvas, config, dataTable);
 		} else if (config.chartType == "table") {
-			this.drawTableChart(canvas, config, dataTable);
+			this.drawTable(canvas, config, dataTable);
 		}
 		return new Chart(canvas,config, dataTable);
 	};
@@ -449,10 +449,12 @@
 	 * @param chartConfig
 	 * @param dataTable
 	 */
-	igviz.drawTableChart = function(divId, chartConfig, dataTable) {
+	igviz.drawTable = function(divId, chartConfig, dataTable) {
 		var w = chartConfig.width;
 		var h = chartConfig.height;
 		var padding = chartConfig.padding;
+		var dataSeries = chartConfig.dataSeries;
+		var highlightMode = chartConfig.highlightMode;
 
 		var dataset = dataTable.data.map(function(d) {
 			return {
@@ -468,7 +470,6 @@
 
 		//Using RGB color code to represent colors
 		//Because the alpha() function use these property change the contrast of the color
-		//
 		var colors = [{
 			r: 255,
 			g: 0,
@@ -518,7 +519,6 @@
 		//append the Table to the div
 		var table = d3.select(divId).append("table").attr('class', 'table table-bordered');
 
-
 		var colorRows = d3.scale.linear()
 			.domain([2.5, 4])
 			.range(['#F5BFE8', '#E305AF']);
@@ -529,8 +529,6 @@
 
 		//create the table head
 		thead = table.append("thead");
-
-		//create the table body
 		tbody = table.append("tbody")
 
 		//Append the header to the table
@@ -543,10 +541,7 @@
 				return d;
 			});
 
-
-
-		//beginning of jQuery mixed crap
-		var isColorBasedSet = false;
+		var isColorBasedSet = true;
 		var isFontBasedSet = false;
 
 		var rows = tbody.selectAll("tr")
@@ -557,7 +552,6 @@
 		var cells;
 
 		if (isColorBasedSet == true && isFontBasedSet == true) {
-
 
 			//adding the  data to the table rows
 			cells = rows.selectAll("td")
@@ -594,7 +588,6 @@
 				});
 
 		} else if (isColorBasedSet && !isFontBasedSet) {
-
 			//adding the  data to the table rows
 			cells = rows.selectAll("td")
 
@@ -648,7 +641,7 @@
 				});
 
 		} else {
-
+			console.log("We are here baby!"); 
 			//appending the rows inside the table body
 			rows.style('background-color', function(d, i) {
 
@@ -667,7 +660,6 @@
 					return fontSize(d) + "px";
 				});
 
-
 			//adding the  data to the table rows
 			cells = rows.selectAll("td")
 				//Lets do a callback when we get each array from the data set
@@ -680,8 +672,6 @@
 				.text(function(d, i) {
 					return d;
 				})
-
-
 		}
 
 	};
