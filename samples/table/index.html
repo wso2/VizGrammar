@@ -229,51 +229,18 @@ var dataTable = {
     var width = document.getElementById("table").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
-    var barChartConfig = {
+    var config = {
         "title": "Area By Country",
-        "yAxis": 1,
         "xAxis": 0,
-        "pointLabel": 0,
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "chartType": "bar",
-        "barColor": "green",
-        "textAngle":-90
-    }
-
-    var scatterChartConfig = {
-        "title": "Area By Country",
         "yAxis": 1,
-        "xAxis": 0,
-        "pointLabel": 0,
+        "padding": 60,
         "width": width,
         "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 4,
-        "chartType": "scatter",
-        "textAngle":-90,
-        "dotColorUpperLimit":"red",
-        "dotColorLowerLimit":"blue"
-
-    }
-
-    var mapConfig={
-        "title": "Map By Country",
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 1,
-        "chartType": "map",
-        "mapLocation" : 0,
-        "mode" :"regions",   // "markers"| "normal" | "satellite"
-        "region" : 150       //  "LK" | "US" | "GB" ...
+        "chartType": "table",
     }
 
     //draw a bar chart on div #bar
-    igviz.plot("#bar",barChartConfig,dataTable);
+    igviz.plot("#bar",config,dataTable);
     //draw a scatter chart on div #scatter
 
 </script>
