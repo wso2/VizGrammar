@@ -81,7 +81,6 @@
 			.attr("width", width)
 			.attr("height", height);
 
-		console.log('teets');
 		createXYAxises(svg, plotCtx, chartConfig, dataTable);
 
 		//Now we really drwa by creating rectangles. The layout is done such a way that (0,0)
@@ -266,7 +265,7 @@
 		var margin = {
 			top: 20,
 			right: 80,
-			bottom: 30,
+			bottom: 50,
 			left: 30
 		};
 
@@ -322,7 +321,7 @@
 		var svg = d3.select(divId) //Create SVG element
 			.append("svg")
 			.attr("id", svgID.replace("#", ""))
-			.attr("width", w + 100) //width
+			.attr("width", w) //width
 			.attr("height", h + 50) //height
 			.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions

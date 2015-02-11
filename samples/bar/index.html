@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
-  <!--dependencies for igviz -->
-  <link rel="stylesheet" href="../../css/bootstrap.min.css">
-  <script src="../../lib/d3.min.js"></script>
+  <title>IGViz.js - Bar Chart Sample</title>
+  <link rel="stylesheet" href="../bootstrap.min.css">
+  
+  <script src="../d3.min.js"></script>
 
   <!-- Intergration of igviz  -->
   <script src="../../igviz.js"></script>
@@ -14,13 +14,7 @@
 
     <style type="text/css">
         body{ padding-top: 40px;}
-        a:hover .jumbotron{
-            background-color: #46b8da;
-        }
-
-        a:hover .jumbotron{
-            border: 1px groove  ;
-        }
+      
     </style>
 </head>
 
@@ -111,6 +105,8 @@
                       </div>
                       <div class="panel-body">
                           <div id="scatter">
+
+                            
                      <p>Java Script dependencies :</p>
                               <textarea rows="8" cols="80" disabled>
   <!--dependencies for igviz -->
@@ -236,7 +232,7 @@ var dataTable = {
     var width = document.getElementById("bar").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
-    var barChartConfig = {
+    var config = {
         "title": "Area By Country",
         "yAxis": 1,
         "xAxis": 0,
@@ -249,38 +245,10 @@ var dataTable = {
         "textAngle":-90
     }
 
-    var scatterChartConfig = {
-        "title": "Area By Country",
-        "yAxis": 1,
-        "xAxis": 0,
-        "pointLabel": 0,
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 4,
-        "chartType": "scatter",
-        "textAngle":-90,
-        "dotColorUpperLimit":"red",
-        "dotColorLowerLimit":"blue"
-
-    }
-
-    var mapConfig={
-        "title": "Map By Country",
-        "width": width,
-        "height": height,
-        "padding": 60,
-        "pointColor": 3,
-        "pointSize": 1,
-        "chartType": "map",
-        "mapLocation" : 0,
-        "mode" :"regions",   // "markers"| "normal" | "satellite"
-        "region" : 150       //  "LK" | "US" | "GB" ...
-    }
+  
 
     //draw a bar chart on div #bar
-    igviz.plot("#bar",barChartConfig,dataTable);
+    igviz.plot("#bar",config,dataTable);
     //draw a scatter chart on div #scatter
 
 </script>
