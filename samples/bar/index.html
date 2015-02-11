@@ -87,6 +87,7 @@
 
   ]
 }
+
 </pre>
 
 
@@ -106,33 +107,94 @@
                       <div class="panel-body">
                           <div id="scatter">
 
-                            
                      <p>Java Script dependencies :</p>
-                              <textarea rows="8" cols="80" disabled>
-  <!--dependencies for igviz -->
-      <link rel="stylesheet" href=".bootstrap.min.css">
-      <script src="d3.min.js"></script>
+                              <table class="table table-bordered">
+                                  <tr>
+                                      <td>Dependencies</td>
+                                      <td>bootstrap.min.css &nbsp; ,&nbsp; d3.min.js
+                                      </td>
 
-  <!-- Intergration of igviz  -->
-      <script src="igviz.js"></script>
-      <link rel="stylesheet" href="igviz.css"></textarea>
+                                  </tr>
+                                  <tr>
+                                      <td>Integration</td>
+                                      <td>
+                                          igviz.js &nbsp;,&nbsp; igviz.css
+                                      </td>
+                                  </tr>
+                              </table>
 
-  <p> Chart Parameters : </p>
-                              <textarea rows="14" cols="80" disabled>
-                                  
-var barChartConfig = {
-    "title"         : "Title of the Chart",
-    "yAxis"      : 0,        //(E) Column index in dataset for Y Axis
-    "xAxis"      : 1 ,       //(E) Column index in dataset for X axis
-    "pointLabel" : 0,
-    "width"      : 10,        //(E) Width of the chart,
-    "height"     : 10,        //(E) Height of the chart,
-    "padding"  : 60,        //(E) Padding with the Outline,
-    "chartType"  : "bar",     //(E) Type of the chart
-    "textAngle"  : -90,          //(O) Angle with the x axis and the ticks text
-    "barColor"   : "green"    //(O) Color of the bar
-}
-</textarea>
+
+                                  <p> Chart Parameters : </p>
+
+                              <table class="table table-bordered">
+                                  <thead>
+                                  <tr>
+                                      <th>Property</th>
+                                      <th>Value</th>
+                                      <th>Description</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  <tr class="danger">
+                                      <td>title</td>
+                                      <td>String</td>
+                                      <td>Title of the table</td>
+                                  </tr>
+                                  <tr class="danger">
+                                      <td>yAxis</td>
+                                      <td>0 to (dataset.length-1)</td>
+                                      <td>column index of the dataset for Y-axis</td>
+
+                                  </tr>
+                                  <tr class="danger">
+                                      <td>xAxis</td>
+                                      <td>0 to (dataset.length-1)</td>
+                                      <td>column index of the dataset for X-axis</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>pointLabel</td>
+                                      <td>0 to (dataset.length-1)</td>
+                                      <td>column index of the dataset for text labels</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>width</td>
+                                      <td>px</td>
+                                      <td>width of the chart</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>height</td>
+                                      <td>px</td>
+                                      <td>height of the chart</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>chartType</td>
+                                      <td>bar</td>
+                                      <td>Type of the chart</td>
+
+                                  </tr>
+                                  <tr class="info">
+                                      <td>textAngle</td>
+                                      <td>(-360,+360)</td>
+                                      <td>Angle between lables and X-axis</td>
+
+                                  </tr>
+                                  <tr class="info">
+                                      <td>barColor</td>
+                                      <td>color code</td>
+                                      <td>color of the bars</td>
+
+                                  </tr>
+                                 </tbody>
+                              </table>
+
                           </div>
                       </div>
                   </div>
