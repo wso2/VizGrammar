@@ -547,10 +547,10 @@ console.log(chartConfig);
 				};
 			})
 			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
-				return "translate(" + (x(d.value.key)-120) + "," + y(d.value.value) + ")";
+				return "translate(" + (x(d.value.key)-100) + "," + y(d.value.value) + ")";
 			})
 			.attr("x", 3)
-			.attr("dy", ".35em")
+			.attr("dy", ".45em")
 			.text(function(d, i) {
 				return columnNames[i + 1];
 			});
