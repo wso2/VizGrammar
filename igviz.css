@@ -26,7 +26,7 @@ svg {
 }
 
 .bar:hover {
-    fill: orangered;
+    fill: black;
 }
 
 .d3-tip {

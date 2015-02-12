@@ -51,7 +51,7 @@
         </div>
 
         <div class="row">
-             <a href="bar/index.html" class="tile">
+             <a href="bar/" class="tile">
               <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
                       <div class="panel-heading">
@@ -129,8 +129,8 @@
              <!-- /.row -->
 
           <div class="row">
-              <!-- <a href="table/index.html" class="tile"> -->
-                  <div class="col-md-12" class="tile">
+              <a href="table/" class="tile">
+                  <div class="col-md-6" class="tile">
                       <div class="panel panel-default">
                           <div class="panel-heading">
                               <h3 class="panel-title">
@@ -143,7 +143,7 @@
 
                       </div>
                   </div>
-              <!-- </a> -->
+              </a>
 
               
           </div>
@@ -198,8 +198,12 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "chartType": "bar",
-        "barColor": "steelblue",
-        "textAngle":-90
+        "xAxisLabelConfig":{
+            "fontSize" :"15px"
+        },
+        "yAxisLabelConfig":{
+            "fontSize" :"15px"
+        }
     }
 
     var scatterChartConfig = {
@@ -216,7 +220,12 @@ var dataTable = {
         "textAngle":-90,
         "dotColorUpperLimit":"red",
         "dotColorLowerLimit":"blue"
-
+        ,"xAxisLabelConfig":{
+            "fontSize" :"15px"
+        },
+        "yAxisLabelConfig":{
+            "fontSize" :"15px"
+        }
     }
 
     var mapConfig={
@@ -253,10 +262,26 @@ var dataTable = {
         "width": width,
         "height": height,
         "chartType": "table",
+        "colorBasedStyle" :true
+
     }
 
-   
 
+var dataTable2 = {
+    "metadata":{
+        "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth"],
+        "types":['C', 'N', 'N', 'N', 'N', 'N', 'N']
+    },
+    "data": [
+        ["Austria",83871,41600,3.5,79.91,0.8,0.03],
+        ["Belgium",30528,37800,3.5,79.65,1.3,0.06],
+        ["Bulgaria",110879,13800,4.2,73.84,2.6,-0.8],
+        ["Croatia",56594,18000,2.3,75.99,2.39,-0.09],
+        ["Czech Republic",78867,27100,1.9,77.38,1.15,-0.13],
+        ["Denmark",43094,37000,2.8,78.78,1.3,0.24],
+        ["Estonia",45228,20400,5,73.58,2,-0.65],
+        ["Finland",338145,36000,3.3,79.41,2,0.07]]
+}
     //draw a bar chart on div #bar
     igviz.plot("#bar",barChartConfig,dataTable);
     
@@ -270,7 +295,7 @@ var dataTable = {
     igviz.plot("#line",lineChartConfig,dataTable);
 
     //draw a table on div #table
-    igviz.plot("#table",tableConfig,dataTable);
+    igviz.plot("#table",tableConfig,dataTable2);
 
 
 </script>

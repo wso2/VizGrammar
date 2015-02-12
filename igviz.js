@@ -37,6 +37,7 @@
 
 	//Plots a chart in a given div specified by canvas
 	igviz.plot = function(canvas, config, dataTable) {
+		config=	setDefault(config)
 		if (config.chartType == "bar") {
 			this.drawBarChart(canvas, config, dataTable);
 		} else if (config.chartType == "scatter") {
@@ -53,6 +54,119 @@
 		return new Chart(canvas,config, dataTable);
 	};
 
+	function setDefault(chartConfig)
+	{
+		var tickObj={
+		"textAngle":-60,
+			"x":0,
+			"y":9,
+			"dy":".15em",
+			"dx":"-.8em",
+			"tickHeight":6,
+			"tickWidth":0
+		}
+
+		var xaxisObj={
+		"fontSize":"20px",
+			"rotate":"",
+			"x": 0,
+			"y":20,
+			"dx": 0,
+			"dy":".71em"
+
+		}
+
+		var yaxisObj={
+			"fontSize":"20px",
+			"rotate":-90,
+			"x":-10 ,
+			"y":6,
+			"dy":".71em",
+			"dx":0
+		}
+console.log(chartConfig);
+		if(!chartConfig.hasOwnProperty("xAxisLabelConfig"))
+		{
+			chartConfig.xAxisLabelConfig=xaxisObj;
+		}
+		else
+		{
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("fontSize"))
+				chartConfig.xAxisLabelConfig.fontSize=xaxisObj.fontSize;
+
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("rotate"))
+				chartConfig.xAxisLabelConfig.rotate=xaxisObj.rotate;
+
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("x"))
+				chartConfig.xAxisLabelConfig.x=xaxisObj.x;
+
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("y"))
+				chartConfig.xAxisLabelConfig.y=xaxisObj.y;
+
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("dx"))
+				chartConfig.xAxisLabelConfig.dx=xaxisObj.dx;
+
+			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("dy"))
+				chartConfig.xAxisLabelConfig.dx=xaxisObj.dy;
+		}
+
+
+
+		if(!chartConfig.hasOwnProperty("yAxisLabelConfig"))
+		{
+			chartConfig.yAxisLabelConfig=yaxisObj;
+		}
+		else
+		{
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("fontSize"))
+				chartConfig.yAxisLabelConfig.fontSize=yaxisObj.fontSize;
+
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("rotate"))
+				chartConfig.yAxisLabelConfig.rotate=yaxisObj.rotate;
+
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("x"))
+				chartConfig.yAxisLabelConfig.x=yaxisObj.x;
+
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("y"))
+				chartConfig.yAxisLabelConfig.y=yaxisObj.y;
+
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("dx"))
+				chartConfig.yAxisLabelConfig.dx=yaxisObj.dx;
+
+			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("dy"))
+				chartConfig.yAxisLabelConfig.dx=yaxisObj.dy;
+		}
+
+
+		if(!chartConfig.hasOwnProperty("tickLabelConfig"))
+		{
+			chartConfig.tickLabelConfig=tickObj;
+		}
+		else
+		{
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("textAngle"))
+				chartConfig.tickLabelConfig.textAngle=tickObj.textAngle;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("tickHeight"))
+				chartConfig.tickLabelConfig.tickHeight=tickObj.tickHeight;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("tickWidth"))
+				chartConfig.tickLabelConfig.tickWidth=tickObj.tickWidth;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("x"))
+				chartConfig.tickLabelConfig.x=tickObj.x;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("y"))
+				chartConfig.tickLabelConfig.y=tickObj.y;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("dx"))
+				chartConfig.tickLabelConfig.dx=tickObj.dx;
+
+			if(!chartConfig.tickLabelConfig.hasOwnProperty("dy"))
+				chartConfig.tickLabelConfig.dx=tickObj.dy;
+		}
+	return chartConfig;
+	}
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
 		var width = chartConfig.width;
 		var height = chartConfig.height;
@@ -394,8 +508,8 @@
 			.attr("transform", "translate(0," + h + ")")
 			.call(XAxis)
 			.append("text") //append the label for the x axis
-			.attr("x", w) //move to the right hand end
-			.attr("y", 25) //set as -10 to move on top of the x axis
+			.attr("x", w-40) //move to the right hand end
+			.attr("y", 28) //set as -10 to move on top of the x axis
 			.style("text-anchor", "end")
 			.style("font-weight", "bold")
 			.text(columnNames[0]);
@@ -433,7 +547,7 @@
 				};
 			})
 			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
-				return "translate(" + x(d.value.key) + "," + y(d.value.value) + ")";
+				return "translate(" + (x(d.value.key)-120) + "," + y(d.value.value) + ")";
 			})
 			.attr("x", 3)
 			.attr("dy", ".35em")
@@ -450,6 +564,7 @@
 	 * @param dataTable
 	 */
 	igviz.drawTable = function(divId, chartConfig, dataTable) {
+		console.log(chartConfig);
 		var w = chartConfig.width;
 		var h = chartConfig.height;
 		var padding = chartConfig.padding;
@@ -541,8 +656,8 @@
 				return d;
 			});
 
-		var isColorBasedSet = true;
-		var isFontBasedSet = false;
+		var isColorBasedSet = chartConfig.colorBasedStyle;
+		var isFontBasedSet = chartConfig.fontBasedStyle;
 
 		var rows = tbody.selectAll("tr")
 			.data(tableData)
@@ -920,18 +1035,18 @@
 
 			axis.selectAll("text")
 				.style("text-anchor", "end")
-				.attr("dx", "-.8em")
-				.attr("dy", ".15em")
+				.attr("dx", chartConfig.tickLabelConfig.dx)
+				.attr("dy", chartConfig.tickLabelConfig.dy)
 				.attr("transform", function(d) {
-					return "rotate("+chartConfig.textAngle+")"
+					return "rotate("+chartConfig.tickLabelConfig.textAngle+")"
 				});
 		}
 
 		axis.append("text")
-			.style("font-size", "20px")
-			.attr("y", 20)
-			.attr("x", w - padding / 5)
-			.attr("dy", ".71em")
+			.style("font-size", chartConfig.xAxisLabelConfig.fontSize)
+			.attr("y", chartConfig.xAxisLabelConfig.y)
+			.attr("x",(chartConfig.xAxisLabelConfig.x==undefined || chartConfig.xAxisLabelConfig.x==0)?(w-padding/5):chartConfig.xAxisLabelConfig.x)
+			.attr("dy", chartConfig.xAxisLabelConfig.dy)
 			.style("text-anchor", "end")
 			.text(dataTable.metadata.names[chartConfig.xAxis]);
 
@@ -942,11 +1057,11 @@
 			.attr("transform", "translate(" + (padding) + ",0)")
 			.call(yAxis)
 			.append("text")
-			.style("font-size", "20px")
-			.attr("y", 6)
-			.attr("x", -10)
-			.attr("transform", "rotate(-90)")
-			.attr("dy", ".71em")
+			.style("font-size", chartConfig.yAxisLabelConfig.fontSize)
+			.attr("y", chartConfig.yAxisLabelConfig.y)
+			.attr("x", chartConfig.yAxisLabelConfig.x)
+			.attr("transform", "rotate("+chartConfig.yAxisLabelConfig.rotate+")")
+			.attr("dy", chartConfig.yAxisLabelConfig.dy)
 			.style("text-anchor", "end")
 			.text(dataTable.metadata.names[chartConfig.yAxis]);
 	}
