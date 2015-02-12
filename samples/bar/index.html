@@ -97,8 +97,8 @@
                   </div>
               </div>
 
-              <div class="col-md-6">
-                  <div class="panel panel-default">
+              <div class="col-md-6" >
+                  <div class="panel panel-default" style="height: 588px">
                       <div class="panel-heading">
                           <h3 class="panel-title">
                               Configurations
@@ -107,26 +107,7 @@
                       <div class="panel-body">
                           <div id="scatter">
 
-                     <p>Java Script dependencies :</p>
-                              <table class="table table-bordered">
-                                  <tr>
-                                      <td>Dependencies</td>
-                                      <td>bootstrap.min.css &nbsp; ,&nbsp; d3.min.js
-                                      </td>
-
-                                  </tr>
-                                  <tr>
-                                      <td>Integration</td>
-                                      <td>
-                                          igviz.js &nbsp;,&nbsp; igviz.css
-                                      </td>
-                                  </tr>
-                              </table>
-
-
-                                  <p> Chart Parameters : </p>
-
-                              <table class="table table-bordered">
+                              <table class="table table-bordered" s>
                                   <thead>
                                   <tr>
                                       <th>Property</th>
@@ -209,8 +190,20 @@
              <div class="row">
                 <h3>Sample code for above charts</h3>
                 <pre>
+
+/******************************************************* Installation of the library ******************************************************/
+
+             &lt;link rel="stylesheet" href="bootstrap.min.css"&gt
+             &lt;link rel="stylesheet" href="igviz.css"&gt
+             &lt;script src="d3.min.js"&gt &lt;/script&gt
+             &lt;script src="igviz.js"&gt &lt;/script&gt
+
+
+/***********************************************************Invoking the Library **********************************************************/
+             &lt;script&gt
+
                     //dataset used to plot charts
-                    var dataTable = {
+                        var dataTable = {
                           "metadata":{
                             "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
                             "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
@@ -238,7 +231,7 @@
                         var width = document.getElementById("bar").offsetWidth; //canvas width
                         var height = 270;   //canvas height
 
-                        var barChartConfig = {
+                        var config = {
                             "title": "Area By Country",
                             "yAxis": 1,
                             "xAxis": 0,
@@ -246,14 +239,31 @@
                             "width": width,
                             "height": height,
                             "padding": 60,
-                            "chartType": "bar"
+                            "chartType": "bar",
+                            "tickLabelConfig":{
+                                "textAngle":-60,
+                                "x":0,
+                                "y":9,
+                                "dy":".15em",
+                                "dx":"-.8em",
+                                "tickHeight":6,
+                                "tickWidth":0
+                            },
+                            "yAxisLabelConfig":{
+                                "fontSize":"20px",
+                                "rotate":-90,
+                                "x":-10 ,
+                                "y":6,
+                                "dy":".71em",
+                                "dx":0
+                            }
+
                         }
 
-
-
                         //draw a bar chart on div #bar
-                        igviz.plot("#bar",barChartConfig,dataTable);
+                        igviz.plot("#bar",config,dataTable);
 
+            &lt;/script&gt
                 </pre>
             </div>
 
@@ -266,7 +276,7 @@
 
 
 //dataset used to plot charts
-var dataTable = {
+    var dataTable = {
       "metadata":{
         "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
         "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
@@ -303,7 +313,6 @@ var dataTable = {
         "height": height,
         "padding": 60,
         "chartType": "bar",
-        "barColor": "steelblue",
 
         "tickLabelConfig":{
             "textAngle":-60,
@@ -330,7 +339,6 @@ var dataTable = {
 
     //draw a bar chart on div #bar
     igviz.plot("#bar",config,dataTable);
-    //draw a scatter chart on div #scatter
 
 </script>
 

@@ -82,7 +82,7 @@
   "metadata":{
     "names":["Country","Area","GDP","Inflation","Life.expect",      "Military","Pop.growth","Unemployment"],
     "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
-  } ,
+  }    ,
 
   "data": [
     ["Austria",83871,41600,3.5,79.91,0.8,0.03,4.2],
@@ -111,49 +111,100 @@
                       </div>
 
                   </div>
-              </div>
-
-              <div class="col-md-6">
-                  <div class="panel panel-default">
+              </div>    <div class="col-md-6">
+                  <div class="panel panel-default" style="height: 588px">
                       <div class="panel-heading">
                           <h3 class="panel-title">
                               Configurations
                           </h3>
                       </div>
                       <div class="panel-body">
-                          <div id="set-up">
-                              <p>Java Script dependencies :</p>
-                              <textarea rows="14" cols="83" disabled>
-<!--dependencies for igviz -->
-        <link rel="stylesheet" href="bootstrap.min.css">
-        <script src="lib/d3.min.js"></script>
-        <script type='text/javascript' src='https://www.google.com/jsapi'></script>
-        <script type="text/javascript">
-          google.load('visualization', '1', {
-              'packages': ['map', 'geochart']
-          });
-        </script>
+                          <div id="scatter">
 
-<!-- Integration of igviz  -->
-        <script src="igviz.js"></script>
-        <link rel="stylesheet" href="igviz.css"></textarea>
-                              <p> Chart Parameters : </p>
-                              <textarea rows="12" cols="83" disabled>
-  var mapConfig = {
-      "width"      : 10,        //(E) Width of the chart,
-      "height"     : 10,        //(E) Height of the chart,
-      "padding"    : 60,        //(E) Padding with the Outline,
-      "pointColor" : 3,   //(E) Column index in dataset for the point color distribution
-      "pointSize"  : 4,    //(E) Column index in dataset for the point size distribution
-      "chartType": "map",  //(E) Type of the graph (Value should be "map")
-      "mapLocation" : 0, //(E) Column index in dataset which represent the locations
-      "mode" :"regions",     // "regions"|"markers"| "normal" | "satellite"
-      "region" : 150   // "LK"|"US"  OR value which adheres to "ISO 3166-1 alpha-2"
-  }</textarea>
+
+                              <table class="table table-bordered">
+                                  <thead>
+                                  <tr>
+                                      <th>Property</th>
+                                      <th>Value</th>
+                                      <th>Description</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  <tr class="danger">
+                                      <td>title</td>
+                                      <td>String</td>
+                                      <td>Title of the table</td>
+                                  </tr>
+                                  <tr class="danger">
+                                      <td>mode</td>
+                                      <td>markers,normal,satellite</td>
+                                      <td>type of the map need to be drawn</td>
+
+                                  </tr>
+                                  <tr class="danger">
+                                      <td>pointColor</td>
+                                      <td>0-(dataset.length-1)</td>
+                                      <td>column index which represents the color variable</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>pointSize</td>
+                                      <td>0-(dataset.length-1)</td>
+                                      <td>column index for point size variable</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>region</td>
+                                      <td>LK,US.. or "ISO 3166-1 alpha-2"</td>
+                                      <td>region need to be drawn</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>pointLabel</td>
+                                      <td>0 to (dataset.length-1)</td>
+                                      <td>column index of the dataset for text labels</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>width</td>
+                                      <td>px</td>
+                                      <td>width of the chart</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>height</td>
+                                      <td>px</td>
+                                      <td>height of the chart</td>
+
+                                  </tr>
+
+                                  <tr class="danger">
+                                      <td>chartType</td>
+                                      <td>map</td>
+                                      <td>Type of the chart</td>
+
+                                  </tr>
+                                  <tr class="info">
+                                      <td>padding</td>
+                                      <td>px</td>
+                                      <td>Padding of the chart</td>
+
+                                  </tr>
+
+                                  </tbody>
+                              </table>
+
                           </div>
                       </div>
                   </div>
               </div>
+
 
           </div>
 
@@ -163,6 +214,24 @@
              <div class="row">
                 <h3>Sample code for above charts</h3>
                 <pre>
+
+/******************************************************* Installation of the library ******************************************************/
+
+             &lt;link rel="stylesheet" href="bootstrap.min.css"&gt
+             &lt;link rel="stylesheet" href="igviz.css"&gt
+
+             &lt;script type='text/javascript' src='https://www.google.com/jsapi'&gt;&lt;/script&gt;
+             &lt;script type="text/javascript"&gt;
+                google.load('visualization', '1', {
+                    'packages': ['map', 'geochart']
+                });
+             &lt;/script&gt;
+             &lt;script src="d3.min.js"&gt &lt;/script&gt
+             &lt;script src="igviz.js"&gt &lt;/script&gt
+
+/********************************************************** Invoking the Library **********************************************************/
+             &lt;script&gt
+
                     //dataset used to plot charts
                     var dataTable = {
                           "metadata":{
@@ -192,25 +261,23 @@
                         var width = document.getElementById("map").offsetWidth; //canvas width
                         var height = 270;   //canvas height
 
-                        var mapConfig={
-                            "title": "Map By Country",
-                            "width": width,
-                            "height": height,
-                            "padding": 60,
-                            "pointColor": 3,
-                            "pointSize": 1,
-                            "chartType": "map",
-                            "mapLocation" : 0,
-                            "mode" :"regions",     //possible options for mode:"markers"| "normal" | "satellite"
-                            "region" : 150    //possible options for region:"LK" | "US" ... OR any value which matches with "ISO 3166-1 alpha-2"
+                    var mapConfig={
+                        "title": "Map By Country",
+                        "width": width,
+                        "height": height,
+                        "padding": 60,
+                        "pointColor": 3,
+                        "pointSize": 1,
+                        "chartType": "map",
+                        "mapLocation" : 0,
+                        "mode" :"regions",   // "markers"| "normal" | "satellite"
+                        "region" : 150       //  "LK" | "US" | "GB" ...
+                    }
 
-                        }
+                    //draw a map within #map div
+                    igviz.plot("#map",mapConfig,dataTable);
 
-
-                        //draw a Map on #map
-                        //for this operation
-                        igviz.plot("#map",mapConfig,dataTable);
-
+            &lt;/script&gt
                 </pre>
             </div>
 
@@ -223,49 +290,49 @@
 
 
 //dataset used to plot charts
-var dataTable = {
-      "metadata":{
-        "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
-        "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
-      },
-      "data": [
-        ["Austria",83871,41600,3.5,79.91,0.8,0.03,4.2],
-        ["Belgium",30528,37800,3.5,79.65,1.3,0.06,7.2],
-        ["Bulgaria",110879,13800,4.2,73.84,2.6,-0.8,9.6],
-        ["Croatia",56594,18000,2.3,75.99,2.39,-0.09,17.7],
-        ["Czech Republic",78867,27100,1.9,77.38,1.15,-0.13,8.5],
-        ["Denmark",43094,37000,2.8,78.78,1.3,0.24,6.1],
-        ["Estonia",45228,20400,5,73.58,2,-0.65,12.5],
-        ["Finland",338145,36000,3.3,79.41,2,0.07,7.8],
-        ["Germany",357022,38100,2.5,80.19,1.5,-0.2,6],
-        ["Greece",131957,26300,3.3,80.05,4.3,0.06,17.4],
-        ["Hungary",93028,19600,3.9,75.02,1.75,-0.18,10.9],
-        ["Iceland",103000,38100,4,81,0,0.67,7.4],
-        ["Ireland",70273,40800,2.6,80.32,0.9,1.11,14.4],
-        ["Italy",301340,30500,2.9,81.86,1.8,0.38,8.4],
-        ["Latvia",64589,16800,4.4,72.93,1.1,-0.6,12.8]
+                    var dataTable = {
+                          "metadata":{
+                            "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
+                            "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
+                          },
+                          "data": [
+                            ["Austria",83871,41600,3.5,79.91,0.8,0.03,4.2],
+                            ["Belgium",30528,37800,3.5,79.65,1.3,0.06,7.2],
+                            ["Bulgaria",110879,13800,4.2,73.84,2.6,-0.8,9.6],
+                            ["Croatia",56594,18000,2.3,75.99,2.39,-0.09,17.7],
+                            ["Czech Republic",78867,27100,1.9,77.38,1.15,-0.13,8.5],
+                            ["Denmark",43094,37000,2.8,78.78,1.3,0.24,6.1],
+                            ["Estonia",45228,20400,5,73.58,2,-0.65,12.5],
+                            ["Finland",338145,36000,3.3,79.41,2,0.07,7.8],
+                            ["Germany",357022,38100,2.5,80.19,1.5,-0.2,6],
+                            ["Greece",131957,26300,3.3,80.05,4.3,0.06,17.4],
+                            ["Hungary",93028,19600,3.9,75.02,1.75,-0.18,10.9],
+                            ["Iceland",103000,38100,4,81,0,0.67,7.4],
+                            ["Ireland",70273,40800,2.6,80.32,0.9,1.11,14.4],
+                            ["Italy",301340,30500,2.9,81.86,1.8,0.38,8.4],
+                            ["Latvia",64589,16800,4.4,72.93,1.1,-0.6,12.8]
 
-      ]
-    }
+                          ]
+                        }
 
-    var width = document.getElementById("map").offsetWidth; //canvas width
-    var height = 270;   //canvas height
+                        var width = document.getElementById("map").offsetWidth; //canvas width
+                        var height = 270;   //canvas height
 
-var mapConfig={
-    "title": "Map By Country",
-    "width": width,
-    "height": height,
-    "padding": 60,
-    "pointColor": 3,
-    "pointSize": 1,
-    "chartType": "map",
-    "mapLocation" : 0,
-    "mode" :"regions",   // "markers"| "normal" | "satellite"
-    "region" : 150       //  "LK" | "US" | "GB" ...
-}
+                    var mapConfig={
+                        "title": "Map By Country",
+                        "width": width,
+                        "height": height,
+                        "padding": 60,
+                        "pointColor": 3,
+                        "pointSize": 1,
+                        "chartType": "map",
+                        "mapLocation" : 0,
+                        "mode" :"regions",   // "markers"| "normal" | "satellite"
+                        "region" : 150       //  "LK" | "US" | "GB" ...
+                    }
 
 
-igviz.plot("#map",mapConfig,dataTable);
+                    igviz.plot("#map",mapConfig,dataTable);
 
 
 </script>

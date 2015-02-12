@@ -449,7 +449,7 @@ console.log(chartConfig);
 		var ordinal = d3.scale.ordinal(); //scale to map y coordinates
 
 		var x = d3.scale.linear() //scale for x axis
-			.range([0, w]);
+			.range([0, w-100]);
 
 		var y = d3.scale.linear() //scale for y axis
 			.range([h, 0]);
@@ -547,7 +547,8 @@ console.log(chartConfig);
 				};
 			})
 			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
-				return "translate(" + (x(d.value.key)-100) + "," + y(d.value.value) + ")";
+					console.log(d);
+				return "translate(" + (x(d.value.key)) + "," + y(d.value.value) + ")";
 			})
 			.attr("x", 3)
 			.attr("dy", ".45em")
@@ -982,7 +983,7 @@ console.log(chartConfig);
 				.domain([-1, d3.max(dataset, function(d) {
 					return d.config.pointColor ? d.data[d.config.pointColor] : 20;
 				})])
-				.range([chartConfig.dotColorLowerLimit, chartConfig.dotColorUpperLimit]);
+				.range([chartConfig.minColor, chartConfig.maxColor]);
 		} else {
 			colorScale = d3.scale.category20c();
 		}
