@@ -51,6 +51,10 @@
 		} else if (config.chartType == "table") {
 			this.drawTable(canvas, config, dataTable);
 		}
+		else if (config.chartType == "area") {
+			this.drawAreaChart(canvas, config, dataTable);
+		}
+
 		return new Chart(canvas,config, dataTable);
 	};
 
@@ -167,6 +171,110 @@ console.log(chartConfig);
 		}
 	return chartConfig;
 	}
+
+	igviz.drawAreaChart = function(divId, chartConfig, dataTable) {
+
+		var width = chartConfig.width;
+		var height = chartConfig.height;
+		var padding = chartConfig.padding;
+
+		var margin = {top: 20, right: 20, bottom: 30, left: 50};
+
+		var dataset = dataTable.data.map(function(d) {
+			return {
+				"data": d,
+				"config": chartConfig
+			}
+		});
+
+
+
+	//	var plotCtx = createScales(dataset, chartConfig, dataTable);
+	//	var xScale = plotCtx.xScale;
+	//	var yScale = plotCtx.yScale;
+
+		var x = d3.scale.linear()
+			.range([0,width]);
+
+		var y = d3.scale.linear()
+			.range([height, 0]);
+
+
+		var xAxis = d3.svg.axis() //define x axis
+			.scale(x)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis() //define y axis
+			.scale(y)
+			.orient("left");
+
+
+		var area = d3.svg.area()
+			.x(function(d) { return x(d.x); })
+			.y0(height)
+			.y1(function(d) { return y(d.y); });
+
+
+
+		var svgID = divId + "_svg";
+		//Remove current SVG if it is already there
+		d3.select(svgID).remove();
+
+
+		console.log(dataTable);
+		dataTable.data;
+
+		dataTable.data.forEach(
+			function (d)
+			{
+
+				d.x=d[chartConfig.xAxis];
+				d.y =d[chartConfig.yAxis];
+				console.log(d)
+			}
+		);
+
+
+		var svg = d3.select(divId)
+			.append("svg")
+			.attr("id", svgID.replace("#", ""))
+			.attr("width", width)
+			.attr("height", height);
+
+		x.domain(d3.extent(dataTable.data, function(d) { return d.x; }));
+		y.domain([0, d3.max(dataTable.data, function(d) { return d.y; })]);
+
+		svg.append("path")
+			.datum(dataTable.data)
+			.attr("class", "area")
+			.attr("d", area);
+
+		svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis);
+
+		svg.append("g")
+			.attr("class", "y axis")
+			.call(yAxis)
+			.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 6)
+			.attr("dy", ".71em")
+			.style("text-anchor", "end")
+			.text("Price ($)");
+
+		//d3.selectAll('.bar');
+
+	};
+
+
+
+
+
+
+
+
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
 		var width = chartConfig.width;
 		var height = chartConfig.height;
