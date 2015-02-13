@@ -145,6 +145,20 @@
                   </div>
               </a>
 
+              <div class="col-md-6" class="tile">
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <h3 class="panel-title">
+                              Arc Sample
+                          </h3>
+                      </div>
+                      <div class="panel-body">
+                          <div id="arc"></div>
+                      </div>
+
+                  </div>
+              </div>
+
               
           </div>
 
@@ -266,6 +280,14 @@ var dataTable = {
 
     }
 
+    var arcConfig = {
+        "width": width,
+        "height": height,
+        "chartType": "arc",
+        "diameter" : 200,
+        "value" : 75,
+    }
+
 
 var dataTable2 = {
     "metadata":{
@@ -296,6 +318,8 @@ var dataTable2 = {
 
     //draw a table on div #table
     igviz.plot("#table",tableConfig,dataTable2);
+    
+    igviz.plot("#arc",arcConfig,dataTable2);
 
 
 </script>
