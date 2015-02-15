@@ -18,6 +18,7 @@
 
     <!-- Intergration of igviz  -->
     <script src="../igviz.js"></script>
+    <script src="../dataTable.js"></script>
     <link rel="stylesheet" href="../igviz.css">
 
 
@@ -256,18 +257,7 @@ var dataTable = {
     }
 
 
-    var lineChartConfig = {
-        "title": "Title",
-        "yAxis": [3,5,7],
-        "lineColors":["yellow","red","blue"],
-        "xAxis": 5,
-        "interpolationMode":"basis",
-        "pointLabel": 0,
-        "width": width-10,
-        "height": height-60,
-        "padding": 60,
-        "chartType": "line"
-    }
+    
 
     var tableConfig = {
         "title": "Area By Country",
@@ -287,6 +277,20 @@ var dataTable = {
         "diameter" : 200,
         "value" : 75,
     }
+
+
+    var lineChartConfig = {
+        "title": "Area By Country",
+        "xAxis": 0,
+        "yAxis": [1,2],
+        "padding": 60,
+        "width": width,
+        "height": height,
+        "textAngle" : -90,
+        "chartType": "line",
+        "lineColors": ["yellow"]
+    }
+
 
 
 var dataTable2 = {
@@ -310,12 +314,28 @@ var dataTable2 = {
     //draw a scatter chart on div #scatter
     igviz.plot("#scatter",scatterChartConfig,dataTable);
 
-    igviz.plot("#line",lineChartConfig,dataTable);
+
+    var lineData = new DataTable();
+    lineData.addColumn("Year","C");
+    lineData.addColumn("Sales","N");
+    lineData.addColumn("Expenses","N");
+             
+    lineData.addRows(
+        [
+            [2004,  1000,      400],
+            [2005,  1170,      460],
+            [2006,  660,       1120],
+            [2007,  1030,      540]
+        ]
+    );
+
+    //draw a line chart on 
+    igviz.plot("#line",lineChartConfig,lineData);
+
+
     igviz.plot("#map",mapConfig,dataTable);
     
-    //draw a line chart on 
-    igviz.plot("#line",lineChartConfig,dataTable);
-
+    
     //draw a table on div #table
     igviz.plot("#table",tableConfig,dataTable2);
     

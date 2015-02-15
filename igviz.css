@@ -147,3 +147,12 @@ svg {
     display: block;
     margin: 0 auto;
 }
+
+/* Line chart grid*/
+.tick line{
+    stroke: lightgrey;
+    opacity: 0.7;
+    shape-rendering: crispEdges;
+    stroke-width:1;
+  }
+
