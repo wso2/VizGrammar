@@ -18,7 +18,6 @@
 
     <!-- Intergration of igviz  -->
     <script src="../igviz.js"></script>
-    <script src="../dataTable.js"></script>
     <link rel="stylesheet" href="../igviz.css">
 
 
@@ -27,16 +26,6 @@
 
     <style type="text/css">
         body{ padding-top: 40px;}
-
-
-        /*a:hover .panel-heading{
-            background-color: cornflowerblue;
-        }
-
-        a:hover .panel{
-            border:2px groove  ;
-        }*/
-
 
     </style>
 </head>
@@ -315,7 +304,7 @@ var dataTable2 = {
     igviz.plot("#scatter",scatterChartConfig,dataTable);
 
 
-    var lineData = new DataTable();
+    var lineData = new igviz.DataTable();
     lineData.addColumn("Year","C");
     lineData.addColumn("Sales","N");
     lineData.addColumn("Expenses","N");

@@ -1596,6 +1596,7 @@
 	};
 
 
+
 	//Chart class that represents a single chart
 	function Chart(canvas, config, dataTable) {
 		this.dataTable = dataTable;
