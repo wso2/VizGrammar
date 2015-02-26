@@ -54,9 +54,86 @@
 		else if (config.chartType == "area") {
 			this.drawAreaChart(canvas, config, dataTable);
 		}
+		else if(config.chartType=="drill"){
+			this.drillDown(0,canvas,config,dataTable);
+		}
 
 		return new Chart(canvas,config, dataTable);
 	};
+
+
+
+	igviz.drillDown = function drillDown(index,divId, chartConfig, dataTable) {
+	//	console.log(dataTable,chartConfig,divId);
+		var currentChartConfig=JSON.parse(JSON.stringify(chartConfig));
+	    var	current_x=0;
+		if(index<chartConfig.xAxis.length)
+     		current_x=chartConfig.xAxis[index].index
+        else
+	    	current_x=chartConfig.xAxis[index-1].child;
+
+		var current_y=chartConfig.yAxis;
+		var currentData={
+			metadata: {
+				names: [dataTable.metadata.names[current_x], dataTable.metadata.names[current_y]],
+				types: [dataTable.metadata.types[current_x], dataTable.metadata.types[current_y]]
+			},
+			data:[]
+		}
+
+      	var tempData=[];
+		for( i=0;i<dataTable.data.length;i++)
+		{
+			name=dataTable.data[i][current_x];
+			currentYvalue=dataTable.data[i][current_y];
+			isFound=false;
+			var j=0;
+			for(;j<tempData.length;j++){
+				if(tempData[j][0]===name){
+					isFound=true;
+					break;
+				}
+			}
+			if(isFound)
+			tempData[j][1]+=currentYvalue;
+			else{
+				tempData.push([name,current_y])
+			}
+		}
+
+		currentData.data=tempData;
+        currentChartConfig.xAxis=0;
+		currentChartConfig.yAxis=1;
+		currentChartConfig.chartType='bar';
+
+	var x=this.plot(divId,currentChartConfig,currentData);
+
+		if(index<chartConfig.xAxis.length) {
+			d3.select(x.canvas).selectAll('svg rect').on('click', function (d, i) {
+				console.log(d, i, this);
+				var selectedName = d.data[0];
+				console.log(selectedName);
+				var selectedCurrentData = JSON.parse(JSON.stringify(dataTable));
+				var l = selectedCurrentData.data.length;
+				var newdata = [];
+				b = 0;
+				for (a = 0; a < l; a++) {
+					if (selectedCurrentData.data[a][current_x] === selectedName) {
+						newdata[b++] = selectedCurrentData.data[a];
+					}
+				}
+
+
+				selectedCurrentData.data = newdata;
+
+
+				igviz.drillDown(index + 1, divId, chartConfig, selectedCurrentData);
+
+
+			});
+
+		}	};
+
 
 	function setDefault(chartConfig)
 	{
@@ -88,7 +165,7 @@
 			"dy":".71em",
 			"dx":0
 		}
-console.log(chartConfig);
+//console.log(chartConfig);
 		if(!chartConfig.hasOwnProperty("xAxisLabelConfig"))
 		{
 			chartConfig.xAxisLabelConfig=xaxisObj;
@@ -178,7 +255,10 @@ console.log(chartConfig);
 		var height = chartConfig.height;
 		var padding = chartConfig.padding;
 
-		var margin = {top: 20, right: 20, bottom: 30, left: 50};
+		var margin = {top: 20, right: 80, bottom: 50, left: 30};
+
+
+		//console.log(dataTable)
 
 		var dataset = dataTable.data.map(function(d) {
 			return {
@@ -187,11 +267,20 @@ console.log(chartConfig);
 			}
 		});
 
+		//console.log("hello")
+		//console.log( dataset);
+		dataset.sort(function(a, b) { //sort the data set with respect to the x coordinates
 
+			return a.data[chartConfig.xAxis] - b.data[chartConfig.xAxis];
+		});
+
+		console.log(dataset);
 
 	//	var plotCtx = createScales(dataset, chartConfig, dataTable);
 	//	var xScale = plotCtx.xScale;
 	//	var yScale = plotCtx.yScale;
+
+
 
 		var x = d3.scale.linear()
 			.range([0,width]);
@@ -209,6 +298,8 @@ console.log(chartConfig);
 			.orient("left");
 
 
+
+
 		var area = d3.svg.area()
 			.x(function(d) { return x(d.x); })
 			.y0(height)
@@ -221,15 +312,13 @@ console.log(chartConfig);
 		d3.select(svgID).remove();
 
 
-		console.log(dataTable);
-		dataTable.data;
 
-		dataTable.data.forEach(
+		dataset.forEach(
 			function (d)
 			{
 
-				d.x=d[chartConfig.xAxis];
-				d.y =d[chartConfig.yAxis];
+				d.x= d.data[chartConfig.xAxis];
+				d.y = d.data[chartConfig.yAxis];
 				console.log(d)
 			}
 		);
@@ -239,20 +328,28 @@ console.log(chartConfig);
 			.append("svg")
 			.attr("id", svgID.replace("#", ""))
 			.attr("width", width)
-			.attr("height", height);
+			.attr("height", height).
+			attr("transform", "translate(" + margin.left+ "," + margin.top + ")"); //move to the middle of the screen in given dimensions
 
-		x.domain(d3.extent(dataTable.data, function(d) { return d.x; }));
-		y.domain([0, d3.max(dataTable.data, function(d) { return d.y; })]);
+		x.domain(d3.extent(dataset, function(d) { return d.x; }));
+
+		y.domain([0, d3.max(dataset, function(d) { return d.y; })]);
 
 		svg.append("path")
-			.datum(dataTable.data)
+			.datum(dataset)
 			.attr("class", "area")
-			.attr("d", area);
+			.attr("d", area).style("fill","steelblue")
+		;
 
 		svg.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis);
+			.call(xAxis).append("text") //append the label for the x axis
+			.attr("x", width) //move to the right hand end
+			.attr("y", 28) //set as -10 to move on top of the x axis
+			.style("text-anchor", "end")
+			.style("font-weight", "bold")
+			.text(dataTable.metadata[chartConfig.xAxis])
 
 		svg.append("g")
 			.attr("class", "y axis")
@@ -262,7 +359,7 @@ console.log(chartConfig);
 			.attr("y", 6)
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
-			.text("Price ($)");
+			.text(dataTable.metadata[chartConfig.yAxis]);
 
 		//d3.selectAll('.bar');
 
@@ -497,6 +594,8 @@ console.log(chartConfig);
 				"data": d,
 				"config": chartConfig
 			}
+
+
 		});
 
 		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
@@ -545,7 +644,8 @@ console.log(chartConfig);
 			.append("svg")
 			.attr("id", svgID.replace("#", ""))
 			.attr("width", w) //width
-			.attr("height", h + 50) //height
+			.attr("height", h +margin.bottom )
+			// /height
 			.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
 
@@ -613,7 +713,7 @@ console.log(chartConfig);
 
 		svg.append("g") //append x axis to the chart and move(translate to the bottom
 			.attr("class", "x axis")
-			.attr("transform", "translate(0," + h + ")")
+			.attr("transform", "translate(0," + h  +")")
 			.call(XAxis)
 			.append("text") //append the label for the x axis
 			.attr("x", w-40) //move to the right hand end
