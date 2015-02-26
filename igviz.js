@@ -3,41 +3,13 @@
 	var igviz = window.igviz || {};
 
 	igviz.version = '1.0.0';
-	igviz.dev = true; //set false when in production
 
 	window.igviz = igviz;
 
 
-	//Chart class that represents a single chart
-	function Chart (canvas,config, dataTable) {
-		this.dataTable = dataTable;
-		this.config = config;
-		this.canvas = canvas;
-	}
-
-
-	//Redraw the chart with newly populated data
-	//@data An array of arrays that holds new data 
-	//E.g
-	// chart.load([
-    //                ["Belgium",64589,16800,4.4,72.93,1.1,-0.6,12.8],
-    //                ["Italy",601340,30500,2.9,81.86,1.8,0.38,8.4]
-    //            ]);
-	Chart.prototype.load = function(data) {
-		for (var i = 0; i < data.length; i++) {
-			this.dataTable.addRow(data[i])
-		};
-		igviz.plot(this.canvas, this.config, this.dataTable);
-	};
-
-	Chart.prototype.unload = function() {
-		//TODO implement me!
-	};
-
-
 	//Plots a chart in a given div specified by canvas
 	igviz.plot = function(canvas, config, dataTable) {
-		config=	setDefault(config)
+		config = setDefault(config)
 		if (config.chartType == "bar") {
 			this.drawBarChart(canvas, config, dataTable);
 		} else if (config.chartType == "scatter") {
@@ -50,15 +22,16 @@
 			this.drawLineChart(canvas, config, dataTable);
 		} else if (config.chartType == "table") {
 			this.drawTable(canvas, config, dataTable);
-		}
-		else if (config.chartType == "area") {
+		} else if (config.chartType == "area") {
 			this.drawAreaChart(canvas, config, dataTable);
+		} else if (config.chartType == "arc") {
+			this.drawArc(canvas, config, dataTable);
 		}
 		else if(config.chartType=="drill"){
 			this.drillDown(0,canvas,config,dataTable);
 		}
 
-		return new Chart(canvas,config, dataTable);
+		return new Chart(canvas, config, dataTable);
 	};
 
 
@@ -135,119 +108,252 @@
 		}	};
 
 
-	function setDefault(chartConfig)
-	{
-		var tickObj={
-		"textAngle":-60,
-			"x":0,
-			"y":9,
-			"dy":".15em",
-			"dx":"-.8em",
-			"tickHeight":6,
-			"tickWidth":0
-		}
-
-		var xaxisObj={
-		"fontSize":"20px",
-			"rotate":"",
+		var tickObj = {
+			"textAngle": -60,
 			"x": 0,
-			"y":20,
+			"y": 9,
+			"dy": ".15em",
+			"dx": "-.8em",
+			"tickHeight": 6,
+			"tickWidth": 0
+		}
+
+		var xaxisObj = {
+			"fontSize": "20px",
+			"rotate": "",
+			"x": 0,
+			"y": 20,
 			"dx": 0,
-			"dy":".71em"
+			"dy": ".71em"
 
 		}
 
-		var yaxisObj={
-			"fontSize":"20px",
-			"rotate":-90,
-			"x":-10 ,
-			"y":6,
-			"dy":".71em",
-			"dx":0
+		var yaxisObj = {
+			"fontSize": "20px",
+			"rotate": -90,
+			"x": -10,
+			"y": 6,
+			"dy": ".71em",
+			"dx": 0
 		}
 //console.log(chartConfig);
-		if(!chartConfig.hasOwnProperty("xAxisLabelConfig"))
-		{
-			chartConfig.xAxisLabelConfig=xaxisObj;
-		}
-		else
-		{
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("fontSize"))
-				chartConfig.xAxisLabelConfig.fontSize=xaxisObj.fontSize;
+			chartConfig.xAxisLabelConfig = xaxisObj;
+		} else {
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("fontSize"))
+				chartConfig.xAxisLabelConfig.fontSize = xaxisObj.fontSize;
 
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("rotate"))
-				chartConfig.xAxisLabelConfig.rotate=xaxisObj.rotate;
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("rotate"))
+				chartConfig.xAxisLabelConfig.rotate = xaxisObj.rotate;
 
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("x"))
-				chartConfig.xAxisLabelConfig.x=xaxisObj.x;
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("x"))
+				chartConfig.xAxisLabelConfig.x = xaxisObj.x;
 
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("y"))
-				chartConfig.xAxisLabelConfig.y=xaxisObj.y;
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("y"))
+				chartConfig.xAxisLabelConfig.y = xaxisObj.y;
 
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("dx"))
-				chartConfig.xAxisLabelConfig.dx=xaxisObj.dx;
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("dx"))
+				chartConfig.xAxisLabelConfig.dx = xaxisObj.dx;
 
-			if(!chartConfig.xAxisLabelConfig.hasOwnProperty("dy"))
-				chartConfig.xAxisLabelConfig.dx=xaxisObj.dy;
+			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("dy"))
+				chartConfig.xAxisLabelConfig.dx = xaxisObj.dy;
 		}
 
 
 
-		if(!chartConfig.hasOwnProperty("yAxisLabelConfig"))
-		{
-			chartConfig.yAxisLabelConfig=yaxisObj;
-		}
-		else
-		{
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("fontSize"))
-				chartConfig.yAxisLabelConfig.fontSize=yaxisObj.fontSize;
+		if (!chartConfig.hasOwnProperty("yAxisLabelConfig")) {
+			chartConfig.yAxisLabelConfig = yaxisObj;
+		} else {
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("fontSize"))
+				chartConfig.yAxisLabelConfig.fontSize = yaxisObj.fontSize;
 
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("rotate"))
-				chartConfig.yAxisLabelConfig.rotate=yaxisObj.rotate;
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("rotate"))
+				chartConfig.yAxisLabelConfig.rotate = yaxisObj.rotate;
 
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("x"))
-				chartConfig.yAxisLabelConfig.x=yaxisObj.x;
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("x"))
+				chartConfig.yAxisLabelConfig.x = yaxisObj.x;
 
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("y"))
-				chartConfig.yAxisLabelConfig.y=yaxisObj.y;
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("y"))
+				chartConfig.yAxisLabelConfig.y = yaxisObj.y;
 
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("dx"))
-				chartConfig.yAxisLabelConfig.dx=yaxisObj.dx;
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("dx"))
+				chartConfig.yAxisLabelConfig.dx = yaxisObj.dx;
 
-			if(!chartConfig.yAxisLabelConfig.hasOwnProperty("dy"))
-				chartConfig.yAxisLabelConfig.dx=yaxisObj.dy;
+			if (!chartConfig.yAxisLabelConfig.hasOwnProperty("dy"))
+				chartConfig.yAxisLabelConfig.dx = yaxisObj.dy;
 		}
 
 
-		if(!chartConfig.hasOwnProperty("tickLabelConfig"))
-		{
-			chartConfig.tickLabelConfig=tickObj;
+		if (!chartConfig.hasOwnProperty("tickLabelConfig")) {
+			chartConfig.tickLabelConfig = tickObj;
+		} else {
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("textAngle"))
+				chartConfig.tickLabelConfig.textAngle = tickObj.textAngle;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("tickHeight"))
+				chartConfig.tickLabelConfig.tickHeight = tickObj.tickHeight;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("tickWidth"))
+				chartConfig.tickLabelConfig.tickWidth = tickObj.tickWidth;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("x"))
+				chartConfig.tickLabelConfig.x = tickObj.x;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("y"))
+				chartConfig.tickLabelConfig.y = tickObj.y;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("dx"))
+				chartConfig.tickLabelConfig.dx = tickObj.dx;
+
+			if (!chartConfig.tickLabelConfig.hasOwnProperty("dy"))
+				chartConfig.tickLabelConfig.dx = tickObj.dy;
 		}
-		else
-		{
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("textAngle"))
-				chartConfig.tickLabelConfig.textAngle=tickObj.textAngle;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("tickHeight"))
-				chartConfig.tickLabelConfig.tickHeight=tickObj.tickHeight;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("tickWidth"))
-				chartConfig.tickLabelConfig.tickWidth=tickObj.tickWidth;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("x"))
-				chartConfig.tickLabelConfig.x=tickObj.x;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("y"))
-				chartConfig.tickLabelConfig.y=tickObj.y;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("dx"))
-				chartConfig.tickLabelConfig.dx=tickObj.dx;
-
-			if(!chartConfig.tickLabelConfig.hasOwnProperty("dy"))
-				chartConfig.tickLabelConfig.dx=tickObj.dy;
-		}
-	return chartConfig;
+		return chartConfig;
 	}
+
+	//TODO Fix x scale problems
+	//TODO Add a grid if possible
+	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
+		var xAxisName = dataTable.metadata.names[chartConfig.xAxis];
+
+		//TODO need a common default margin configuration for all charts
+		var margin = {
+				top: 20,
+				right: 80,
+				bottom: 30,
+				left: 50
+			},
+			width = chartConfig.width - margin.left - margin.right,
+			height = chartConfig.height - margin.top - margin.bottom;
+
+		//Preparing the data according to the way that chart expects    
+		var data = dataTable.data.map(function(d, i) {
+			var o = {};
+			d.forEach(function(element, index) {
+				var fieldName = dataTable.metadata.names[index];
+				if (fieldName === xAxisName) {
+					fieldName = "x";
+				}
+				Object.defineProperty(o, fieldName, {
+					value: element,
+					writable: true,
+					enumerable: true,
+					configurable: true
+				});
+
+			});
+			return o;
+		});
+		var x = d3.scale.linear()
+			.domain(d3.extent(data, function(d) {
+				return d.x;
+			}))
+			.range([0, width]);
+
+		var y = d3.scale.linear()
+			.range([height, 0]);
+
+		var color = d3.scale.category10();
+		var columns = chartConfig.yAxis.map(function(d) {
+			return dataTable.metadata.names[d];
+		});
+		color.domain(columns);
+
+		var dimensions = color.domain().map(function(name) {
+			return {
+				name: name,
+				values: data.map(function(d) {
+					return {
+						x: d.x,
+						value: +d[name]
+					};
+				})
+			};
+		});
+
+		y.domain([
+			d3.min(dimensions, function(c) {
+				return d3.min(c.values, function(v) {
+					return v.value;
+				});
+			}),
+			d3.max(dimensions, function(c) {
+				return d3.max(c.values, function(v) {
+					return v.value;
+				});
+			})
+		]);
+
+		var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left");
+
+		//let the drawing begin
+		//TODO Remove svg if it is there already
+		var svg = d3.select(divId).append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis);
+
+		svg.append("g")
+			.attr("class", "y axis")
+			.call(yAxis)
+			.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 6)
+			.attr("dy", ".71em")
+			.style("text-anchor", "end")
+			.text("Value");
+
+		var line = d3.svg.line()
+			.interpolate("linear")
+			.x(function(d) {
+				return x(d.x);
+			})
+			.y(function(d) {
+				return y(d.value);
+			});
+
+		var dimension = svg.selectAll(".dimension")
+			.data(dimensions)
+			.enter().append("g")
+			.attr("class", "dimension")
+
+
+		dimension.append("path")
+			.attr("class", "line")
+			.attr("d", function(d) {
+				return line(d.values);
+			})
+			.style("stroke", function(d) {
+				return color(d.name);
+			});
+
+		dimension.append("text")
+			.datum(function(d) {
+				return {
+					name: d.name,
+					value: d.values[d.values.length - 1]
+				};
+			})
+			.attr("transform", function(d) {
+				return "translate(" + x(d.value.x) + "," + y(d.value.value) + ")";
+			})
+			.attr("x", 3)
+			.attr("dy", ".35em")
+			.text(function(d) {
+				return d.name;
+			});
+	};
 
 	igviz.drawAreaChart = function(divId, chartConfig, dataTable) {
 
@@ -255,10 +361,12 @@
 		var height = chartConfig.height;
 		var padding = chartConfig.padding;
 
-		var margin = {top: 20, right: 80, bottom: 50, left: 30};
-
-
-		//console.log(dataTable)
+		var margin = {
+			top: 20,
+			right: 20,
+			bottom: 30,
+			left: 50
+		};
 
 		var dataset = dataTable.data.map(function(d) {
 			return {
@@ -276,14 +384,14 @@
 
 		console.log(dataset);
 
-	//	var plotCtx = createScales(dataset, chartConfig, dataTable);
-	//	var xScale = plotCtx.xScale;
-	//	var yScale = plotCtx.yScale;
+		//	var plotCtx = createScales(dataset, chartConfig, dataTable);
+		//	var xScale = plotCtx.xScale;
+		//	var yScale = plotCtx.yScale;
 
 
 
 		var x = d3.scale.linear()
-			.range([0,width]);
+			.range([0, width]);
 
 		var y = d3.scale.linear()
 			.range([height, 0]);
@@ -301,9 +409,13 @@
 
 
 		var area = d3.svg.area()
-			.x(function(d) { return x(d.x); })
+			.x(function(d) {
+				return x(d.x);
+			})
 			.y0(height)
-			.y1(function(d) { return y(d.y); });
+			.y1(function(d) {
+				return y(d.y);
+			});
 
 
 
@@ -314,8 +426,7 @@
 
 
 		dataset.forEach(
-			function (d)
-			{
+			function(d) {
 
 				d.x= d.data[chartConfig.xAxis];
 				d.y = d.data[chartConfig.yAxis];
@@ -334,6 +445,9 @@
 		x.domain(d3.extent(dataset, function(d) { return d.x; }));
 
 		y.domain([0, d3.max(dataset, function(d) { return d.y; })]);
+		y.domain([0, d3.max(dataTable.data, function(d) {
+			return d.y;
+		})]);
 
 		svg.append("path")
 			.datum(dataset)
@@ -365,12 +479,262 @@
 
 	};
 
+	igviz.drawArc = function(divId, chartConfig, dataTable) {
+
+		function radialProgress(parent) {
+			var _data = null,
+				_duration = 1000,
+				_selection,
+				_margin = {
+					top: 0,
+					right: 0,
+					bottom: 30,
+					left: 0
+				},
+				__width = chartConfig.width,
+				__height = chartConfig.height,
+				_diameter,
+				_label = "",
+				_fontSize = 10;
 
 
+			var _mouseClick;
+
+			var _value = 0,
+				_minValue = 0,
+				_maxValue = 100;
+
+			var _currentArc = 0,
+				_currentArc2 = 0,
+				_currentValue = 0;
+
+			var _arc = d3.svg.arc()
+				.startAngle(0 * (Math.PI / 180)); //just radians
+
+			var _arc2 = d3.svg.arc()
+				.startAngle(0 * (Math.PI / 180))
+				.endAngle(0); //just radians
 
 
+			_selection = d3.select(parent);
 
 
+			function component() {
+
+				_selection.each(function(data) {
+
+					// Select the svg element, if it exists.
+					var svg = d3.select(this).selectAll("svg").data([data]);
+
+					var enter = svg.enter().append("svg").attr("class", "radial-svg").append("g");
+
+					measure();
+
+					svg.attr("width", __width)
+						.attr("height", __height);
+
+
+					var background = enter.append("g").attr("class", "component")
+						.attr("cursor", "pointer")
+						.on("click", onMouseClick);
+
+
+					_arc.endAngle(360 * (Math.PI / 180))
+
+					background.append("rect")
+						.attr("class", "background")
+						.attr("width", _width)
+						.attr("height", _height);
+
+					background.append("path")
+						.attr("transform", "translate(" + _width / 2 + "," + _width / 2 + ")")
+						.attr("d", _arc);
+
+					background.append("text")
+						.attr("class", "label")
+						.attr("transform", "translate(" + _width / 2 + "," + (_width + _fontSize) + ")")
+						.text(_label);
+
+					//outer g element that wraps all other elements     
+					var gx = chartConfig.width / 2 - _width / 2;
+					var gy = chartConfig.height / 2 - _height / 2;
+					var g = svg.select("g")
+						.attr("transform", "translate(" + gx + "," + gy + ")");
+
+
+					_arc.endAngle(_currentArc);
+					enter.append("g").attr("class", "arcs");
+					var path = svg.select(".arcs").selectAll(".arc").data(data);
+					path.enter().append("path")
+						.attr("class", "arc")
+						.attr("transform", "translate(" + _width / 2 + "," + _width / 2 + ")")
+						.attr("d", _arc);
+
+					//Another path in case we exceed 100%
+					var path2 = svg.select(".arcs").selectAll(".arc2").data(data);
+					path2.enter().append("path")
+						.attr("class", "arc2")
+						.attr("transform", "translate(" + _width / 2 + "," + _width / 2 + ")")
+						.attr("d", _arc2);
+
+
+					enter.append("g").attr("class", "labels");
+					var label = svg.select(".labels").selectAll(".label").data(data);
+					label.enter().append("text")
+						.attr("class", "label")
+						.attr("y", _width / 2 + _fontSize / 3)
+						.attr("x", _width / 2)
+						.attr("cursor", "pointer")
+						.attr("width", _width)
+						// .attr("x",(3*_fontSize/2))
+						.text(function(d) {
+							return Math.round((_value - _minValue) / (_maxValue - _minValue) * 100) + "%"
+						})
+						.style("font-size", _fontSize + "px")
+						.on("click", onMouseClick);
+
+					path.exit().transition().duration(500).attr("x", 1000).remove();
+
+
+					layout(svg);
+
+					function layout(svg) {
+
+						var ratio = (_value - _minValue) / (_maxValue - _minValue);
+						var endAngle = Math.min(360 * ratio, 360);
+						endAngle = endAngle * Math.PI / 180;
+
+						path.datum(endAngle);
+						path.transition().duration(_duration)
+							.attrTween("d", arcTween);
+
+						if (ratio > 1) {
+							path2.datum(Math.min(360 * (ratio - 1), 360) * Math.PI / 180);
+							path2.transition().delay(_duration).duration(_duration)
+								.attrTween("d", arcTween2);
+						}
+
+						label.datum(Math.round(ratio * 100));
+						label.transition().duration(_duration)
+							.tween("text", labelTween);
+
+					}
+
+				});
+
+				function onMouseClick(d) {
+					if (typeof _mouseClick == "function") {
+						_mouseClick.call();
+					}
+				}
+			}
+
+			function labelTween(a) {
+				var i = d3.interpolate(_currentValue, a);
+				_currentValue = i(0);
+
+				return function(t) {
+					_currentValue = i(t);
+					this.textContent = Math.round(i(t)) + "%";
+				}
+			}
+
+			function arcTween(a) {
+				var i = d3.interpolate(_currentArc, a);
+
+				return function(t) {
+					_currentArc = i(t);
+					return _arc.endAngle(i(t))();
+				};
+			}
+
+			function arcTween2(a) {
+				var i = d3.interpolate(_currentArc2, a);
+
+				return function(t) {
+					return _arc2.endAngle(i(t))();
+				};
+			}
+
+
+			function measure() {
+				_width = _diameter - _margin.right - _margin.left - _margin.top - _margin.bottom;
+				_height = _width;
+				_fontSize = _width * .2;
+				_arc.outerRadius(_width / 2);
+				_arc.innerRadius(_width / 2 * .85);
+				_arc2.outerRadius(_width / 2 * .85);
+				_arc2.innerRadius(_width / 2 * .85 - (_width / 2 * .15));
+			}
+
+
+			component.render = function() {
+				measure();
+				component();
+				return component;
+			}
+
+			component.value = function(_) {
+				if (!arguments.length) return _value;
+				_value = [_];
+				_selection.datum([_value]);
+				return component;
+			}
+
+
+			component.margin = function(_) {
+				if (!arguments.length) return _margin;
+				_margin = _;
+				return component;
+			};
+
+			component.diameter = function(_) {
+				if (!arguments.length) return _diameter
+				_diameter = _;
+				return component;
+			};
+
+			component.minValue = function(_) {
+				if (!arguments.length) return _minValue;
+				_minValue = _;
+				return component;
+			};
+
+			component.maxValue = function(_) {
+				if (!arguments.length) return _maxValue;
+				_maxValue = _;
+				return component;
+			};
+
+			component.label = function(_) {
+				if (!arguments.length) return _label;
+				_label = _;
+				return component;
+			};
+
+			component._duration = function(_) {
+				if (!arguments.length) return _duration;
+				_duration = _;
+				return component;
+			};
+
+			component.onClick = function(_) {
+				if (!arguments.length) return _mouseClick;
+				_mouseClick = _;
+				return component;
+			}
+
+			return component;
+
+		};
+
+		radialProgress(divId)
+			.label("RADIAL 1")
+			.diameter(chartConfig.diameter)
+			.value(chartConfig.value)
+			.render();
+
+	};
 
 	igviz.drawBarChart = function(divId, chartConfig, dataTable) {
 		var width = chartConfig.width;
@@ -421,7 +785,7 @@
 			})
 			.attr("height", function(d) {
 				return height - yScale(d.data[d.config.yAxis]) - padding;
-			}).style("fill",chartConfig.barColor);
+			}).style("fill", chartConfig.barColor);
 
 		//d3.selectAll('.bar');
 
@@ -547,7 +911,7 @@
 		//Minimum value goes here
 		SingleNumberDiagram.append("text")
 			.attr("id", minDiv)
-			.text("Max: " + getMax(selectedColumn))
+			.text("Max: " + d3.max(selectedColumn))
 			//.text(50)
 			.attr("font-size", MIN_FONT_SIZE)
 			.attr("x", 3 * w / 4)
@@ -570,7 +934,7 @@
 		//Maximum value goes here
 		SingleNumberDiagram.append("text")
 			.attr("id", maxDiv)
-			.text("Min: " + getMin(selectedColumn))
+			.text("Min: " + d3.min(selectedColumn))
 			.attr("font-size", MAX_FONT_SIZE)
 			.attr("x", 3 * w / 4)
 			.attr("y", 3 * h / 4)
@@ -579,192 +943,11 @@
 			.style("lignment-baseline", "middle");
 	};
 
-	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
-		var w = chartConfig.width; //Width and height and margins
-		var h = chartConfig.height;
-		var margin = {
-			top: 20,
-			right: 80,
-			bottom: 50,
-			left: 30
-		};
-
-		var dataSet = dataTable.data.map(function(d) {
-			return {
-				"data": d,
-				"config": chartConfig
-			}
 
 
-		});
-
-		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
-		var yAxis = chartConfig.yAxis;
-
-
-		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
-
-		var yAxisNames=[];
-
-
-		var columnNames = [xAxisName];
-		for( var i=0;i<yAxis.length;i++)
-		{
-			yAxisNames[i]=dataTable.metadata.names[yAxis[i]];
-			columnNames.push(yAxisNames[i]);
-		}
-
-		//var yAxisName = dataTable.metadata.names[yAxis];
-
-
-
-
-		dataSet.sort(function(a, b) { //sort the data set with respect to the x coordinates
-			return a.data[xAxis] - b.data[xAxis];
-		});
-
-
-		var data = []; //empty array to load the selected data and organize in the required format
-		for (var i = 0; i < dataSet.length; i++) {
-			var obj={};
-			obj['key']=dataSet[i].data[xAxis];
-	    	for(var j=0;j<yAxis.length;j++)
-			{
-				obj['y'+j]=dataSet[i].data[yAxis[j]];
-			}
-
-
-			data.push(obj);
-		}
-
-		var svgID = divId + "_svg"; //svg container in which the chart shall be drawn
-		d3.select(svgID).remove(); //Remove current SVG if it is already there
-
-		var svg = d3.select(divId) //Create SVG element
-			.append("svg")
-			.attr("id", svgID.replace("#", ""))
-			.attr("width", w) //width
 			.attr("height", h +margin.bottom )
 			// /height
-			.append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
-
-		var interpolationMode = "cardinal"; //interpolation mode [linear, basis, step before, step after, cardinal]
-		if (chartConfig.interpolationMode != undefined) {
-			interpolationMode = chartConfig.interpolationMode;
-		}
-
-		var ordinal = d3.scale.ordinal(); //scale to map y coordinates
-
-		var x = d3.scale.linear() //scale for x axis
-			.range([0, w-100]);
-
-		var y = d3.scale.linear() //scale for y axis
-			.range([h, 0]);
-
-		var XAxis = d3.svg.axis() //define x axis
-			.scale(x)
-			.orient("bottom");
-
-		var YAxis = d3.svg.axis() //define y axis
-			.scale(y)
-			.orient("left");
-
-		var line = d3.svg.line() //svg element to connect the coordinates as a path
-			.x(function(d) {
-				return x(d.key); //scale x coordinates
-			})
-			.y(function(d) {
-				return y(d.value); //scale y coordinates
-			});
-
-		ordinal.domain(d3.keys(data[0]).filter(function(d) {
-			return d !== "key"; //get key list as the scale domain except the one which is exactly "key" as it should be the x variable set
-		}));
-
-		x.domain(d3.extent(data, function(d) {
-			return d.key; //define the domain of x scale
-		}));
-
-		var graphs = ordinal.domain().map(function(name) { //organize data in the format, {name,{key,value}}, {key,value}-values
-			return {
-				name: name,
-				values: data.map(function(d) {
-					return {
-						key: d.key,
-						value: +d[name]
-					};
-				})
-			};
-		});
-
-		y.domain([ //define the domain of y scale i.e- minimum value of all y coordinates to max of all y coordinates
-			d3.min(graphs, function(c) {
-				return d3.min(c.values, function(v) {
-					return v.value;
-				});
-			}),
-			d3.max(graphs, function(c) {
-				return d3.max(c.values, function(v) {
-					return v.value;
-				});
-			})
-		]);
-
-		svg.append("g") //append x axis to the chart and move(translate to the bottom
-			.attr("class", "x axis")
 			.attr("transform", "translate(0," + h  +")")
-			.call(XAxis)
-			.append("text") //append the label for the x axis
-			.attr("x", w-40) //move to the right hand end
-			.attr("y", 28) //set as -10 to move on top of the x axis
-			.style("text-anchor", "end")
-			.style("font-weight", "bold")
-			.text(columnNames[0]);
-
-		svg.append("g") //append y axis
-			.attr("class", "y axis")
-			.call(YAxis)
-			.append("text") //y axis label
-			.attr("transform", "rotate(-90)") //rotate 90 degrees
-			.attr("y", 6)
-			.attr("dy", ".71em") //distance from y axis to the label
-			.style("text-anchor", "end")
-			.style("font-weight", "bold")
-			.text("Value");
-
-		var graph = svg.selectAll(".graph") //create graphs for the data set
-			.data(graphs)
-			.enter().append("g")
-			.attr("class", "label"); //change text style
-
-		graph.append("path") //add path to the graphs
-			.attr("class", "line")
-			.attr("d", function(d) {
-				return line.interpolate(interpolationMode)(d.values); //interpolate in given interpolationMode and render line
-			})
-			.style("stroke", function (d, i) {
-				return chartConfig.lineColors[i];              //get different colors for each graph
-			});
-
-		graph.append("text")
-			.datum(function(d) { //to bind data to a single svg element
-				return {
-					name: d.name,
-					value: d.values[d.values.length - 1]
-				};
-			})
-			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
-					console.log(d);
-				return "translate(" + (x(d.value.key)) + "," + y(d.value.value) + ")";
-			})
-			.attr("x", 3)
-			.attr("dy", ".45em")
-			.text(function(d, i) {
-				return columnNames[i + 1];
-			});
-	};
-
 	/**
 	 * By : Fawsan M. <--fawsanm@wso2.com-->
 	 * Function to draw the Table
@@ -773,7 +956,6 @@
 	 * @param dataTable
 	 */
 	igviz.drawTable = function(divId, chartConfig, dataTable) {
-		console.log(chartConfig);
 		var w = chartConfig.width;
 		var h = chartConfig.height;
 		var padding = chartConfig.padding;
@@ -894,8 +1076,8 @@
 
 
 					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
+						d3.min(parseColumnFrom2DArray(tableData, i)),
+						d3.max(parseColumnFrom2DArray(tableData, i))
 					]);
 					return fontSize(d) + "px";
 				})
@@ -904,7 +1086,7 @@
 					//This is where the color is decided for the cell
 					//The domain set according to the data set we have now
 					//Minimum & maximum values for the particular data column is used as the domain
-					alpha.domain([getMin(parseColumnFrom2DArray(tableData, i)), getMax(parseColumnFrom2DArray(tableData, i))]);
+					alpha.domain([d3.min(parseColumnFrom2DArray(tableData, i)), d3.max(parseColumnFrom2DArray(tableData, i))]);
 
 					//return the color for the cell
 					return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
@@ -931,8 +1113,8 @@
 					//The domain set according to the data set we have now
 					//Minimum & maximum values for the particular data column is used as the domain
 					alpha.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
+						d3.min(parseColumnFrom2DArray(tableData, i)),
+						d3.max(parseColumnFrom2DArray(tableData, i))
 					]);
 
 					//return the color for the cell
@@ -958,28 +1140,28 @@
 				.style("font-size", function(d, i) {
 
 					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
+						d3.min(parseColumnFrom2DArray(tableData, i)),
+						d3.max(parseColumnFrom2DArray(tableData, i))
 					]);
 					return fontSize(d) + "px";
 				});
 
 		} else {
-			console.log("We are here baby!"); 
+			console.log("We are here baby!");
 			//appending the rows inside the table body
 			rows.style('background-color', function(d, i) {
 
 					colorRows.domain([
-						getMin(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
-						getMax(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
+						d3.min(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
+						d3.max(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
 					]);
 					return colorRows(d[chartConfig.xAxis]);
 				})
 				.style("font-size", function(d, i) {
 
 					fontSize.domain([
-						getMin(parseColumnFrom2DArray(tableData, i)),
-						getMax(parseColumnFrom2DArray(tableData, i))
+						d3.min(parseColumnFrom2DArray(tableData, i)),
+						d3.max(parseColumnFrom2DArray(tableData, i))
 					]);
 					return fontSize(d) + "px";
 				});
@@ -1247,14 +1429,14 @@
 				.attr("dx", chartConfig.tickLabelConfig.dx)
 				.attr("dy", chartConfig.tickLabelConfig.dy)
 				.attr("transform", function(d) {
-					return "rotate("+chartConfig.tickLabelConfig.textAngle+")"
+					return "rotate(" + chartConfig.tickLabelConfig.textAngle + ")"
 				});
 		}
 
 		axis.append("text")
 			.style("font-size", chartConfig.xAxisLabelConfig.fontSize)
 			.attr("y", chartConfig.xAxisLabelConfig.y)
-			.attr("x",(chartConfig.xAxisLabelConfig.x==undefined || chartConfig.xAxisLabelConfig.x==0)?(w-padding/5):chartConfig.xAxisLabelConfig.x)
+			.attr("x", (chartConfig.xAxisLabelConfig.x == undefined || chartConfig.xAxisLabelConfig.x == 0) ? (w - padding / 5) : chartConfig.xAxisLabelConfig.x)
 			.attr("dy", chartConfig.xAxisLabelConfig.dy)
 			.style("text-anchor", "end")
 			.text(dataTable.metadata.names[chartConfig.xAxis]);
@@ -1269,7 +1451,7 @@
 			.style("font-size", chartConfig.yAxisLabelConfig.fontSize)
 			.attr("y", chartConfig.yAxisLabelConfig.y)
 			.attr("x", chartConfig.yAxisLabelConfig.x)
-			.attr("transform", "rotate("+chartConfig.yAxisLabelConfig.rotate+")")
+			.attr("transform", "rotate(" + chartConfig.yAxisLabelConfig.rotate + ")")
 			.attr("dy", chartConfig.yAxisLabelConfig.dy)
 			.style("text-anchor", "end")
 			.text(dataTable.metadata.names[chartConfig.yAxis]);
@@ -1345,54 +1527,20 @@
 	/////////////////////////////////////////// TODO: Fawsan's util stuff. Better refactor these later ////////////////////
 
 	/**
-	 * Get teh maximum of a numaric array
-	 * @param data
-	 * @returns {*}
-	 */
-	function getMax(data) {
-
-	    var max = data[0];
-
-	    for (var i = 0; i < data.length; i++) {
-	        if (max < data[i]) {
-	            max = data[i];
-	        }
-	    }
-	    return max;
-	}
-
-	/**
-	 * Get the minimum value of a numeric array
-	 * @param data
-	 * @returns {*}
-	 */
-	function getMin(data) {
-
-	    var min = data[0];
-
-	    for (var i = 0; i < data.length; i++) {
-	        if (min > data[i]) {
-	            min = data[i];
-	        }
-	    }
-	    return min;
-	}
-
-	/**
 	 * Get the average of a numeric array
 	 * @param data
 	 * @returns average
 	 */
 	function getAvg(data) {
 
-	    var sum = 0;
+		var sum = 0;
 
-	    for (var i = 0; i < data.length; i++) {
-	        sum = sum + data[i];
-	    }
+		for (var i = 0; i < data.length; i++) {
+			sum = sum + data[i];
+		}
 
-	    var average = (sum / data.length).toFixed(4);
-	    return average;
+		var average = (sum / data.length).toFixed(4);
+		return average;
 	}
 
 	/**
@@ -1401,18 +1549,18 @@
 	 * @returns sigma(standard deviation)
 	 */
 	function standardDeviation(values) {
-	    var avg = getAvg(values);
+		var avg = getAvg(values);
 
-	    var squareDiffs = values.map(function (value) {
-	        var diff = value - avg;
-	        var sqrDiff = diff * diff;
-	        return sqrDiff;
-	    });
+		var squareDiffs = values.map(function(value) {
+			var diff = value - avg;
+			var sqrDiff = diff * diff;
+			return sqrDiff;
+		});
 
-	    var avgSquareDiff = getAvg(squareDiffs);
+		var avgSquareDiff = getAvg(squareDiffs);
 
-	    var stdDev = Math.sqrt(avgSquareDiff);
-	    return stdDev;
+		var stdDev = Math.sqrt(avgSquareDiff);
+		return stdDev;
 	}
 
 	/**
@@ -1424,9 +1572,9 @@
 	 */
 	function pX(x, sigma, u) {
 
-	    p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
+		p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
 
-	    return p;
+		return p;
 	}
 
 
@@ -1438,17 +1586,20 @@
 	 */
 	function NormalizationCoordinates(xVals) {
 
-	    var coordinates = [];
+		var coordinates = [];
 
-	    var u = getAvg(xVals);
-	    var sigma = standardDeviation(xVals);
+		var u = getAvg(xVals);
+		var sigma = standardDeviation(xVals);
 
-	    for (var i = 0; i < xVals.length; i++) {
+		for (var i = 0; i < xVals.length; i++) {
 
-	        coordinates[i] = {x: xVals[i], y: pX(xVals[i], sigma, u)};
-	    }
+			coordinates[i] = {
+				x: xVals[i],
+				y: pX(xVals[i], sigma, u)
+			};
+		}
 
-	    return coordinates;
+		return coordinates;
 	}
 
 	/**
@@ -1460,20 +1611,113 @@
 
 	function parseColumnFrom2DArray(dataset, index) {
 
-	    var array = [];
+		var array = [];
 
-	    //console.log(dataset.length);
-	    //console.log(dataset[0].data);
-	    //console.log(dataset[1].data);
+		//console.log(dataset.length);
+		//console.log(dataset[0].data);
+		//console.log(dataset[1].data);
 
-	    for (var i = 0; i < dataset.length; i++) {
-	        array.push(dataset[i][index])
-	    }
+		for (var i = 0; i < dataset.length; i++) {
+			array.push(dataset[i][index])
+		}
 
-	    return array;
+		return array;
 	}
 
 
+	//Start of utility class declarations
 
+	//DataTable that holds data in a tabular format
+	//E.g var dataTable = new igviz.DataTable();
+	//dataTable.addColumn("OrderId","C");
+	//dataTable.addColumn("Amount","N");
+	//dataTable.addRow(["12SS",1234.56]);
+	igviz.DataTable = function(data) {
+		this.metadata = {};
+		this.metadata.names = [];
+		this.metadata.types = [];
+		this.data = [];
+	};
+
+	igviz.DataTable.prototype.addColumn = function(name, type) {
+		this.metadata.names.push(name);
+		this.metadata.types.push(type);
+	};
+
+	igviz.DataTable.prototype.addRow = function(row) {
+		this.data.push(row);
+	};
+
+	igviz.DataTable.prototype.addRows = function(rows) {
+		for (var i = 0; i < rows.length; i++) {
+			this.data.push(rows[i]);
+		};
+	};
+
+	igviz.DataTable.prototype.getColumnNames = function() {
+		return this.metadata.names;
+	};
+
+	igviz.DataTable.prototype.getColumnByName = function(name) {
+		var column = {};
+		for (var i = 0; i < this.metadata.names.length; i++) {
+			//TODO Need to check for case sensitiveness
+			if (this.metadata.names[i] == name) {
+				column.name = this.metadata.names[i];
+				column.type = this.metadata.types[i];
+				return column;
+			}
+		};
+	};
+
+	igviz.DataTable.prototype.getColumnByIndex = function(index) {
+		var column = this.metadata.names[index];
+		if (column) {
+			column.name = column;
+			column.type = this.metadata.types[index];
+			return column;
+		}
+
+	};
+
+	igviz.DataTable.prototype.getColumnData = function(columnIndex) {
+		var data = [];
+		this.data.map(function(d) {
+			data.push(d[columnIndex]);
+		});
+		return data;
+	};
+
+	igviz.DataTable.prototype.toJSON = function() {
+		console.log(this);
+	};
+
+
+
+	//Chart class that represents a single chart
+	function Chart(canvas, config, dataTable) {
+		this.dataTable = dataTable;
+		this.config = config;
+		this.canvas = canvas;
+	}
+
+
+	//Redraw the chart with newly populated data
+	//@data An array of arrays that holds new data 
+	//E.g
+	// chart.load([
+	//                ["Belgium",64589,16800,4.4,72.93,1.1,-0.6,12.8],
+	//                ["Italy",601340,30500,2.9,81.86,1.8,0.38,8.4]
+	//            ]);
+	Chart.prototype.load = function(data) {
+		for (var i = 0; i < data.length; i++) {
+			this.dataTable.addRow(data[i])
+		};
+		igviz.plot(this.canvas, this.config, this.dataTable);
+	};
+
+	Chart.prototype.unload = function() {
+		//TODO implement me!
+	};
 
 })();

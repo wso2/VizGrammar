@@ -27,16 +27,6 @@
     <style type="text/css">
         body{ padding-top: 40px;}
 
-
-        /*a:hover .panel-heading{
-            background-color: cornflowerblue;
-        }
-
-        a:hover .panel{
-            border:2px groove  ;
-        }*/
-
-
     </style>
 </head>
 
@@ -145,6 +135,20 @@
                   </div>
               </a>
 
+              <div class="col-md-6" class="tile">
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <h3 class="panel-title">
+                              Arc Sample
+                          </h3>
+                      </div>
+                      <div class="panel-body">
+                          <div id="arc"></div>
+                      </div>
+
+                  </div>
+              </div>
+
               
           </div>
 
@@ -242,18 +246,7 @@ var dataTable = {
     }
 
 
-    var lineChartConfig = {
-        "title": "Title",
-        "yAxis": [3,5,7],
-        "lineColors":["yellow","red","blue"],
-        "xAxis": 5,
-        "interpolationMode":"basis",
-        "pointLabel": 0,
-        "width": width-10,
-        "height": height-60,
-        "padding": 60,
-        "chartType": "line"
-    }
+    
 
     var tableConfig = {
         "title": "Area By Country",
@@ -265,6 +258,28 @@ var dataTable = {
         "colorBasedStyle" :true
 
     }
+
+    var arcConfig = {
+        "width": width,
+        "height": height,
+        "chartType": "arc",
+        "diameter" : 200,
+        "value" : 75,
+    }
+
+
+    var lineChartConfig = {
+        "title": "Area By Country",
+        "xAxis": 0,
+        "yAxis": [1,2],
+        "padding": 60,
+        "width": width,
+        "height": height,
+        "textAngle" : -90,
+        "chartType": "line",
+        "lineColors": ["yellow"]
+    }
+
 
 
 var dataTable2 = {
@@ -288,14 +303,32 @@ var dataTable2 = {
     //draw a scatter chart on div #scatter
     igviz.plot("#scatter",scatterChartConfig,dataTable);
 
-    igviz.plot("#line",lineChartConfig,dataTable);
+
+    var lineData = new igviz.DataTable();
+    lineData.addColumn("Year","C");
+    lineData.addColumn("Sales","N");
+    lineData.addColumn("Expenses","N");
+             
+    lineData.addRows(
+        [
+            [2004,  1000,      400],
+            [2005,  1170,      460],
+            [2006,  660,       1120],
+            [2007,  1030,      540]
+        ]
+    );
+
+    //draw a line chart on 
+    igviz.plot("#line",lineChartConfig,lineData);
+
+
     igviz.plot("#map",mapConfig,dataTable);
     
-    //draw a line chart on 
-    igviz.plot("#line",lineChartConfig,dataTable);
-
+    
     //draw a table on div #table
     igviz.plot("#table",tableConfig,dataTable2);
+    
+    igviz.plot("#arc",arcConfig,dataTable2);
 
 
 </script>
