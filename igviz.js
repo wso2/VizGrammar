@@ -34,8 +34,6 @@
 		return new Chart(canvas, config, dataTable);
 	};
 
-
-
 	igviz.drillDown = function drillDown(index,divId, chartConfig, dataTable) {
 	//	console.log(dataTable,chartConfig,divId);
 		var currentChartConfig=JSON.parse(JSON.stringify(chartConfig));
@@ -108,7 +106,9 @@
 		}	};
 
 
-		var tickObj = {
+	function setDefault(chartConfig)
+	{
+		var tickObj= {
 			"textAngle": -60,
 			"x": 0,
 			"y": 9,
@@ -117,7 +117,6 @@
 			"tickHeight": 6,
 			"tickWidth": 0
 		}
-
 		var xaxisObj = {
 			"fontSize": "20px",
 			"rotate": "",
@@ -128,15 +127,15 @@
 
 		}
 
-		var yaxisObj = {
-			"fontSize": "20px",
-			"rotate": -90,
-			"x": -10,
-			"y": 6,
-			"dy": ".71em",
-			"dx": 0
+		var yaxisObj={
+			"fontSize":"20px",
+			"rotate":-90,
+			"x":-10 ,
+			"y":6,
+			"dy":".71em",
+			"dx":0
 		}
-//console.log(chartConfig);
+		if (!chartConfig.hasOwnProperty("xAxisLabelConfig")) {
 			chartConfig.xAxisLabelConfig = xaxisObj;
 		} else {
 			if (!chartConfig.xAxisLabelConfig.hasOwnProperty("fontSize"))
@@ -225,7 +224,7 @@
 			width = chartConfig.width - margin.left - margin.right,
 			height = chartConfig.height - margin.top - margin.bottom;
 
-		//Preparing the data according to the way that chart expects    
+		//Preparing the data according to the way that chart expects
 		var data = dataTable.data.map(function(d, i) {
 			var o = {};
 			d.forEach(function(element, index) {
@@ -361,6 +360,9 @@
 		var height = chartConfig.height;
 		var padding = chartConfig.padding;
 
+
+
+		//console.log(dataTable)
 		var margin = {
 			top: 20,
 			right: 20,
@@ -425,11 +427,11 @@
 
 
 
-		dataset.forEach(
+		dataTable.data.forEach(
 			function(d) {
 
-				d.x= d.data[chartConfig.xAxis];
-				d.y = d.data[chartConfig.yAxis];
+				d.x = d[chartConfig.xAxis];
+				d.y = d[chartConfig.yAxis];
 				console.log(d)
 			}
 		);
@@ -445,9 +447,6 @@
 		x.domain(d3.extent(dataset, function(d) { return d.x; }));
 
 		y.domain([0, d3.max(dataset, function(d) { return d.y; })]);
-		y.domain([0, d3.max(dataTable.data, function(d) {
-			return d.y;
-		})]);
 
 		svg.append("path")
 			.datum(dataset)
@@ -555,7 +554,7 @@
 						.attr("transform", "translate(" + _width / 2 + "," + (_width + _fontSize) + ")")
 						.text(_label);
 
-					//outer g element that wraps all other elements     
+					//outer g element that wraps all other elements
 					var gx = chartConfig.width / 2 - _width / 2;
 					var gy = chartConfig.height / 2 - _height / 2;
 					var g = svg.select("g")
@@ -943,12 +942,192 @@
 			.style("lignment-baseline", "middle");
 	};
 
+	igviz.drawLineChart = function(divId, chartConfig, dataTable) {
+		var w = chartConfig.width; //Width and height and margins
+		var h = chartConfig.height;
+		var margin = {
+			top: 20,
+			right: 80,
+			bottom: 50,
+			left: 30
+		};
+
+		var dataSet = dataTable.data.map(function(d) {
+			return {
+				"data": d,
+				"config": chartConfig
+			}
 
 
+		});
+
+		var xAxis = chartConfig.xAxis; //Identifying the Column number corresponding to the selected fields from the form
+		var yAxis = chartConfig.yAxis;
+
+
+		var xAxisName = dataTable.metadata.names[xAxis]; //Identify Column Names of the columns selected from the form
+
+		var yAxisNames=[];
+
+
+		var columnNames = [xAxisName];
+		for( var i=0;i<yAxis.length;i++)
+		{
+			yAxisNames[i]=dataTable.metadata.names[yAxis[i]];
+			columnNames.push(yAxisNames[i]);
+		}
+
+		//var yAxisName = dataTable.metadata.names[yAxis];
+
+
+
+
+		dataSet.sort(function(a, b) { //sort the data set with respect to the x coordinates
+			return a.data[xAxis] - b.data[xAxis];
+		});
+
+
+		var data = []; //empty array to load the selected data and organize in the required format
+		for (var i = 0; i < dataSet.length; i++) {
+			var obj={};
+			obj['key']=dataSet[i].data[xAxis];
+	    	for(var j=0;j<yAxis.length;j++)
+			{
+				obj['y'+j]=dataSet[i].data[yAxis[j]];
+			}
+
+
+			data.push(obj);
+		}
+
+		var svgID = divId + "_svg"; //svg container in which the chart shall be drawn
+		d3.select(svgID).remove(); //Remove current SVG if it is already there
+
+		var svg = d3.select(divId) //Create SVG element
+			.append("svg")
+			.attr("id", svgID.replace("#", ""))
+			.attr("width", w) //width
 			.attr("height", h +margin.bottom )
 			// /height
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
+
+		var interpolationMode = "cardinal"; //interpolation mode [linear, basis, step before, step after, cardinal]
+		if (chartConfig.interpolationMode != undefined) {
+			interpolationMode = chartConfig.interpolationMode;
+		}
+
+		var ordinal = d3.scale.ordinal(); //scale to map y coordinates
+
+		var x = d3.scale.linear() //scale for x axis
+			.range([0, w-100]);
+
+		var y = d3.scale.linear() //scale for y axis
+			.range([h, 0]);
+
+		var XAxis = d3.svg.axis() //define x axis
+			.scale(x)
+			.orient("bottom");
+
+		var YAxis = d3.svg.axis() //define y axis
+			.scale(y)
+			.orient("left");
+
+		var line = d3.svg.line() //svg element to connect the coordinates as a path
+			.x(function(d) {
+				return x(d.key); //scale x coordinates
+			})
+			.y(function(d) {
+				return y(d.value); //scale y coordinates
+			});
+
+		ordinal.domain(d3.keys(data[0]).filter(function(d) {
+			return d !== "key"; //get key list as the scale domain except the one which is exactly "key" as it should be the x variable set
+		}));
+
+		x.domain(d3.extent(data, function(d) {
+			return d.key; //define the domain of x scale
+		}));
+
+		var graphs = ordinal.domain().map(function(name) { //organize data in the format, {name,{key,value}}, {key,value}-values
+			return {
+				name: name,
+				values: data.map(function(d) {
+					return {
+						key: d.key,
+						value: +d[name]
+					};
+				})
+			};
+		});
+
+		y.domain([ //define the domain of y scale i.e- minimum value of all y coordinates to max of all y coordinates
+			d3.min(graphs, function(c) {
+				return d3.min(c.values, function(v) {
+					return v.value;
+				});
+			}),
+			d3.max(graphs, function(c) {
+				return d3.max(c.values, function(v) {
+					return v.value;
+				});
+			})
+		]);
+
+		svg.append("g") //append x axis to the chart and move(translate to the bottom
+			.attr("class", "x axis")
 			.attr("transform", "translate(0," + h  +")")
-	/**
+			.call(XAxis)
+			.append("text") //append the label for the x axis
+			.attr("x", w-40) //move to the right hand end
+			.attr("y", 28) //set as -10 to move on top of the x axis
+			.style("text-anchor", "end")
+			.style("font-weight", "bold")
+			.text(columnNames[0]);
+
+		svg.append("g") //append y axis
+			.attr("class", "y axis")
+			.call(YAxis)
+			.append("text") //y axis label
+			.attr("transform", "rotate(-90)") //rotate 90 degrees
+			.attr("y", 6)
+			.attr("dy", ".71em") //distance from y axis to the label
+			.style("text-anchor", "end")
+			.style("font-weight", "bold")
+			.text("Value");
+
+		var graph = svg.selectAll(".graph") //create graphs for the data set
+			.data(graphs)
+			.enter().append("g")
+			.attr("class", "label"); //change text style
+
+		graph.append("path") //add path to the graphs
+			.attr("class", "line")
+			.attr("d", function(d) {
+				return line.interpolate(interpolationMode)(d.values); //interpolate in given interpolationMode and render line
+			})
+			.style("stroke", function (d, i) {
+				return chartConfig.lineColors[i];              //get different colors for each graph
+			});
+
+		graph.append("text")
+			.datum(function(d) { //to bind data to a single svg element
+				return {
+					name: d.name,
+					value: d.values[d.values.length - 1]
+				};
+			})
+			.attr("transform", function(d) { //show the label of each graph at the end of each ones last value coordinate
+					console.log(d);
+				return "translate(" + (x(d.value.key)) + "," + y(d.value.value) + ")";
+			})
+			.attr("x", 3)
+			.attr("dy", ".45em")
+			.text(function(d, i) {
+				return columnNames[i + 1];
+			});
+	};
+/**
 	 * By : Fawsan M. <--fawsanm@wso2.com-->
 	 * Function to draw the Table
 	 * @param divId
