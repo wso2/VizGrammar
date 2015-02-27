@@ -14,6 +14,17 @@
 
     <style type="text/css">
         body{ padding-top: 40px;}
+        .root{
+            color:red;
+            cursor: hand;
+
+        }
+
+        .filter{
+            color:blue;
+            cursor: hand
+        ;
+        }
       
     </style>
 </head>
@@ -253,34 +264,96 @@
 <script>
     var dataTable = {
       "metadata":{
-        "names":["Country","State",'city',"population"],
+        "names":["Year","City",'Province',"Votes"],
         "types":['C', 'C','C','N']
       },
       "data": [
-
-          ["A","a",6,2],
-        ["A","a",1,2],
-        ["A","b",1,3],
-        ["A","c",3,4],
-        ["B","a",2,1],
-        ["A","b",3,5],
-        ["B","a",1,6],
-        ["B","b",3,5],
-        ["A","c",5,3],
-        ["A", "d",2,9],
-        ["B","e",2,2],
-        ["A","a",1,1],
+          ['2005','Ampara','Eastern',68],
+          ['2005','Anuradhapura','North Central',24],
+          ['2005','Badulla','Uva',34],
+          ['2005','Batticaloa','Eastern',67],
+          ['2005','Colombo','Western',46],
+          ['2005','Galle','Southern',19],
+          ['2005','Gampaha','Western',23],
+          ['2005','Hambantota','Southern',90],
+          ['2005','Jaffna','Northern',23],
+          ['2005','Kalutara','Western',9],
+          ['2005','Kandy','Central',26],
+          ['2005','Kegalle','Sabaragamuwa',74],
+          ['2005','Kilinochchi','Northern',49],
+          ['2005','Kurunegala','North Western',9],
+          ['2005','Mannar','Northern',80],
+          ['2005','Matale','Central',31],
+          ['2005','Matara','Southern',0],
+          ['2005','Moneragala','Uva',0],
+          ['2005','Mullaitivu','Northern',15],
+          ['2005','Nuwara Eliya','Central',70],
+          ['2005','Polonnaruwa','North Central',2],
+          ['2005','Puttalam','North Western',90],
+          ['2005','Ratnapura','Sabaragamuwa',37],
+          ['2005','Trincomalee','Eastern',94],
+          ['2005','Vavuniya','Northern',9],
+          ['2010','Ampara','Eastern',22],
+          ['2010','Anuradhapura','North Central',55],
+          ['2010','Badulla','Uva',26],
+          ['2010','Batticaloa','Eastern',57],
+          ['2010','Colombo','Western',62],
+          ['2010','Galle','Southern',60],
+          ['2010','Gampaha','Western',26],
+          ['2010','Hambantota','Southern',64],
+          ['2010','Jaffna','Northern',27],
+          ['2010','Kalutara','Western',8],
+          ['2010','Kandy','Central',90],
+          ['2010','Kegalle','Sabaragamuwa',82],
+          ['2010','Kilinochchi','Northern',71],
+          ['2010','Kurunegala','North Western',6],
+          ['2010','Mannar','Northern',30],
+          ['2010','Matale','Central',24],
+          ['2010','Matara','Southern',27],
+          ['2010','Moneragala','Uva',45],
+          ['2010','Mullaitivu','Northern',19],
+          ['2010','Nuwara Eliya','Central',25],
+          ['2010','Polonnaruwa','North Central',94],
+          ['2010','Puttalam','North Western',17],
+          ['2010','Ratnapura','Sabaragamuwa',93],
+          ['2010','Trincomalee','Eastern',71],
+          ['2010','Vavuniya','Northern',74],
+          ['2015','Ampara','Ampara',4],
+          ['2015','Anuradhapura','Anuradhapura',44],
+          ['2015','Badulla','Badulla',66],
+          ['2015','Batticaloa','Batticaloa',68],
+          ['2015','Colombo','Colombo',10],
+          ['2015','Galle','Galle',72],
+          ['2015','Gampaha','Gampaha',61],
+          ['2015','Hambantota','Hambantota',97],
+          ['2015','Jaffna','Jaffna',5],
+          ['2015','Kalutara','Kalutara',12],
+          ['2015','Kandy','Kandy',65],
+          ['2015','Kegalle','Kegalle',66],
+          ['2015','Kilinochchi','Kilinochchi',42],
+          ['2015','Kurunegala','Kurunegala',59],
+          ['2015','Mannar','Mannar',22],
+          ['2015','Matale','Matale',40],
+          ['2015','Matara','Matara',86],
+          ['2015','Moneragala','Moneragala',68],
+          ['2015','Mullaitivu','Mullaitivu',17],
+          ['2015','Nuwara Eliya','Nuwara Eliya',19],
+          ['2015','Polonnaruwa','Polonnaruwa',50],
+          ['2015','Puttalam','Puttalam',38],
+          ['2015','Ratnapura','Ratnapura',66],
+          ['2015','Trincomalee','Trincomalee',68],
+          ['2015','Vavuniya','Vavuniya',11]
 
       ]
     }
 
     var width = document.getElementById("drill").offsetWidth; //canvas width
-    var height = 270;   //canvas height
+    var height = 470;   //canvas height
 
     var config = {
         "title": "Area By Country",
         "yAxis": 3,
-        "xAxis": [{"index":0,"child":1,"div":"drill"},{"index":1,"child":2,"div":"drill"}],
+        "xAxis": [{"index":0,"child":2,"div":"drill"},{"index":2,"child":1,"div":"drill"}],
         "pointLabel": 0,
         "width": width,
         "height": height,
