@@ -135,6 +135,29 @@
                   </div>
               </a>
 
+              <a href="drillDown/">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Drill-Down  Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="drill">
+
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+              </a>
+
+
+
+          </div>
+          <div class="row">
+
               <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
                       <div class="panel-heading">
@@ -317,6 +340,139 @@ var dataTable2 = {
             [2007,  1030,      540]
         ]
     );
+
+var drilldataTable = {
+    "metadata":{
+        "names":["Year","City",'Province',"Votes"],
+        "types":['C', 'C','C','N']
+    },
+    "data": [
+        ['2005','Ampara','Eastern',28],
+        ['2005','Anuradhapura','North Central',20],
+        ['2005','Badulla','Uva',78],
+        ['2005','Batticaloa','Eastern',8],
+        ['2005','Colombo','Western',48],
+        ['2005','Galle','Southern',72],
+        ['2005','Gampaha','Western',26],
+        ['2005','Hambantota','Southern',73],
+        ['2005','Jaffna','Northern',6],
+        ['2005','Kalutara','Western',69],
+        ['2005','Kandy','Central',70],
+        ['2005','Kegalle','Sabaragamuwa',29],
+        ['2005','Kilinochchi','Northern',10],
+        ['2005','Kurunegala','North Western',8],
+        ['2005','Mannar','Northern',12],
+        ['2005','Matale','Central',29],
+        ['2005','Matara','Southern',7],
+        ['2005','Moneragala','Uva',31],
+        ['2005','Mullaitivu','Northern',42],
+        ['2005','Nuwara Eliya','Central',42],
+        ['2005','Polonnaruwa','North Central',95],
+        ['2005','Puttalam','North Western',37],
+        ['2005','Ratnapura','Sabaragamuwa',7],
+        ['2005','Trincomalee','Eastern',31],
+        ['2005','Vavuniya','Northern',72],
+        ['2010','Ampara','Eastern',24],
+        ['2010','Anuradhapura','North Central',7],
+        ['2010','Badulla','Uva',40],
+        ['2010','Batticaloa','Eastern',43],
+        ['2010','Colombo','Western',13],
+        ['2010','Galle','Southern',12],
+        ['2010','Gampaha','Western',33],
+        ['2010','Hambantota','Southern',87],
+        ['2010','Jaffna','Northern',74],
+        ['2010','Kalutara','Western',91],
+        ['2010','Kandy','Central',26],
+        ['2010','Kegalle','Sabaragamuwa',19],
+        ['2010','Kilinochchi','Northern',15],
+        ['2010','Kurunegala','North Western',42],
+        ['2010','Mannar','Northern',64],
+        ['2010','Matale','Central',66],
+        ['2010','Matara','Southern',46],
+        ['2010','Moneragala','Uva',28],
+        ['2010','Mullaitivu','Northern',7],
+        ['2010','Nuwara Eliya','Central',59],
+        ['2010','Polonnaruwa','North Central',36],
+        ['2010','Puttalam','North Western',61],
+        ['2010','Ratnapura','Sabaragamuwa',65],
+        ['2010','Trincomalee','Eastern',38],
+        ['2010','Vavuniya','Northern',60],
+        ['2015','Ampara','Eastern',47],
+        ['2015','Anuradhapura','North Central',49],
+        ['2015','Badulla','Uva',54],
+        ['2015','Batticaloa','Eastern',97],
+        ['2015','Colombo','Western',59],
+        ['2015','Galle','Southern',46],
+        ['2015','Gampaha','Western',70],
+        ['2015','Hambantota','Southern',51],
+        ['2015','Jaffna','Northern',7],
+        ['2015','Kalutara','Western',0],
+        ['2015','Kandy','Central',54],
+        ['2015','Kegalle','Sabaragamuwa',81],
+        ['2015','Kilinochchi','Northern',32],
+        ['2015','Kurunegala','North Western',16],
+        ['2015','Mannar','Northern',16],
+        ['2015','Matale','Central',87],
+        ['2015','Matara','Southern',44],
+        ['2015','Moneragala','Uva',81],
+        ['2015','Mullaitivu','Northern',35],
+        ['2015','Nuwara Eliya','Central',74],
+        ['2015','Polonnaruwa','North Central',46],
+        ['2015','Puttalam','North Western',47],
+        ['2015','Ratnapura','Sabaragamuwa',96],
+        ['2015','Trincomalee','Eastern',19],
+        ['2015','Vavuniya','Northern',45]
+
+    ]
+}
+
+var drillwidth = document.getElementById("drill").offsetWidth; //canvas width
+var drillheight = 400;   //canvas height
+
+var drillconfig = {
+    "title": "Area By Country",
+    "yAxis": 3,
+    "xAxis": [{"index":0,"child":2,"div":"drill"},{"index":2,"child":1,"div":"drill"}],
+    "pointLabel": 0,
+    "width": width,
+    "height": drillheight,
+    "padding": 60,
+    "chartType": "drill"
+}
+
+
+
+//draw a drill downing  chart on div
+igviz.plot("#drill",drillconfig,drilldataTable);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //draw a line chart on 
     igviz.plot("#line",lineChartConfig,lineData);
