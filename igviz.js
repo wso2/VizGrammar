@@ -65,10 +65,12 @@
 					break;
 				}
 			}
-			if(isFound)
-			tempData[j][1]+=currentYvalue;
-			else{
-				tempData.push([name,current_y])
+			if(isFound) {
+				tempData[j][1] += currentYvalue;
+				console.log(name,currentYvalue,tempData[j][1]);
+			}else{
+				console.log("create",name,currentYvalue);
+				tempData.push([name,currentYvalue])
 			}
 		}
 
@@ -77,9 +79,14 @@
 		currentChartConfig.yAxis=1;
 		currentChartConfig.chartType='bar';
 
-	var x=this.plot(divId,currentChartConfig,currentData);
 
-		if(index<chartConfig.xAxis.length) {
+
+
+	var x=this.plot(divId,currentChartConfig,currentData);
+		d3.select(x.canvas).selectAll('svg').append('text').attr({'font-size':"100px",x:10, y:10}).style('z-index',10).text("HELLOW");
+
+
+			if(index<chartConfig.xAxis.length) {
 			d3.select(x.canvas).selectAll('svg rect').on('click', function (d, i) {
 				console.log(d, i, this);
 				var selectedName = d.data[0];
