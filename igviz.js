@@ -802,57 +802,70 @@
     };
 
     igviz.drawBarChart = function (divId, chartConfig, dataTable) {
-        var width = chartConfig.width;
-        var height = chartConfig.height;
-        var padding = chartConfig.padding;
+        var formatedValues=[];
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            var ptObj={};
+            ptObj.x=dataTable.data[i][chartConfig.xAxis];
 
-        var dataset = dataTable.data.map(function (d) {
-            return {
-                "data": d,
-                "config": chartConfig
-            }
-        });
+            ptObj.y=dataTable.data[i][chartConfig.yAxis];
 
-        var plotCtx = createScales(dataset, chartConfig, dataTable);
-        var xScale = plotCtx.xScale;
-        var yScale = plotCtx.yScale;
+            formatedValues[i]=ptObj;
+        }
 
+        console.log(formatedValues);
+        var spec={
+            "width": chartConfig.width -100,
+            "height": chartConfig.height,
+            "padding": {"top": 40, "left": 60, "bottom": 40, "right":80},
 
-        var svgID = divId + "_svg";
-        //Remove current SVG if it is already there
-        d3.select(svgID).remove();
+            "data": [
+                {
+                    "name": "table",
+                    "values":formatedValues
+                }
+            ],
+            "scales": [
+                {
+                    "name": "x",
+                    "type": "ordinal",
+                    "range": "width",
+                    "domain": {"data": "table", "field": "data.x"}
+                },
+                {
+                    "name": "y",
+                    "range": "height",
+                    "nice": true,
+                    "domain": {"data": "table", "field": "data.y"}
+                }
+            ],
+            "axes": [
+                {"type": "x", "scale": "x"},
+                {"type": "y", "scale": "y"}
+            ],
+            "marks": [
+                {
+                    "type": "rect",
+                    "from": {"data": "table"},
+                    "properties": {
+                        "enter": {
+                            "x": {"scale": "x", "field": "data.x"},
+                            "width": {"scale": "x", "band": true, "offset": -1},
+                            "y": {"scale": "y", "field": "data.y"},
+                            "y2": {"scale": "y", "value": 0}
+                        },
+                        "update": {
+                            "fill": {"value": "steelblue"}
+                        },
+                        "hover": {
+                            "fill": {"value": "red"}
+                        }
+                    }
+                }
+            ]
+        }
 
-
-        var svg = d3.select(divId)
-            .append("svg")
-            .attr("id", svgID.replace("#", ""))
-            .attr("width", width)
-            .attr("height", height);
-
-        createXYAxises(svg, plotCtx, chartConfig, dataTable);
-
-        //Now we really drwa by creating rectangles. The layout is done such a way that (0,0)
-        // starts from bottom left corner as usual.
-        //TODO handle multiple column groups using color
-        //http://bl.ocks.org/mbostock/3887051
-
-        svg.selectAll(".bar")
-            .data(dataset)
-            .enter().append("rect")
-            .attr("class", "bar")
-            .attr("x", function (d) {
-                return xScale(d.data[d.config.xAxis]);
-            })
-            .attr("width", xScale.rangeBand())
-            .attr("y", function (d) {
-                return yScale(d.data[d.config.yAxis]);
-            })
-            .attr("height", function (d) {
-                return height - yScale(d.data[d.config.yAxis]) - padding;
-            }).style("fill", chartConfig.barColor);
-
-        //d3.selectAll('.bar');
-
+        vg.parse.spec(spec, function(chart) { chart({el:divId}).update(); });
     };
 
     igviz.drawScatterPlot = function (divId, chartConfig, dataTable) {
