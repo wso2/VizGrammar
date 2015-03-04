@@ -51,6 +51,25 @@
             </div>
 
 
+          <div class="row" >
+
+              <div class="col-md-12"  >
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <h3 class="panel-title">
+                              Bar Chart Sample
+                          </h3>
+                      </div>
+                      <div class="panel-body">
+                          <div id="bar2"></div>
+                      </div>
+
+                  </div>
+              </div>
+
+
+          </div>
+
           <div class="row">
 
               <div class="col-md-6">
@@ -339,7 +358,13 @@
   
 
     //draw a bar chart on div #bar
-    igviz.plot("#bar",config,dataTable);
+x=igviz.plot("#bar",config,dataTable);
+
+x.update({x:'Australia',y:22222});
+//setTimeout(function(){  }, 3000);
+
+//console.log(x,y);
+
 
 </script>
 

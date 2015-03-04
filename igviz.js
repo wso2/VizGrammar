@@ -4,14 +4,18 @@
 
     igviz.version = '1.0.0';
 
+    igviz.val=0;
     window.igviz = igviz;
 
 
     //Plots a chart in a given div specified by canvas
     igviz.plot = function (canvas, config, dataTable) {
+       var chart= new Chart(canvas, config, dataTable);
+
         config = setDefault(config)
+
         if (config.chartType == "bar") {
-            this.drawBarChart(canvas, config, dataTable);
+            this.drawBarChart(chart,canvas, config, dataTable);
         } else if (config.chartType == "scatter") {
             this.drawScatterPlot(canvas, config, dataTable);
         } else if (config.chartType == "singleNumber") {
@@ -31,7 +35,8 @@
             this.drillDown(0, canvas, config, dataTable, dataTable);
         }
 
-        return new Chart(canvas, config, dataTable);
+        return chart;
+        //return
     };
 
     igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, originaltable) {
@@ -174,6 +179,119 @@
 
         }
     };
+
+
+    igviz.drilling=function (divId, chartConfig, dataTable){
+
+        var datasets=[
+            {"category":"A", "position":0, "value":0.1},
+            {"category":"A", "position":1, "value":0.6},
+            {"category":"A", "position":2, "value":0.9},
+            {"category":"A", "position":3, "value":0.4},
+            {"category":"B", "position":0, "value":0.7},
+            {"category":"B", "position":1, "value":0.2},
+            {"category":"B", "position":2, "value":1.1},
+            {"category":"B", "position":3, "value":0.8},
+            {"category":"C", "position":0, "value":0.6},
+            {"category":"C", "position":1, "value":0.1},
+            {"category":"C", "position":2, "value":0.2},
+            {"category":"C", "position":3, "value":0.7}
+        ]
+
+        var spec={
+            "width": 400,
+            "height": 60,
+            "data": [
+                {
+                  "name":"mydata",
+                    "values": datasets
+                },
+            {
+                "name": "table",
+                "source":'mydata',
+                "transform": [
+                    {
+                        "type": "aggregate",
+                        "groupby": ["data.category"],
+                        "fields": [
+                            {"op": "avg", "field": "data.value"}
+                        ]
+                    }
+                ]
+            }
+        ],
+            "scales": [
+            {
+                "name": "x",
+                "range": "width",
+                "nice": true,
+                "round": true,
+                "domain": {"data": "table", "field": "data.avg_value"}
+            },
+            {
+                "name": "y",
+                "type": "ordinal",
+                "range": "height",
+                "round": true,
+                "domain": {"data": "table", "field": "data.category"}
+            }
+        ],
+            "axes": [
+            {"type": "x", "scale": "x"},
+            {"type": "y", "scale": "y"}
+        ],
+            "marks": [
+            {
+                "type": "rect",
+                "from": {"data": "table"},
+                "properties": {
+                    "enter": {
+                        "x": {"scale": "x", "field": "data.avg_value"},
+                        "x2": {"scale": "x", "value": 0},
+                        "y": {"scale": "y", "field": "data.category"},
+                        "height": {"scale": "y", "band": true, "offset": -1}
+                    },
+                    "update": {
+                        "fill": {"value": "steelblue"}
+                    },
+                    "hover": {
+                        "fill": {"value": "red"}
+                    }
+                }
+            }
+        ]
+        }
+
+
+
+
+
+
+        vg.parse.spec(spec, function(chart) {
+           // d3.select().selectAll("*").remove();
+            var view = chart({
+                el: divId ,
+                data: {mydata:datasets},
+                renderer: 'svg'
+            });
+//            self.view=view.update();
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
 
 
     function setDefault(chartConfig) {
@@ -801,7 +919,8 @@
 
     };
 
-    igviz.drawBarChart = function (divId, chartConfig, dataTable) {
+    igviz.drawBarChart = function (mychart,divId, chartConfig, dataTable) {
+      //  console.log(this);
         var table=[];
         for(i=0;i<dataTable.data.length;i++)
         {
@@ -934,37 +1053,22 @@
 
        var data={table:table}
 
+        mychart.spec=spec;
+        mychart.data=data;
+        mychart.table=table;
         vg.parse.spec(spec, function(chart) {
-            self.mychart = chart({
+            mychart.chart = chart({
                 el: divId,
                 renderer: 'svg',
                 data:data,
                 hover:false
 
             }).update();
-            self.counter=0;
-
-            setInterval(updateTable,1500);
+            //self.counter=0;
+            //console.log('abc');
+            //setInterval(updateTable,1500);
 
         });
-
-
-        function updateTable(para) {
-
-            //var pointObj={};
-            //if(para==undefined)
-            //{
-            //
-            //    r=Math.floor(Math.random()*9)
-            //    console.log(r);
-            //    pointObj.x=dataTable.data[r][chartConfig.xAxis];
-            //    pointObj.y=dataTable.data[r][chartConfig.yAxis];
-            //}
-         var poped=   table.shift();
-            table.push(poped);
-            self.mychart.data(data).update();
-          // ;
-        }
     };
 
     igviz.drawScatterPlot = function (divId, chartConfig, dataTable) {
@@ -2049,6 +2153,7 @@
 
     //Chart class that represents a single chart
     function Chart(canvas, config, dataTable) {
+        //this.chart=chart;
         this.dataTable = dataTable;
         this.config = config;
         this.canvas = canvas;
@@ -2073,5 +2178,13 @@
     Chart.prototype.unload = function () {
         //TODO implement me!
     };
+
+    Chart.prototype.update=function (point){
+
+        this.table.shift();
+        this.table.push(point);
+        this.chart.data(this.data).update();
+    }
+
 
 })();
