@@ -360,12 +360,20 @@
     //draw a bar chart on div #bar
 x=igviz.plot("#bar",config,dataTable);
 
-x.update({x:'Australia',y:22222});
+//x.update({x:'Australia',y:22222});
 //setTimeout(function(){  }, 3000);
 
+y=igviz.plot("#bar2",config,dataTable);
 //console.log(x,y);
+
+setInterval(function(){
+
+    y.update();
+
+},1000)
 
 
 </script>
 
 </html>
+

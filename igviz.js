@@ -4,18 +4,18 @@
 
     igviz.version = '1.0.0';
 
-    igviz.val=0;
+    igviz.val = 0;
     window.igviz = igviz;
 
 
     //Plots a chart in a given div specified by canvas
     igviz.plot = function (canvas, config, dataTable) {
-       var chart= new Chart(canvas, config, dataTable);
+        var chart = new Chart(canvas, config, dataTable);
 
         config = setDefault(config)
 
         if (config.chartType == "bar") {
-            this.drawBarChart(chart,canvas, config, dataTable);
+            this.drawBarChart(chart, canvas, config, dataTable);
         } else if (config.chartType == "scatter") {
             this.drawScatterPlot(canvas, config, dataTable);
         } else if (config.chartType == "singleNumber") {
@@ -93,49 +93,49 @@
 
 
         var x = this.plot(divId, currentChartConfig, currentData);
-        setTimeout(function(){
+        setTimeout(function () {
 
-            var filters=d3.select('#links .root').on('click',function(){
+            var filters = d3.select('#links .root').on('click', function () {
                 d3.select("#links").html('');
-                igviz.drillDown(0,divId,chartConfig,originaltable,originaltable);
+                igviz.drillDown(0, divId, chartConfig, originaltable, originaltable);
 
             })
 
 
-            var filters=d3.select('#links').selectAll('.filter');
-            filters.on('click', function (d, i){
+            var filters = d3.select('#links').selectAll('.filter');
+            filters.on('click', function (d, i) {
 
-                filtersList= filters.data();
+                filtersList = filters.data();
 
                 console.log(filtersList)
-                var filterdDataset =[];
-                var selectionObj=JSON.parse(JSON.stringify(originaltable));
-                itr=0;
-                for(l=0;l<originaltable.data.length;l++){
-                    isFiltered=true;
-                    for(k=0;k<=i;k++){
+                var filterdDataset = [];
+                var selectionObj = JSON.parse(JSON.stringify(originaltable));
+                itr = 0;
+                for (l = 0; l < originaltable.data.length; l++) {
+                    isFiltered = true;
+                    for (k = 0; k <= i; k++) {
 
-                        if(originaltable.data[l][filtersList[k][0]]!==filtersList[k][1]){isFiltered=false; break;}
+                        if (originaltable.data[l][filtersList[k][0]] !== filtersList[k][1]) {
+                            isFiltered = false;
+                            break;
+                        }
                     }
-                    if(isFiltered){
-                        filterdDataset[itr++]=originaltable.data[l];
+                    if (isFiltered) {
+                        filterdDataset[itr++] = originaltable.data[l];
                     }
 
                 }
 
-                d3.selectAll('#links g').each(function(d,indx){
-                    if(indx>i){
+                d3.selectAll('#links g').each(function (d, indx) {
+                    if (indx > i) {
                         this.remove();
                     }
                 })
 
 
-                selectionObj.data=filterdDataset;
+                selectionObj.data = filterdDataset;
 
-                igviz.drillDown(i+1, divId, chartConfig, selectionObj, originaltable,true);
-
-
-
+                igviz.drillDown(i + 1, divId, chartConfig, selectionObj, originaltable, true);
 
 
             });
@@ -145,13 +145,13 @@
                 console.log(x);
                 d3.select(x.chart._el).selectAll('g.type-rect rect').on('click', function (d, i) {
                     // console.log(d, i, this);
-                    console.log(d,i);
+                    console.log(d, i);
                     var selectedName = d.datum.data.x;
                     //  console.log(selectedName);
                     var selectedCurrentData = JSON.parse(JSON.stringify(dataTable));
                     var innerText;
 
-                    var links = d3.select('#links').append('g').append('text').text(dataTable.metadata.names[current_x] + " : " ).attr({
+                    var links = d3.select('#links').append('g').append('text').text(dataTable.metadata.names[current_x] + " : ").attr({
 
                         "font-size": "10px",
                         "x": 10,
@@ -159,9 +159,9 @@
 
                     });
 
-                    d3.select('#links:first-child').selectAll('text').attr('class','root');
+                    d3.select('#links:first-child').selectAll('text').attr('class', 'root');
 
-                    d3.select('#links g:last-child').append('span').data([[current_x,selectedName]]).attr('class','filter').text(selectedName+"  >  ")
+                    d3.select('#links g:last-child').append('span').data([[current_x, selectedName]]).attr('class', 'filter').text(selectedName + "  >  ")
 
                     var l = selectedCurrentData.data.length;
                     var newdata = [];
@@ -176,131 +176,117 @@
                     selectedCurrentData.data = newdata;
 
 
-                    igviz.drillDown(index + 1, divId, chartConfig, selectedCurrentData, originaltable,true);
+                    igviz.drillDown(index + 1, divId, chartConfig, selectedCurrentData, originaltable, true);
 
 
                 });
 
             }
-        }, 1000);
-
-
+        }, 10);
 
 
     }
 
 
+    igviz.drillDownRoot = function (divId, chartConfig, dataTable) {
+        var datasets = [
+            {"category": "A", "position": 0, "value": 0.1},
+            {"category": "A", "position": 1, "value": 0.6},
+            {"category": "A", "position": 2, "value": 0.9},
+            {"category": "A", "position": 3, "value": 0.4},
+            {"category": "B", "position": 0, "value": 0.7},
+            {"category": "B", "position": 1, "value": 0.2},
+            {"category": "B", "position": 2, "value": 1.1},
+            {"category": "B", "position": 3, "value": 0.8},
+            {"category": "C", "position": 0, "value": 0.6},
+            {"category": "C", "position": 1, "value": 0.1},
+            {"category": "C", "position": 2, "value": 0.2},
+            {"category": "C", "position": 3, "value": 0.7}
+        ]
 
-
-
-
-
-
-
-
-
-
-igviz.drillDownRoot=function(divId,chartConfig,dataTable)
-{
-    var datasets = [
-        {"category": "A", "position": 0, "value": 0.1},
-        {"category": "A", "position": 1, "value": 0.6},
-        {"category": "A", "position": 2, "value": 0.9},
-        {"category": "A", "position": 3, "value": 0.4},
-        {"category": "B", "position": 0, "value": 0.7},
-        {"category": "B", "position": 1, "value": 0.2},
-        {"category": "B", "position": 2, "value": 1.1},
-        {"category": "B", "position": 3, "value": 0.8},
-        {"category": "C", "position": 0, "value": 0.6},
-        {"category": "C", "position": 1, "value": 0.1},
-        {"category": "C", "position": 2, "value": 0.2},
-        {"category": "C", "position": 3, "value": 0.7}
-    ]
-
-    var spec = {
-        "width": 400,
-        "height": 60,
-        "data": [
-            {
-                "name": "mydata"
-            },
-            {
-                "name": "table",
-                "source": 'mydata',
-                "transform": [
-                    {
-                        "type": "aggregate",
-                        "groupby": ["data.category"],
-                        "fields": [
-                            {"op": "sum", "field": "data.value"}
-                        ]
-                    }
-                ]
-            }
-        ],
-        "scales": [
-            {
-                "name": "x",
-                "range": "width",
-                "nice": true,
-                "round": true,
-                "domain": {"data": "table", "field": "data.sum_value"}
-            },
-            {
-                "name": "y",
-                "type": "ordinal",
-                "range": "height",
-                "round": true,
-                "domain": {"data": "table", "field": "data.category"}
-            }
-        ],
-        "axes": [
-            {"type": "x", "scale": "x"},
-            {"type": "y", "scale": "y"}
-        ],
-        "marks": [
-            {
-                "type": "rect",
-                "from": {"data": "table"},
-                "properties": {
-                    "enter": {
-                        "x": {"scale": "x", "field": "data.sum_value"},
-                        "x2": {"scale": "x", "value": 0},
-                        "y": {"scale": "y", "field": "data.category"},
-                        "height": {"scale": "y", "band": true, "offset": -1}
-                    },
-                    "update": {
-                        "fill": {"value": "steelblue"}
-                    },
-                    "hover": {
-                        "fill": {"value": "red"}
+        var spec = {
+            "width": 400,
+            "height": 60,
+            "data": [
+                {
+                    "name": "mydata"
+                },
+                {
+                    "name": "table",
+                    "source": 'mydata',
+                    "transform": [
+                        {
+                            "type": "aggregate",
+                            "groupby": ["data.category"],
+                            "fields": [
+                                {"op": "sum", "field": "data.value"}
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "scales": [
+                {
+                    "name": "x",
+                    "range": "width",
+                    "nice": true,
+                    "round": true,
+                    "domain": {"data": "table", "field": "data.sum_value"}
+                },
+                {
+                    "name": "y",
+                    "type": "ordinal",
+                    "range": "height",
+                    "round": true,
+                    "domain": {"data": "table", "field": "data.category"}
+                }
+            ],
+            "axes": [
+                {"type": "x", "scale": "x"},
+                {"type": "y", "scale": "y"}
+            ],
+            "marks": [
+                {
+                    "type": "rect",
+                    "from": {"data": "table"},
+                    "properties": {
+                        "enter": {
+                            "x": {"scale": "x", "field": "data.sum_value"},
+                            "x2": {"scale": "x", "value": 0},
+                            "y": {"scale": "y", "field": "data.category"},
+                            "height": {"scale": "y", "band": true, "offset": -1}
+                        },
+                        "update": {
+                            "fill": {"value": "steelblue"}
+                        },
+                        "hover": {
+                            "fill": {"value": "red"}
+                        }
                     }
                 }
-            }
-        ]
+            ]
+        }
+
+        igviz.drilling(0, divId, spec, datasets);
+
     }
 
-    igviz.drilling(0,divId,spec,datasets);
 
-}
-
-
-
-    igviz.drilling=function (index,divId, spec, datasets){
+    igviz.drilling = function (index, divId, spec, datasets) {
 
 
 //        spec.
-        vg.parse.spec(spec, function(chart) {
-           // d3.select().selectAll("*").remove();
+        vg.parse.spec(spec, function (chart) {
+            // d3.select().selectAll("*").remove();
             var view = chart({
-                el: divId ,
-                data: {mydata:datasets},
+                el: divId,
+                data: {mydata: datasets},
                 renderer: 'svg'
             }).update();
 
 
-            d3.select(view._el).selectAll('g.type-rect rect').on('click',function(d,i){
-                console.log(d,i,this);
+            d3.select(view._el).selectAll('g.type-rect rect').on('click', function (d, i) {
+                console.log(d, i, this);
 
             });
 //            self.view=view.update();
@@ -933,19 +919,18 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
 
     };
 
-    igviz.drawBarChart = function (mychart,divId, chartConfig, dataTable) {
-      //  console.log(this);
-        var table=[];
-        for(i=0;i<dataTable.data.length;i++)
-        {
-            var ptObj={};
-            ptObj.x=dataTable.data[i][chartConfig.xAxis];
-            ptObj.y=dataTable.data[i][chartConfig.yAxis];
-            table[i]=ptObj;
+    igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
+        //  console.log(this);
+        var table = [];
+        for (i = 0; i < dataTable.data.length; i++) {
+            var ptObj = {};
+            ptObj.x = dataTable.data[i][chartConfig.xAxis];
+            ptObj.y = dataTable.data[i][chartConfig.yAxis];
+            table[i] = ptObj;
         }
 
-        var spec={
-            "width": chartConfig.width -100,
+        var spec = {
+            "width": chartConfig.width - 100,
             "height": chartConfig.height,
             "data": [
                 {
@@ -971,7 +956,7 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
                 {
                     "type": "x",
                     "scale": "x",
-                    'title':dataTable.metadata.names[chartConfig.xAxis],
+                    'title': dataTable.metadata.names[chartConfig.xAxis],
                     "properties": {
                         "ticks": {
                             "stroke": {"value": "steelblue"}
@@ -985,11 +970,11 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
                             "fontSize": {"value": 12},
                             "align": {"value": "left"},
                             "baseline": {"value": "middle"},
-                            "dx": {"value": 3   }
+                            "dx": {"value": 3}
                         },
                         "title": {
                             "fontSize": {"value": 20},
-                            "dy":{'value':40}
+                            "dy": {'value': 40}
                         },
                         "axis": {
                             "stroke": {"value": "#333"},
@@ -1000,8 +985,8 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
                 {
                     "type": "y",
                     "scale": "y",
-                    'grid':true,
-                    'title':dataTable.metadata.names[chartConfig.yAxis],
+                    'grid': true,
+                    'title': dataTable.metadata.names[chartConfig.yAxis],
                     "properties": {
                         "ticks": {
                             "stroke": {"value": "steelblue"}
@@ -1011,14 +996,14 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
                         },
                         "labels": {
                             "fill": {"value": "orange"},
-                            "angle": {"value":0},
+                            "angle": {"value": 0},
                             "fontSize": {"value": 12},
                             "align": {"value": "right"}
                         },
                         "title": {
                             "fontSize": {"value": 20},
-                            "dy":{'value':-40},
-                            "dx":{'value':40}
+                            "dy": {'value': -40},
+                            "dx": {'value': 40}
                         },
                         "axis": {
                             "stroke": {"value": "#333"},
@@ -1031,32 +1016,32 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
             ],
             "marks": [
                 {
-                    "key":"data.x",
+                    "key": "data.x",
                     "type": "rect",
                     "from": {"data": "table"},
                     "properties": {
                         "enter": {
                             "x": {"scale": "x", "field": "data.x"},
-                            "width": {"scale": "x", "band": true, "offset": -(100/table.length)},
-                            "y": {"scale": "y:prev", "field": "data.y" , "duration":2000},
+                            "width": {"scale": "x", "band": true, "offset": -(100 / table.length)},
+                            "y": {"scale": "y:prev", "field": "data.y", "duration": 2000},
                             "y2": {"scale": "y", "value": 0}
 
                         },
                         "update": {
-                                "x": {"scale": "x", "field": "data.x"},
-                                "y": {"scale": "y", "field": "data.y"},
-                                "y2": {"scale": "y", "value": 0},
-                               "fill": {"value":"steelblue"}
+                            "x": {"scale": "x", "field": "data.x"},
+                            "y": {"scale": "y", "field": "data.y"},
+                            "y2": {"scale": "y", "value": 0},
+                            "fill": {"value": "steelblue"}
                         },
                         "exit": {
-                                    "x": {"value": 0},
-                                    "y": {"scale": "y:prev", "field": "data.y"},
-                                    "y2": {"scale": "y", "value": 0}
+                            "x": {"value": 0},
+                            "y": {"scale": "y:prev", "field": "data.y"},
+                            "y2": {"scale": "y", "value": 0}
                         },
 
-                        "hover":{
+                        "hover": {
 
-                            "fill":{'value':'orange'}
+                            "fill": {'value': 'orange'}
                         }
 
                     }
@@ -1065,17 +1050,17 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
         }
 
 
-       var data={table:table}
+        var data = {table: table}
 
-        mychart.spec=spec;
-        mychart.data=data;
-        mychart.table=table;
-        vg.parse.spec(spec, function(chart) {
+        mychart.spec = spec;
+        mychart.data = data;
+        mychart.table = table;
+        vg.parse.spec(spec, function (chart) {
             mychart.chart = chart({
                 el: divId,
                 renderer: 'svg',
-                data:data,
-                hover:false
+                data: data,
+                hover: false
 
             }).update();
             //self.counter=0;
@@ -2193,9 +2178,9 @@ igviz.drillDownRoot=function(divId,chartConfig,dataTable)
         //TODO implement me!
     };
 
-    Chart.prototype.update=function (point){
+    Chart.prototype.update = function (pointObj) {
 
-        this.table.shift();
+       point= this.table.shift();
         this.table.push(point);
         this.chart.data(this.data).update();
     }
