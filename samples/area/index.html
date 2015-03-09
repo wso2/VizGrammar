@@ -264,7 +264,8 @@
                         }
 
                         //draw a bar chart on div #bar
-                        igviz.plot("#bar",config,dataTable);
+                        chart=igviz.setUp("#area",config,dataTable);
+                        chart.plot(dataTable.data);
 
             &lt;/script&gt
                 </pre>
