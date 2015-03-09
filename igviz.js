@@ -982,28 +982,7 @@
                     "scale": "x",
                     'title': dataTable.metadata.names[chartConfig.xAxis],
                     "properties": {
-                        "ticks": {
-                            "stroke": {"value": "steelblue"}
-                        },
-                        "majorTicks": {
-                            "strokeWidth": {"value": 2}
-                        },
-                        "labels": {
-                            "fill": {"value": "orange"},
-                            "angle": {"value": 50},
-                            "fontSize": {"value": 12},
-                            "align": {"value": "left"},
-                            "baseline": {"value": "middle"},
-                            "dx": {"value": 3}
-                        },
-                        "title": {
-                            "fontSize": {"value": 20},
-                            "dy": {'value': 40}
-                        },
-                        "axis": {
-                            "stroke": {"value": "#333"},
-                            "strokeWidth": {"value": 1.5}
-                        }
+                       
                     }
                 },
                 {
@@ -1012,27 +991,7 @@
                     'grid': true,
                     'title': dataTable.metadata.names[chartConfig.yAxis],
                     "properties": {
-                        "ticks": {
-                            "stroke": {"value": "steelblue"}
-                        },
-                        "majorTicks": {
-                            "strokeWidth": {"value": 2}
-                        },
-                        "labels": {
-                            "fill": {"value": "orange"},
-                            "angle": {"value": 0},
-                            "fontSize": {"value": 12},
-                            "align": {"value": "right"}
-                        },
-                        "title": {
-                            "fontSize": {"value": 20},
-                            "dy": {'value': -40},
-                            "dx": {'value': 40}
-                        },
-                        "axis": {
-                            "stroke": {"value": "#333"},
-                            "strokeWidth": {"value": 1.5}
-                        }
+                        
                     }
                 }
 
