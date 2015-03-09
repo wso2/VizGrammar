@@ -281,8 +281,17 @@
                         }
 
                         //draw a bar chart on div #bar
-                        igviz.plot("#bar",config,dataTable);
 
+                       chart=igviz.setUp("#bar",config,dataTable);
+                       chart.plot(dataTable.data)
+
+
+                        dynamicChart=igviz.plot("#bar2",config,dataTable);
+                        setInterval(function(){
+
+                            dynamicChart.update();
+
+                        },1000)
             &lt;/script&gt
                 </pre>
             </div>
@@ -358,7 +367,8 @@
   
 
     //draw a bar chart on div #bar
-x=igviz.plot("#bar",config,dataTable);
+chart=igviz.setUp("#bar",config,dataTable);
+chart.plot(dataTable.data)
 
 //x.update({x:'Australia',y:22222});
 //setTimeout(function(){  }, 3000);

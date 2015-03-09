@@ -58,45 +58,51 @@
               </div>
                  </a>
 
-
             <a href="line/index.html">
-            <div class="col-md-6" class="tile">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            Line Graph  Sample
-                        </h3>
-                    </div>
-                    <div class="panel-body">
-                        <div id="line">
-
+                <div class="col-md-6" class="tile">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Line Graph  Sample
+                            </h3>
                         </div>
-                    </div>
+                        <div class="panel-body">
+                            <div id="line">
 
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-            </div>
-                </a>
-            </div>
+            </a>
+
+
+
+
+
+        </div>
 
 
           <div class="row">
-              <a href="map/index.html">
-              <div class="col-md-6" class="tile">
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title">
-                              Map  Sample
-                          </h3>
-                      </div>
-                      <div class="panel-body">
-                          <div id="map">
 
+              <a href="area/">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Area Sample
+                              </h3>
                           </div>
-                      </div>
+                          <div class="panel-body">
+                              <div id="area"></div>
+                          </div>
 
+                      </div>
                   </div>
-              </div>
+
               </a>
+
+
 
 
               <a href="scatter/index.html">
@@ -155,9 +161,27 @@
               </a>
 
 
-
           </div>
           <div class="row">
+
+
+              <a href="map/index.html">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Map  Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="map">
+
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+              </a>
 
               <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
@@ -223,7 +247,7 @@ var dataTable = {
         "xAxis": 0,
         "pointLabel": 0,
         "width": width,
-        "height": height,
+        "height": height-50,
         "padding": 60,
         "chartType": "bar",
         "xAxisLabelConfig":{
@@ -288,7 +312,7 @@ var dataTable = {
         "height": height,
         "chartType": "arc",
         "diameter" : 200,
-        "value" : 75,
+        "value" : 75
     }
 
 
@@ -342,7 +366,19 @@ var dataTable2 = {
         ]
     );
 
-var drilldataTable = {
+//draw a line chart on
+igviz.plot("#line",lineChartConfig,lineData);
+
+
+igviz.plot("#map",mapConfig,dataTable);
+
+
+//draw a table on div #table
+igviz.plot("#table",tableConfig,dataTable2);
+
+igviz.plot("#arc",arcConfig,dataTable2);
+
+var drillDataTable = {
     "metadata":{
         "names":["Year","City",'Province',"Votes"],
         "types":['C', 'C','C','N']
@@ -427,16 +463,16 @@ var drilldataTable = {
     ]
 }
 
-var drillwidth = document.getElementById("drill").offsetWidth; //canvas width
-var drillheight = 400;   //canvas height
+var drillWidth = document.getElementById("drill").offsetWidth; //canvas width
+var drillHeight = 280;   //canvas height
 
 var drillconfig = {
     "title": "Area By Country",
     "yAxis": 3,
     "xAxis": [{"index":0,"child":2,"div":"drill"},{"index":2,"child":1,"div":"drill"}],
     "pointLabel": 0,
-    "width": width,
-    "height": drillheight,
+    "width": drillWidth,
+    "height": drillHeight,
     "padding": 60,
     "chartType": "drill"
 }
@@ -444,48 +480,28 @@ var drillconfig = {
 
 
 //draw a drill downing  chart on div
-igviz.drawBarChart("#drill",drillconfig,drilldataTable);
+igviz.plot("#drill",drillconfig,drillDataTable);
 
 
 
+var areaConfig = {
+    "title": "Area By Country",
+    "yAxis": 3,
+    "xAxis":7,
+    "pointLabel": 0,
+    "width": width-100,
+    "height": height-40,
+    "padding": 60,
+    "chartType": "area"
+
+}
 
 
 
+//draw a bar chart on div #bar
+chart=igviz.setUp("#area",areaConfig,dataTable);
+chart.plot(dataTable.data);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //draw a line chart on 
-    igviz.plot("#line",lineChartConfig,lineData);
-
-
-    igviz.plot("#map",mapConfig,dataTable);
-    
-    
-    //draw a table on div #table
-    igviz.plot("#table",tableConfig,dataTable2);
-    
-    igviz.plot("#arc",arcConfig,dataTable2);
 
 
 </script>

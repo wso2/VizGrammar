@@ -27,7 +27,37 @@
         } else if (config.chartType == "table") {
             this.drawTable(canvas, config, dataTable);
         } else if (config.chartType == "area") {
-            this.drawAreaChart(canvas, config, dataTable);
+            this.drawAreaChart(chart);
+        } else if (config.chartType == "arc") {
+            this.drawArc(canvas, config, dataTable);
+        }
+        else if (config.chartType == "drill") {
+            this.drillDown(0, canvas, config, dataTable, dataTable);
+        }
+
+        return chart;
+        //return
+    };
+
+    igviz.setUp = function (canvas, config, dataTable) {
+        var chart = new Chart(canvas, config, dataTable);
+
+        config = setDefault(config)
+
+        if (config.chartType == "bar") {
+            this.drawBarChart(chart, canvas, config, dataTable);
+        } else if (config.chartType == "scatter") {
+            this.drawScatterPlot(canvas, config, dataTable);
+        } else if (config.chartType == "singleNumber") {
+            this.drawSingleNumberDiagram(canvas, config, dataTable);
+        } else if (config.chartType == "map") {
+            this.drawMap(canvas, config, dataTable);
+        } else if (config.chartType == "line") {
+            this.drawLineChart(canvas, config, dataTable);
+        } else if (config.chartType == "table") {
+            this.drawTable(canvas, config, dataTable);
+        } else if (config.chartType == "area") {
+            this.drawAreaChart(chart);
         } else if (config.chartType == "arc") {
             this.drawArc(canvas, config, dataTable);
         }
@@ -540,125 +570,91 @@
             });
     };
 
-    igviz.drawAreaChart = function (divId, chartConfig, dataTable) {
-
-        var width = chartConfig.width;
-        var height = chartConfig.height;
-        var padding = chartConfig.padding;
 
 
-        //console.log(dataTable)
-        var margin = {
-            top: 20,
-            right: 20,
-            bottom: 30,
-            left: 50
-        };
+    function sortDataSet(dataset,fun){
+        if(fun==null) {
+            fun = function (a, b) {
+                if (a.x - b.x < 0) {
+                    return -1;
+                }
+                if (a.x - b.x > 0) {
+                    return 1;
+                }
+                // a must be equal to b
+                return 0;
+            };
+        }
+        dataset.sort(fun);
+    }
+    igviz.drawAreaChart = function (chartObj) {
 
-        var dataset = dataTable.data.map(function (d) {
-            return {
-                "data": d,
-                "config": chartConfig
+       // var padding = chartConfig.padding;
+        var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
+        ///var table = setData(dataTable.data,chartConfig);
+
+       // sortDataSet(table);
+        var spec ={
+            "width": chartConfig.width,
+            "height": chartConfig.height,
+            "padding": {"top": 10, "left": 30, "bottom": 30, "right": 10},
+            "data": [
+            {
+                "name": "table"
             }
-        });
-
-        //console.log("hello")
-        //console.log( dataset);
-        dataset.sort(function (a, b) { //sort the data set with respect to the x coordinates
-
-            return a.data[chartConfig.xAxis] - b.data[chartConfig.xAxis];
-        });
-
-        console.log(dataset);
-
-        //	var plotCtx = createScales(dataset, chartConfig, dataTable);
-        //	var xScale = plotCtx.xScale;
-        //	var yScale = plotCtx.yScale;
-
-
-        var x = d3.scale.linear()
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .range([height, 0]);
-
-
-        var xAxis = d3.svg.axis() //define x axis
-            .scale(x)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis() //define y axis
-            .scale(y)
-            .orient("left");
-
-
-        var area = d3.svg.area()
-            .x(function (d) {
-                return x(d.x);
-            })
-            .y0(height)
-            .y1(function (d) {
-                return y(d.y);
-            });
-
-
-        var svgID = divId + "_svg";
-        //Remove current SVG if it is already there
-        d3.select(svgID).remove();
-
-
-        dataTable.data.forEach(
-            function (d) {
-
-                d.x = d[chartConfig.xAxis];
-                d.y = d[chartConfig.yAxis];
-                console.log(d)
+        ],
+            "scales": [
+            {
+                "name": "x",
+                "type": "linear",
+                "range": "width",
+                "zero": false,
+                "domain": {"data": "table", "field": "data.x"}
+            },
+            {
+                "name": "y",
+                "type": "linear",
+                "range": "height",
+                "nice": true,
+                "domain": {"data": "table", "field": "data.y"}
             }
-        );
+        ],
+            "axes": [
+            {"type": "x", "scale": "x", "ticks": 20},
+            {"type": "y", "scale": "y"}
+        ],
+            "marks": [
+            {
+                "type": "area",
+                "from": {"data": "table"},
+                "properties": {
+                    "enter": {
+                        "interpolate": {"value": "monotone"},
+                        "x": {"scale": "x", "field": "data.x"},
+                        "y": {"scale": "y", "field": "data.y"},
+                        "y2": {"scale": "y", "value": 0},
+                        "fill": {"value": "steelblue"}
+                    },
+                    "update": {
+                        "fillOpacity": {"value": 1}
+                    },
+                    "hover": {
+                        "fillOpacity": {"value": 0.5}
+                    }
+                }
+            }
+        ]
+        }
 
+        //var data = {table: table}
 
-        var svg = d3.select(divId)
-            .append("svg")
-            .attr("id", svgID.replace("#", ""))
-            .attr("width", width)
-            .attr("height", height).
-            attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //move to the middle of the screen in given dimensions
-
-        x.domain(d3.extent(dataset, function (d) {
-            return d.x;
-        }));
-
-        y.domain([0, d3.max(dataset, function (d) {
-            return d.y;
-        })]);
-
-        svg.append("path")
-            .datum(dataset)
-            .attr("class", "area")
-            .attr("d", area).style("fill", "steelblue")
-        ;
-
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis).append("text") //append the label for the x axis
-            .attr("x", width) //move to the right hand end
-            .attr("y", 28) //set as -10 to move on top of the x axis
-            .style("text-anchor", "end")
-            .style("font-weight", "bold")
-            .text(dataTable.metadata[chartConfig.xAxis])
-
-        svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text(dataTable.metadata[chartConfig.yAxis]);
-
-        //d3.selectAll('.bar');
+        chartObj.spec = spec;
+       // chart.data = data;
+      //  chart.table = table;
+            //self.counter=0;
+            //console.log('abc');
+            //setInterval(updateTable,1500);
 
     };
 
@@ -919,8 +915,36 @@
 
     };
 
+
+    function setScale(){
+
+    }
+
+    function setAxis(){
+
+    }
+
+    function setLegends(){
+
+    }
+
+    function setData(data,chartConfig){
+        var table = [];
+        for (i = 0; i < data.length; i++) {
+            var ptObj = {};
+            ptObj.x = data[i][chartConfig.xAxis];
+            ptObj.y = data[i][chartConfig.yAxis];
+            table[i] = ptObj;
+        }
+    return table;
+    }
+
     igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         //  console.log(this);
+        divId=mychart.canvas;
+        chartConfig=mychart.config;
+        dataTable=mychart.dataTable;
+
         var table = [];
         for (i = 0; i < dataTable.data.length; i++) {
             var ptObj = {};
@@ -1063,6 +1087,8 @@
                 hover: false
 
             }).update();
+
+            mychart.chart.data(data).update();
             //self.counter=0;
             //console.log('abc');
             //setInterval(updateTable,1500);
@@ -2183,6 +2209,26 @@
        point= this.table.shift();
         this.table.push(point);
         this.chart.data(this.data).update();
+    }
+
+    Chart.prototype.plot=function(dataset){
+      var table=  setData(dataset,this.config )
+        sortDataSet(table)
+       var data={table:table}
+        divId=this.canvas;
+
+
+        vg.parse.spec(this.spec, function (chart) {
+            this.chart = chart({
+                el: divId,
+                renderer: 'svg',
+                data: data,
+
+
+            }).update();
+        });
+
+
     }
 
 

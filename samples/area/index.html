@@ -7,7 +7,10 @@
   <script src="../d3.min.js"></script>
 
   <!-- Intergration of igviz  -->
+    <script src="../vega.js"></script>
+
   <script src="../../igviz.js"></script>
+
   <link rel="stylesheet" href="../../igviz.css">
 
 <meta charset="utf-8">
@@ -36,11 +39,11 @@
                   <div class="panel panel-default">
                       <div class="panel-heading">
                         <h3 class="panel-title">
-                          Bar Chart Sample
+                          Area Chart Sample
                         </h3>
                       </div>
                       <div class="panel-body">
-                        <div id="bar"></div>
+                        <div id="area"></div>
                       </div>
 
                   </div>
@@ -301,7 +304,7 @@
       ]
     }
 
-    var width = document.getElementById("bar").offsetWidth; //canvas width
+    var width = document.getElementById("area").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
 
@@ -320,7 +323,8 @@
 
 
     //draw a bar chart on div #bar
-    igviz.plot("#bar",config,dataTable);
+    chart=igviz.setUp("#area",config,dataTable);
+    chart.plot(dataTable.data);
 
 </script>
 
