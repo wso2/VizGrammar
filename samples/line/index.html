@@ -210,7 +210,7 @@
                                  
                         dataTable.addRows(
                             [
-                                [2004,  1000,      400],
+                                [Jan 1 2000,  1000,      400],
                                 [2005,  1170,      460],
                                 [2006,  660,       1120],
                                 [2007,  1030,      540]
@@ -250,20 +250,18 @@
 
 
     //dataset used to plot charts
-                var dataTable = new igviz.DataTable();
-                    dataTable.addColumn("Year","C");
-                    dataTable.addColumn("Sales","N");
-                    dataTable.addColumn("Expenses","N");
-                             
-                    dataTable.addRows(
-                        [
-                            [2004,  1000,      400],
-                            [2005,  1170,      460],
-                            [2006,  660,       1120],
-                            [2007,  1030,      540]
-                        ]
-                    );
-
+                var dataTable = {
+                    "metadata" : {
+                        "names" : ["Year","Sales","Expenses"],
+                        "types" : ["T","N","N"]
+                    },
+                    "data" : [
+                        ["2004",1000,400],
+                        ["2005",1170, 460],
+                        ["2006",660, 1120],
+                        ["2007",1030,540]
+                    ]
+                };
 
                 var width = document.getElementById("line").offsetWidth ; //canvas width
                 var height = 270;   //canvas height
@@ -275,13 +273,17 @@
                        "width": width,
                        "height": height,
                        "textAngle" : -90,
-                       "chartType": "line",
+                       "chartType": "line"
                    }
 
 
 
                 //draw a bar chart on div #bar
-                igviz.plot("#line", lineChartConfig, dataTable);
+                chart=igviz.setUp("#line", lineChartConfig, dataTable);
+
+                chart.plot(dataTable.data);
+
+                setTimeout(function(){chart.update()},2000);
 
 </script>
 
