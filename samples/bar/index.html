@@ -368,19 +368,22 @@
 
     //draw a bar chart on div #bar
 chart=igviz.setUp("#bar",config,dataTable);
-chart.plot(dataTable.data)
+chart.plot(dataTable.data,function(){
 
+
+    y = igviz.setUp("#bar2", config, dataTable);
+    y.plot(dataTable.data,function(){
+
+
+    });
+
+})
+
+console.log("outside");
 //x.update({x:'Australia',y:22222});
 //setTimeout(function(){  }, 3000);
 
-y=igviz.plot("#bar2",config,dataTable);
-//console.log(x,y);
 
-setInterval(function(){
-
-    y.update();
-
-},1000)
 
 
 </script>
