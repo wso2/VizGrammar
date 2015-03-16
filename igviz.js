@@ -328,7 +328,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         divId=chartObj.canvas;
         chartConfig=chartObj.config;
         dataTable=chartObj.dataTable;
-        table=setData(dataTable,chartConfig)
+       // table=setData(dataTable,chartConfig)
 
         xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
         yStrings=[];
@@ -524,7 +524,6 @@ var         chartObject = new Chart(canvas, config, dataTable);
             }
         }
 
-        var table = setData(dataTable,chartConfig);
         var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
         var yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
 
@@ -582,7 +581,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
                     "properties": {
                         "enter": {
                             "x": {"scale": "x", "field": xString},
-                            "width": {"scale": "x", "band": true, "offset": -(100 / table.length)},
+                            "width": {"scale": "x", "band": true, "offset":-10},
                             "y": {"scale": "y:prev", "field": yString, "duration": 2000},
                             "y2": {"scale": "y", "value": 0}
 
@@ -636,7 +635,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
-        var table = setData(dataTable,chartConfig);
+     //   var table = setData(dataTable,chartConfig);
         divId=chartObj.canvas;
 
 
@@ -645,7 +644,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
-        console.log(table,xString,yStrings,groupedBy);
+       // console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
         cat={
@@ -779,7 +778,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
     igviz.drawGroupedBarChart=function(chartObj){
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
-        var table = setData(dataTable,chartConfig);
+      //  var table = setData(dataTable,chartConfig);
         divId=chartObj.canvas;
 
 
@@ -788,7 +787,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
-        console.log(table,xString,yStrings,groupedBy);
+      //  console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
         cat={
@@ -940,7 +939,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
     igviz.drawGroupedBarChartVertical=function(chartObj){
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
-        var table = setData(dataTable,chartConfig);
+      //  var table = setData(dataTable,chartConfig);
         divId=chartObj.canvas;
 
 
@@ -949,7 +948,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
-        console.log(table,xString,yStrings,groupedBy);
+      //  console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
         cat={
@@ -1106,7 +1105,6 @@ var         chartObject = new Chart(canvas, config, dataTable);
         // var padding = chartConfig.padding;
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
-        var table = setData(dataTable,chartConfig);
 
         if(chartConfig.yAxis.constructor === Array){
             return this.drawMultiAreaChart(chartObj)
@@ -1121,7 +1119,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
         yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
-        console.log(table,xString,yStrings);
+     //   console.log(table,xString,yStrings);
         // sortDataSet(table);
 
         xScaleConfig={
@@ -1293,7 +1291,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         divId=chartObj.canvas;
         chartConfig=chartObj.config;
         dataTable=chartObj.dataTable;
-        table=setData(dataTable,chartConfig)
+       // table=setData(dataTable,chartConfig)
 
         xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
         yStrings=[];
@@ -1508,7 +1506,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
-        var table = setData(dataTable,chartConfig);
+      //  var table = setData(dataTable,chartConfig);
         divId=chartObj.canvas;
 
 
@@ -1517,7 +1515,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
         groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
-        console.log(table,xString,yStrings,groupedBy);
+   //     console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
         cat={
@@ -1799,16 +1797,16 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
     }
 
-    function setData(data,chartConfig){
+    function setData(dataTableObj,chartConfig,schema){
         var table = [];
-        for (i = 0; i < dataTable.data.length; i++) {
+        for (i = 0; i < dataTableObj.length; i++) {
             var ptObj = {};
-            namesArray=dataTable.metadata.names;
+            namesArray=schema.names;
             for(j=0;j<namesArray.length;j++){
-                if(dataTable.metadata.types[j]=='T'){
-                    ptObj[createAttributeNames(namesArray[j])]=new Date(dataTable.data[i][j]);
+                if(schema.types[j]=='T'){
+                    ptObj[createAttributeNames(namesArray[j])]=new Date(dataTableObj[i][j]);
                 }else
-                    ptObj[createAttributeNames(namesArray[j])]=dataTable.data[i][j];
+                    ptObj[createAttributeNames(namesArray[j])]=dataTableObj[i][j];
             }
 
             table[i] = ptObj;
@@ -2100,7 +2098,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         divId=chartObj.canvas;
         chartConfig=chartObj.config;
         dataTable=chartObj.dataTable;
-        table=setData(dataTable,chartConfig)
+    //    table=setData(dataTable,chartConfig)
 
         xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
         yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
@@ -3218,32 +3216,59 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
     Chart.prototype.update = function (pointObj) {
 
+
+      newTable =setData([pointObj],this.config,this.dataTable.metadata);
+
        point= this.table.shift();
-        this.table.push(point);
+        this.dataTable.data.shift();
+        this.dataTable.data.push(pointObj);
+
+       this.table.push(newTable[0]);
+       this.chart.data(this.data).update();
+
+    }
+
+
+    Chart.prototype.updateList = function (dataList) {
+
+
+        for(i=0;i<dataList.length;i++){
+            this.dataTable.data.shift();
+            this.dataTable.data.push(dataList[i]);
+        }
+
+
+        var newTable = setData(dataList, this.config,this.dataTable.metadata);
+
+        for (i = 0; i < dataList.length; i++) {
+           point = this.table.shift();
+          this.table.push(newTable[i]);
+        }
+
+        console.log(this.table);
+        //     console.log(point,this.chart,this.data);
         this.chart.data(this.data).update();
     }
 
-    Chart.prototype.plot2=function (dataset){
 
-        ref=this
-        setTimeout(function(){
-            ref.plot2(dataset)
-        },20000)
-    }
+
+
+
+
+
+
+
+
+
     Chart.prototype.plot=function (dataset,callback){
 
+        var table=  setData(dataset,this.config ,this.dataTable.metadata);
+        var data={table:table}
 
-
-         //console.log(c);
-      var table=  setData(dataset,this.config )
-     //   sortDataSet(table)
-       var data={table:table}
         divId=this.canvas;
+        this.data=data;
+        this.table=table;
 
-        console.log("hello",this.canvas);
-
-        chartConfig=this.config;
-        dataTable=this.dataTable;
 
         if(this.legend){
             legendsList=[];
@@ -3272,7 +3297,6 @@ var         chartObject = new Chart(canvas, config, dataTable);
         ref=this
 
         vg.parse.spec(specification, function (chart) {
-            console.log("in",divId)
            ref.chart = chart({
                 el: divId,
                 renderer: 'svg',
@@ -3280,7 +3304,6 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
             }).update();
-
 
 
             if(isTool){
@@ -3295,7 +3318,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
             }
 
             if(callback)
-            callback();
+            callback.call(ref);
 
             console.log("inside",ref);
         });

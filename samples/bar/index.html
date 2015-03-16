@@ -366,23 +366,24 @@
 
   
 
-    //draw a bar chart on div #bar
-chart=igviz.setUp("#bar",config,dataTable);
-chart.plot(dataTable.data,function(){
+staticChart=igviz.setUp("#bar",config,dataTable);
 
+staticChart.plot(dataTable.data,function(){
 
-    y = igviz.setUp("#bar2", config, dataTable);
-    y.plot(dataTable.data,function(){
+    //call back function to draw the second graph
 
+   dynamicChart = igviz.setUp("#bar2", config, dataTable);
+    dynamicChart.plot(dataTable.data,function(){
 
+            //call back function to update
+            setInterval(function(){
+                console.log("done");
+                newDataSet=[dataTable.data[0],dataTable.data[1]]
+                dynamicChart.updateList(newDataSet);
+             },1000)
     });
 
 })
-
-console.log("outside");
-//x.update({x:'Australia',y:22222});
-//setTimeout(function(){  }, 3000);
-
 
 
 
