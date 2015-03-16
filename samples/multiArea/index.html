@@ -343,59 +343,26 @@
 
 
 //dataset used to plot charts
-    var dataTable = {
-      "metadata":{
-        "names":["Time(S)","Person","Speed"],
-        "types":['N', 'C','N']
-      },
-      "data": [
-          [1,'A',8],
-          [2,'A',7],
-          [3,'A',5],
-          [4,'A',7],
-          [5,'A',7],
-          [6,'A',6],
-          [7,'A',2],
-          [8,'A',2],
-          [9,'A',4],
-          [10,'A',2],
-          [11,'A',7],
-          [12,'A',8],
-          [1,'B',3],
-          [2,'B',9],
-          [3,'B',2],
-          [4,'B',1],
-          [5,'B',7],
-          [6,'B',1],
-          [7,'B',0],
-          [8,'B',8],
-          [9,'B',7],
-          [10,'B',5],
-          [11,'B',4],
-          [12,'B',9],
-          [1,'C',6],
-          [2,'C',5],
-          [3,'C',2],
-          [4,'C',2],
-          [5,'C',4],
-          [6,'C',3],
-          [7,'C',3],
-          [8,'C',6],
-          [9,'C',4],
-          [10,'C',4],
-          [11,'C',7],
-          [12,'C',1]
-      ]
-    }
+var dataTable = {
+    "metadata" : {
+        "names" : ["Year","Sales","Expenses"],
+        "types" : ["T","N","N"]
+    },
+    "data" : [
+        ["2004",1000,400],
+        ["2005",1170, 460],
+        ["2006",660, 1120],
+        ["2007",1030,540]
+    ]
+};
 
-    var width = document.getElementById("bar").offsetWidth; //canvas width
-    var height = 400;   //canvas height
+var width = document.getElementById("bar").offsetWidth; //canvas width
+    var height = 300;   //canvas height
 
     var config = {
         "title": "Area By Country",
-        "yAxis": 2,
-        "xAxis": 1,
-        "groupedBy":0,
+        "yAxis": [1,2],
+        "xAxis": 0,
         "pointLabel": 0,
         "width": width,
         "height": height,
