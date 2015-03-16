@@ -352,9 +352,11 @@
                     }
 
                     //draw a scatter chart on div #scatter
-                    igviz.plot("#scatter",scatterChartConfig,dataTable);
+                    //igviz.plot("#scatter",scatterChartConfig,dataTable);
 
+                    chart=igviz.setUp("#scatter",scatterChartConfig,dataTable);
 
+                     chart.plot(dataTable.data)
 </script>
 
 </html>
