@@ -367,25 +367,32 @@
   
 
 staticChart=igviz.setUp("#bar",config,dataTable);
-
+dynamicChart={};
 staticChart.plot(dataTable.data,function(){
 
     //call back function to draw the second graph
 
    dynamicChart = igviz.setUp("#bar2", config, dataTable);
-    dynamicChart.plot(dataTable.data,function(){
-
-            //call back function to update
-            setInterval(function(){
-                console.log("done");
-                newDataSet=[dataTable.data[0],dataTable.data[1]]
-                dynamicChart.updateList(newDataSet);
-             },1000)
-    });
+    dynamicChart.plot(dataTable.data,customUpdateSync);
 
 })
 
 
+d3.select('div').on('click',customUpdateAsync)
+
+function customUpdateSync(){
+           setInterval(function(){
+               console.log("Per Second Event");
+                newDataSet=[dataTable.data[0],dataTable.data[1]]
+                dynamicChart.updateList(newDataSet);
+             },2000)
+}
+function customUpdateAsync(){
+    console.log("Asynchronous Event");
+
+        newDataSet=dataTable.data[0]
+        dynamicChart.update(newDataSet);
+}
 
 </script>
 

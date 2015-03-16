@@ -3229,7 +3229,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
     }
 
 
-    Chart.prototype.updateList = function (dataList) {
+    Chart.prototype.updateList = function (dataList,callback) {
 
 
         for(i=0;i<dataList.length;i++){
@@ -3245,9 +3245,9 @@ var         chartObject = new Chart(canvas, config, dataTable);
           this.table.push(newTable[i]);
         }
 
-        console.log(this.table);
-        //     console.log(point,this.chart,this.data);
+       //     console.log(point,this.chart,this.data);
         this.chart.data(this.data).update();
+
     }
 
 
@@ -3318,7 +3318,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
             }
 
             if(callback)
-            callback.call(ref);
+              callback.call(ref);
 
             console.log("inside",ref);
         });
