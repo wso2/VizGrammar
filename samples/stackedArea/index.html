@@ -37,11 +37,11 @@
                   <div class="panel panel-default">
                       <div class="panel-heading">
                         <h3 class="panel-title">
-                          Bar Chart Sample
+                          Stacked Area Chart Sample
                         </h3>
                       </div>
                       <div class="panel-body">
-                        <div id="bar"></div>
+                        <div id="area"></div>
                       </div>
                         
                   </div>
@@ -49,64 +49,6 @@
 
 
             </div>
-
-          <div class="row" >
-
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title">
-                              Bar Chart Sample
-                          </h3>
-                      </div>
-                      <div class="panel-body">
-                          <div id="barH"></div>
-                      </div>
-
-                  </div>
-              </div>
-
-
-          </div>
-
-
-          <div class="row" >
-
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title">
-                              Bar Chart Sample
-                          </h3>
-                      </div>
-                      <div class="panel-body">
-                          <div id="bar2"></div>
-                      </div>
-
-                  </div>
-              </div>
-
-
-          </div>
-
-          <div class="row" >
-
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title">
-                              Bar Chart Sample
-                          </h3>
-                      </div>
-                      <div class="panel-body">
-                          <div id="bar2H"></div>
-                      </div>
-
-                  </div>
-              </div>
-
-
-          </div>
 
           <div class="row">
 
@@ -121,30 +63,49 @@
                           <div id="data set">
 <pre>
 {
-  "metadata":{
-    "names":["Country","Area","GDP","Inflation","Life.expect",      "Military","Pop.growth","Unemployment"],
-    "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
-  }    ,
-
-  "data": [
-    ["Austria",83871,41600,3.5,79.91,0.8,0.03,4.2],
-    ["Belgium",30528,37800,3.5,79.65,1.3,0.06,7.2],
-    ["Bulgaria",110879,13800,4.2,73.84,2.6,-0.8,9.6],
-    ["Croatia",56594,18000,2.3,75.99,2.39,-0.09,17.7],
-    ["Czech Republic",78867,27100,1.9,77.38,1.15,-0.13,8.5],
-    ["Denmark",43094,37000,2.8,78.78,1.3,0.24,6.1],
-    ["Estonia",45228,20400,5,73.58,2,-0.65,12.5],
-    ["Finland",338145,36000,3.3,79.41,2,0.07,7.8],
-    ["Germany",357022,38100,2.5,80.19,1.5,-0.2,6],
-    ["Greece",131957,26300,3.3,80.05,4.3,0.06,17.4],
-    ["Hungary",93028,19600,3.9,75.02,1.75,-0.18,10.9],
-    ["Iceland",103000,38100,4,81,0,0.67,7.4],
-    ["Ireland",70273,40800,2.6,80.32,0.9,1.11,14.4],
-    ["Italy",301340,30500,2.9,81.86,1.8,0.38,8.4],
-    ["Latvia",64589,16800,4.4,72.93,1.1,-0.6,12.8]
-
-  ]
-}
+      "metadata":{
+        "names":["Time(S)","Person","Speed"],
+        "types":['N', 'C','N']
+      },
+      "data": [
+          [1,'A',8],
+          [2,'A',7],
+          [3,'A',5],
+          [4,'A',7],
+          [5,'A',7],
+          [6,'A',6],
+          [7,'A',2],
+          [8,'A',2],
+          [9,'A',4],
+          [10,'A',2],
+          [11,'A',7],
+          [12,'A',8],
+          [1,'B',3],
+          [2,'B',9],
+          [3,'B',2],
+          [4,'B',1],
+          [5,'B',7],
+          [6,'B',1],
+          [7,'B',0],
+          [8,'B',8],
+          [9,'B',7],
+          [10,'B',5],
+          [11,'B',4],
+          [12,'B',9],
+          [1,'C',6],
+          [2,'C',5],
+          [3,'C',2],
+          [4,'C',2],
+          [5,'C',4],
+          [6,'C',3],
+          [7,'C',3],
+          [8,'C',6],
+          [9,'C',4],
+          [10,'C',4],
+          [11,'C',7],
+          [12,'C',1]
+      ]
+    }
 
 </pre>
 
@@ -254,6 +215,7 @@
              &lt;link rel="stylesheet" href="bootstrap.min.css"&gt
              &lt;link rel="stylesheet" href="igviz.css"&gt
              &lt;script src="d3.min.js"&gt &lt;/script&gt
+             &lt;script src="vega.js"&gt &lt;/script&gt
              &lt;script src="igviz.js"&gt &lt;/script&gt
 
 
@@ -263,73 +225,68 @@
                     //dataset used to plot charts
                         var dataTable = {
                           "metadata":{
-                            "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
-                            "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
+                            "names":["Time(S)","Person","Speed"],
+                            "types":['N', 'C','N']
                           },
                           "data": [
-                            ["Austria",83871,41600,3.5,79.91,0.8,0.03,4.2],
-                            ["Belgium",30528,37800,3.5,79.65,1.3,0.06,7.2],
-                            ["Bulgaria",110879,13800,4.2,73.84,2.6,-0.8,9.6],
-                            ["Croatia",56594,18000,2.3,75.99,2.39,-0.09,17.7],
-                            ["Czech Republic",78867,27100,1.9,77.38,1.15,-0.13,8.5],
-                            ["Denmark",43094,37000,2.8,78.78,1.3,0.24,6.1],
-                            ["Estonia",45228,20400,5,73.58,2,-0.65,12.5],
-                            ["Finland",338145,36000,3.3,79.41,2,0.07,7.8],
-                            ["Germany",357022,38100,2.5,80.19,1.5,-0.2,6],
-                            ["Greece",131957,26300,3.3,80.05,4.3,0.06,17.4],
-                            ["Hungary",93028,19600,3.9,75.02,1.75,-0.18,10.9],
-                            ["Iceland",103000,38100,4,81,0,0.67,7.4],
-                            ["Ireland",70273,40800,2.6,80.32,0.9,1.11,14.4],
-                            ["Italy",301340,30500,2.9,81.86,1.8,0.38,8.4],
-                            ["Latvia",64589,16800,4.4,72.93,1.1,-0.6,12.8]
-
+                              [1,'A',8],
+                              [2,'A',7],
+                              [3,'A',5],
+                              [4,'A',7],
+                              [5,'A',7],
+                              [6,'A',6],
+                              [7,'A',2],
+                              [8,'A',2],
+                              [9,'A',4],
+                              [10,'A',2],
+                              [11,'A',7],
+                              [12,'A',8],
+                              [1,'B',3],
+                              [2,'B',9],
+                              [3,'B',2],
+                              [4,'B',1],
+                              [5,'B',7],
+                              [6,'B',1],
+                              [7,'B',0],
+                              [8,'B',8],
+                              [9,'B',7],
+                              [10,'B',5],
+                              [11,'B',4],
+                              [12,'B',9],
+                              [1,'C',6],
+                              [2,'C',5],
+                              [3,'C',2],
+                              [4,'C',2],
+                              [5,'C',4],
+                              [6,'C',3],
+                              [7,'C',3],
+                              [8,'C',6],
+                              [9,'C',4],
+                              [10,'C',4],
+                              [11,'C',7],
+                              [12,'C',1]
                           ]
                         }
 
-                        var width = document.getElementById("bar").offsetWidth; //canvas width
-                        var height = 270;   //canvas height
+                        var width = document.getElementById("area").offsetWidth; //canvas width
+                        var height = 400;   //canvas height
 
                         var config = {
-                            "title": "Area By Country",
-                            "yAxis": 1,
-                            "xAxis": 0,
-                            "pointLabel": 0,
+                            "title": "Stacked Area Sample",
+                            "yAxis": 2,
+                            "xAxis": 1,
+                            "groupedBy":0,
                             "width": width,
                             "height": height,
-                            "padding": 60,
-                            "chartType": "bar",
-                            "tickLabelConfig":{
-                                "textAngle":-60,
-                                "x":0,
-                                "y":9,
-                                "dy":".15em",
-                                "dx":"-.8em",
-                                "tickHeight":6,
-                                "tickWidth":0
-                            },
-                            "yAxisLabelConfig":{
-                                "fontSize":"20px",
-                                "rotate":-90,
-                                "x":-10 ,
-                                "y":6,
-                                "dy":".71em",
-                                "dx":0
-                            }
-
-                        }
-
-                        //draw a bar chart on div #bar
-
-                       chart=igviz.setUp("#bar",config,dataTable);
-                       chart.plot(dataTable.data)
+                            "chartType": "area"
+                       }
 
 
-                        dynamicChart=igviz.plot("#bar2",config,dataTable);
-                        setInterval(function(){
 
-                            dynamicChart.update();
-
-                        },1000)
+                        //draw a stacked area chart on div #area
+                    chart=igviz.setUp("#area",config,dataTable);
+                    chart.plot(dataTable.data)
+                    window.onresize=function(){chart.resize()};
             &lt;/script&gt
                 </pre>
             </div>
@@ -388,29 +345,26 @@
       ]
     }
 
-    var width = document.getElementById("bar").offsetWidth; //canvas width
+    var width = document.getElementById("area").offsetWidth; //canvas width
     var height = 400;   //canvas height
 
     var config = {
-        "title": "Area By Country",
+        "title": "Stacked Area Sample",
         "yAxis": 2,
         "xAxis": 1,
         "groupedBy":0,
-        "pointLabel": 0,
         "width": width,
         "height": height,
-        "padding": 60,
         "chartType": "area"
    }
 
 
+
+    //draw a stacked area chart on div #bar
+chart=igviz.setUp("#area",config,dataTable);
+chart.plot(dataTable.data)
 window.onresize=function(){chart.resize()};
 
-
-
-    //draw a bar chart on div #bar
-chart=igviz.setUp("#bar",config,dataTable);
-chart.plot(dataTable.data)
 
 //
 //

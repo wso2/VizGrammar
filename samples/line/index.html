@@ -193,48 +193,50 @@
 
 /******************************************************* Installation of the library ******************************************************/
 
-             &lt;link rel="stylesheet" href="bootstrap.min.css"&gt
              &lt;link rel="stylesheet" href="igviz.css"&gt
              &lt;script src="d3.min.js"&gt &lt;/script&gt
+             &lt;script src="vega.js"&gt &lt;/script&gt
              &lt;script src="igviz.js"&gt &lt;/script&gt
 
 
 /********************************************************** Invoking the Library **********************************************************/
              &lt;script&gt
 
-                    //dataset used to plot charts
-                    var dataTable = new igviz.DataTable();
-                        dataTable.addColumn("Year","C");
-                        dataTable.addColumn("Sales","N");
-                        dataTable.addColumn("Expenses","N");
-                                 
-                        dataTable.addRows(
-                            [
-                                [Jan 1 2000,  1000,      400],
-                                [2005,  1170,      460],
-                                [2006,  660,       1120],
-                                [2007,  1030,      540]
-                            ]
-                        );
+                //dataset used to plot charts
+                 var dataTable = {
+                    "metadata" : {
+                        "names" : ["Year","Sales","Expenses"],
+                        "types" : ["T","N","N"]
+                    },
+                    "data" : [
+                        ["2004",1000,400],
+                        ["2005",1170, 460],
+                        ["2006",660, 1120],
+                        ["2007",1030,540]
+                    ]
+                };
 
+                var width = document.getElementById("line").offsetWidth ; //canvas width
+                var height = 270;   //canvas height
 
-                    var width = document.getElementById("line").offsetWidth ; //canvas width
-                    var height = 270;   //canvas height
-
-                    var lineChartConfig = {
-                           "xAxis": 0,
-                           "yAxis": [1,2],
-                           "padding": 60,
-                           "width": width,
-                           "height": height,
-                           "textAngle" : -90,
-                           "chartType": "line",
-                       }
+                var lineChartConfig = {
+                       "xAxis": 0,
+                       "yAxis": [1,2],
+                       "width": width,
+                       "height": height,
+                       "textAngle" : -90,
+                       "chartType": "line"
+                   }
 
 
 
-                    //draw a bar chart on div #bar
-                    igviz.plot("#line", lineChartConfig, dataTable);
+                //draw a line chart on div #line
+                chart=igviz.setUp("#line", lineChartConfig, dataTable);
+
+                chart.plot(dataTable.data);
+
+                //applying responsive behavior for window resize event
+                window.onresize=function(){chart.resize()};
 
 
             &lt;/script&gt
@@ -284,8 +286,6 @@
                 chart.plot(dataTable.data);
 
                 window.onresize=function(){chart.resize()};
-
-                setTimeout(function(){chart.update()},2000);
 
 </script>
 

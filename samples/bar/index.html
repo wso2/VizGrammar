@@ -58,7 +58,7 @@
                   <div class="panel panel-default">
                       <div class="panel-heading">
                           <h3 class="panel-title">
-                              Bar Chart Sample
+                             Real-time Bar Chart Sample
                           </h3>
                       </div>
                       <div class="panel-body">
@@ -214,9 +214,9 @@
 
 /******************************************************* Installation of the library ******************************************************/
 
-             &lt;link rel="stylesheet" href="bootstrap.min.css"&gt
              &lt;link rel="stylesheet" href="igviz.css"&gt
              &lt;script src="d3.min.js"&gt &lt;/script&gt
+             &lt;script src="vega.js"&gt &lt;/script&gt
              &lt;script src="igviz.js"&gt &lt;/script&gt
 
 
@@ -224,7 +224,7 @@
              &lt;script&gt
 
                     //dataset used to plot charts
-                        var dataTable = {
+                       var dataTable = {
                           "metadata":{
                             "names":["Country","Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
                             "types":['C', 'N', 'N', 'N', 'N', 'N', 'N','N']
@@ -256,44 +256,39 @@
                             "title": "Area By Country",
                             "yAxis": 1,
                             "xAxis": 0,
-                            "pointLabel": 0,
                             "width": width,
                             "height": height,
-                            "padding": 60,
-                            "chartType": "bar",
-                            "tickLabelConfig":{
-                                "textAngle":-60,
-                                "x":0,
-                                "y":9,
-                                "dy":".15em",
-                                "dx":"-.8em",
-                                "tickHeight":6,
-                                "tickWidth":0
-                            },
-                            "yAxisLabelConfig":{
-                                "fontSize":"20px",
-                                "rotate":-90,
-                                "x":-10 ,
-                                "y":6,
-                                "dy":".71em",
-                                "dx":0
-                            }
+                            "chartType": "bar"
 
                         }
 
-                        //draw a bar chart on div #bar
+                        /*
+                                 USAGE:
+                                 -----
+                                 ChartObJ= igviz.setup("#divID",CHARTCONFIGOBJ,DATATABLE);  //Initialize the parameters
+                                 ChartObj.plot(dataSet,callBackFunction)                    //render the chart
+                         */
 
-                       chart=igviz.setUp("#bar",config,dataTable);
-                       chart.plot(dataTable.data)
+                        staticChart=igviz.setUp("#bar",config,dataTable);
+                        staticChart.plot(dataTable.data,function(){
+
+                            //call back function to draw the second graph
+                            dynamicChart = igviz.setUp("#bar2", config, dataTable);
+                            dynamicChart.plot(dataTable.data,function(){
+
+                                    //call back handler to dynamically update the Chart
+                                    setInterval(function(){
+                                       console.log("Per Second Event");
+                                        newDataSet=[dataTable.data[0],dataTable.data[1]]
+                                        dynamicChart.updateList(newDataSet);
+                                     },2000)
+                             });
+
+                        })
 
 
-                        dynamicChart=igviz.plot("#bar2",config,dataTable);
-                        setInterval(function(){
 
-                            dynamicChart.update();
-
-                        },1000)
-            &lt;/script&gt
+                    &lt;/script&gt
                 </pre>
             </div>
 
@@ -338,30 +333,9 @@
         "title": "Area By Country",
         "yAxis": 1,
         "xAxis": 0,
-        "pointLabel": 0,
         "width": width,
         "height": height,
-        "padding": 60,
-        "chartType": "bar",
-
-        "tickLabelConfig":{
-            "textAngle":-60,
-            "x":0,
-            "y":9,
-            "dy":".15em",
-            "dx":"-.8em",
-            "tickHeight":6,
-            "tickWidth":0
-        },
-
-        "yAxisLabelConfig":{
-            "fontSize":"20px",
-            "rotate":-90,
-            "x":-10 ,
-            "y":6,
-            "dy":".71em",
-            "dx":0
-        }
+        "chartType": "bar"
 
     }
 
@@ -369,11 +343,11 @@
 
 staticChart=igviz.setUp("#bar",config,dataTable);
 dynamicChart={};
+
 staticChart.plot(dataTable.data,function(){
 
     //call back function to draw the second graph
-
-   dynamicChart = igviz.setUp("#bar2", config, dataTable);
+    dynamicChart = igviz.setUp("#bar2", config, dataTable);
     dynamicChart.plot(dataTable.data,customUpdateSync);
 
 })
