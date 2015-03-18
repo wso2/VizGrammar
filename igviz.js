@@ -18,7 +18,7 @@
         } else if (config.chartType == "scatter") {
             this.drawScatterPlot(canvas, config, dataTable);
         } else if (config.chartType == "singleNumber") {
-            this.drawSingleNumberDiagram(canvas, config, dataTable);
+            this.drawSingleNumberDiagram(chart);
         } else if (config.chartType == "map") {
             this.drawMap(canvas, config, dataTable);
         } else if (config.chartType == "line") {
@@ -120,8 +120,8 @@ var         chartObject = new Chart(canvas, config, dataTable);
         currentChartConfig.chartType = 'bar';
 
 
-        var x = this.plot(divId, currentChartConfig, currentData);
-        setTimeout(function () {
+        var x = this.setUp(divId, currentChartConfig, currentData);
+        x.plot(currentData.data,function () {
 
             var filters = d3.select('#links .root').on('click', function () {
                 d3.select("#links").html('');
@@ -174,7 +174,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
                 d3.select(x.chart._el).selectAll('g.type-rect rect').on('click', function (d, i) {
                     // console.log(d, i, this);
                     console.log(d, i);
-                    var selectedName = d.datum.data.x;
+                    var selectedName = d.datum.data[x.dataTable.metadata.names[x.config.xAxis]];
                     //  console.log(selectedName);
                     var selectedCurrentData = JSON.parse(JSON.stringify(dataTable));
                     var innerText;
@@ -210,7 +210,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
                 });
 
             }
-        }, 10);
+        });
 
 
     }
@@ -529,7 +529,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 //        console.log(table)
         var spec = {
-            "width": chartConfig.width -150,
+            "width": chartConfig.width-160,
             "padding":{'top':30,"left":80,"right":80,'bottom':60},
             "height": chartConfig.height,
             "data": [
@@ -1768,6 +1768,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
                 },
                 "title": {
                     "fontSize": {"value": 16},
+
                     "dx":{'value':axisConfig.titleDx},
                     "dy":{'value':axisConfig.titleDy}
                 },
@@ -2344,7 +2345,10 @@ var         chartObject = new Chart(canvas, config, dataTable);
      * @param chartConfig
      * @param dataTable
      */
-    igviz.drawSingleNumberDiagram = function (divId, chartConfig, dataTable) {
+    igviz.drawSingleNumberDiagram = function (chartObj) {
+        divId=chartObj.canvas;
+         chartConfig=chartObj.config;
+        dataTable=chartObj.dataTable;
 
         //Width and height
         var w = chartConfig.width;
@@ -3255,6 +3259,14 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
 
+    Chart.prototype.resize=function(){
+        ref=this;
+        newH= document.getElementById(ref.canvas.replace('#','')).offsetHeight
+        newW=document.getElementById(ref.canvas.replace('#','')).offsetWidth
+        console.log("Resized",newH,newW,ref)
+        ref.chart.width(newW-ref.spec.padding.left-ref.spec.padding.right).height(newH-ref.spec.padding.top - ref.spec.padding.bottom).renderer('svg').update({props:'enter'}).update();
+
+    }
 
 
 
@@ -3304,6 +3316,11 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
             }).update();
+
+
+            //viz_render = function() {
+            //    ref.chart.width(window.innerWidth-viz_vega_spec.padding.left-viz_vega_spec.padding.right).height(window.innerHeight-viz_vega_spec.padding.top - viz_vega_spec.padding.bottom).renderer('svg').update({props:'enter'}).update();
+            //}
 
 
             if(isTool){
