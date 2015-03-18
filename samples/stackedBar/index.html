@@ -411,6 +411,8 @@
 chart=igviz.setUp("#bar",config,dataTable);
 chart.plot(dataTable.data)
 
+window.onresize=function(){chart.resize()};
+
 //
 //
 //
