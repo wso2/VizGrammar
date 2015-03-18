@@ -41,8 +41,9 @@
                         </h3>
                       </div>
                       <div class="panel-body">
-                        <div id="bar"></div>
-                      </div>
+
+                        <div id="bar"></div></div>
+
                         
                   </div>
               </div>
@@ -394,6 +395,11 @@ function customUpdateAsync(){
         dynamicChart.update(newDataSet);
 }
 
+
+d3.select(window).on('resize',function(){
+
+staticChart.resize();
+})
 </script>
 
 </html>

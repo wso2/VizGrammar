@@ -283,6 +283,8 @@
 
                 chart.plot(dataTable.data);
 
+                window.onresize=function(){chart.resize()};
+
                 setTimeout(function(){chart.update()},2000);
 
 </script>

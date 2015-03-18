@@ -4,8 +4,10 @@
   <title>IGViz.js - Interactive Generic Visualization library for Javascript that is based on d3.js</title>
 
     <!--dependencies for igviz -->
-    <link rel="stylesheet" href="../../css/bootstrap.min.css">
-    <script src="../../lib/d3.min.js"></script>
+
+
+    <link rel="stylesheet" href="../bootstrap.min.css">
+    <script src="../d3.min.js"></script>
     <script src="../vega.js"></script>
 
     <!-- Intergration of igviz  -->
@@ -122,8 +124,7 @@
       
 
 </body>
-<script src="d3.min.js"></script>
-<script src="../igviz.js"></script>
+
 <script>
 
 
@@ -158,7 +159,6 @@ var dataTable = {
 
     var lineChartConfig = {
         "title": "Title",
-        "yAxis": [3,5,7],
         "lineColors":["yellow","red","blue"],
         "xAxis": 5,
         "interpolationMode":"basis",
@@ -166,7 +166,7 @@ var dataTable = {
         "width": width,
         "height": height,
         "padding": 60,
-        "chartType": "line"
+        "chartType": "singleNumber"
     }
 
 

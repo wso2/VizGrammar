@@ -333,6 +333,8 @@
     chart=igviz.setUp("#area",config,dataTable);
     chart.plot(dataTable.data);
 
+window.onresize=function(){chart.resize()};
+
 
 </script>
 

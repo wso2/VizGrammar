@@ -357,6 +357,8 @@
                     chart=igviz.setUp("#scatter",scatterChartConfig,dataTable);
 
                      chart.plot(dataTable.data)
+window.onresize=function(){chart.resize()};
+
 </script>
 
 </html>
