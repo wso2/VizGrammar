@@ -359,15 +359,15 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var xScale=setScale(xScaleConfig)
         var yScale=setScale(yScaleConfig);
 
-        var xAxisConfig= {"type": "x", "scale":"x","angle":10, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"right","titleDy":10,"titleDx":0}
         var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
 
         var spec=        {
-            "width": chartConfig.width-240,
+            "width": chartConfig.width-160,
             "height": chartConfig.height,
-            "padding":{"top":40,"bottom":60,'left':90,"right":150},
+          //  "padding":{"top":40,"bottom":60,'left':90,"right":150},
             "data": [
                 {
                     "name": "table"
@@ -527,10 +527,38 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
         var yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
 
+        xScaleConfig={
+            "index":chartConfig.xAxis,
+            "schema":dataTable.metadata,
+            "name": "x",
+            "range": "width",
+            "round": true,
+            "field": xString
+        }
+
+        yScaleConfig= {
+            "index":chartConfig.yAxis,
+            "schema":dataTable.metadata,
+            "name": "y",
+            "range": "height",
+            "nice": true,
+            "field": yString
+        }
+
+        var xScale=setScale(xScaleConfig)
+        var yScale=setScale(yScaleConfig);
+
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":false ,"dx":0,"dy":0,"align":"right","titleDy":30,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
+        var xAxis=setAxis(xAxisConfig);
+        var yAxis=setAxis(yAxisConfig);
+
+
 //        console.log(table)
         var spec = {
-            "width": chartConfig.width-160,
-            "padding":{'top':30,"left":80,"right":80,'bottom':60},
+
+            "width": chartConfig.width-150,
+            //"padding":{'top':30,"left":80,"right":80,'bottom':60},
             "height": chartConfig.height,
             "data": [
                 {
@@ -538,38 +566,12 @@ var         chartObject = new Chart(canvas, config, dataTable);
                 }
             ],
             "scales": [
-                {
-                    "name": "x",
-                    "type": "ordinal",
-                    "range": "width",
-                    "round": true,
-                    "domain": {"data": "table", "field": xString}
-                },
-                {
-                    "name": "y",
-                    "range": "height",
-                    "nice": true,
-                    "domain": {"data": "table", "field": yString}
-                }
+                xScale,
+                yScale
             ],
             "axes": [
-                {
-                    "type": "x",
-                    "scale": "x",
-                    'title': dataTable.metadata.names[chartConfig.xAxis],
-                    "properties": {
-
-                    }
-                },
-                {
-                    "type": "y",
-                    "scale": "y",
-                    'grid': true,
-                    'title': dataTable.metadata.names[chartConfig.yAxis],
-                    "properties": {
-
-                    }
-                }
+               xAxis,
+                yAxis
 
 
             ],
@@ -610,6 +612,9 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
 //        var data = {table: table}
+
+        mychart.originalWidth=chartConfig.width;
+        mychart.originalHeight=chartConfig.height;
 
         mychart.spec = spec;
         //mychart.data = data;
@@ -671,7 +676,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var cScale=setScale(cat)
         var vScale=setScale(val);
 
-        var xAxisConfig= {"type": "x", "scale":"cat","angle":0, "title": dataTable.metadata.names[chartConfig.groupedBy] ,"grid":false ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"cat","angle":0, "title": dataTable.metadata.names[chartConfig.groupedBy] ,"grid":false ,"dx":-10,"dy":10,"align":"right","titleDy":10,"titleDx":0}
         var yAxisConfig= {"type": "y", "scale":"val","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":false,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
@@ -814,7 +819,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var cScale=setScale(cat)
         var vScale=setScale(val);
 
-        var xAxisConfig= {"type": "x", "scale":"val","angle":10, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"val","angle":-35, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"right","titleDy":10,"titleDx":0}
         var yAxisConfig= {"type": "y", "scale":"cat","angle":0, "tickSize":0,"tickPadding":8,"title": dataTable.metadata.names[chartConfig.groupedBy] ,"grid":false,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
@@ -823,8 +828,9 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
         spec={
-            "width": chartConfig.width-150,
+            "width": chartConfig.width,
             "height": chartConfig.height,
+
             "data": [
             {
                 "name": "table"
@@ -975,7 +981,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var cScale=setScale(cat)
         var vScale=setScale(val);
 
-        var yAxisConfig= {"type": "y", "scale":"val","angle":10, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"val","angle":-35, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"right","titleDy":10,"titleDx":0}
         var xAxisConfig= {"type": "x", "scale":"cat","angle":0, "tickSize":0,"tickPadding":8,"title": dataTable.metadata.names[chartConfig.groupedBy] ,"grid":false,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
@@ -1143,7 +1149,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var xScale=setScale(xScaleConfig)
         var yScale=setScale(yScaleConfig);
 
-        var xAxisConfig= {"type": "x", "scale":"x","angle":10, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true,"dx":-10,"dy":10,"align":"right","titleDy":10,"titleDx":0}
         var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
@@ -1157,7 +1163,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var spec ={
             "width": chartConfig.width-100,
             "height": chartConfig.height,
-            "padding":{"top":40,"bottom":60,'left':60,"right":140},
+          //  "padding":{"top":40,"bottom":60,'left':60,"right":40},
             "data": [
                 {
                     "name": "table"
@@ -1322,7 +1328,7 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var xScale=setScale(xScaleConfig)
         var yScale=setScale(yScaleConfig);
 
-        var xAxisConfig= {"type": "x", "scale":"x","angle":10, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
         var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
@@ -1332,9 +1338,9 @@ var         chartObject = new Chart(canvas, config, dataTable);
 
 
         var spec ={
-            "width": chartConfig.width-200,
+            "width": chartConfig.width-160,
             "height": chartConfig.height,
-            "padding":{"top":40,"bottom":60,'left':60,"right":145},
+        //    "padding":{"top":40,"bottom":60,'left':60,"right":145},
             "data": [
                 {
                     "name": "table"
@@ -2146,15 +2152,15 @@ var         chartObject = new Chart(canvas, config, dataTable);
         var rScale=setScale(rScaleConfig);
         var cScale=setScale(cScaleConfig)
 
-        var xAxisConfig= {"type": "x", "scale":"x","angle":20, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":-10,"dy":10,"align":"left","titleDy":10,"titleDx":0}
-        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-10,"titleDx":0}
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":true ,"dx":0,"dy":0,"align":"right","titleDy":25,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-30,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
 
         var spec=        {
             "width": chartConfig.width-130,
             "height": chartConfig.height,
-            "padding":{"top":40,"bottom":60,'left':60,"right":60},
+            //"padding":{"top":40,"bottom":60,'left':60,"right":60},
             "data": [
                 {
                     "name": "table"
@@ -3206,6 +3212,199 @@ var         chartObject = new Chart(canvas, config, dataTable);
     //                ["Belgium",64589,16800,4.4,72.93,1.1,-0.6,12.8],
     //                ["Italy",601340,30500,2.9,81.86,1.8,0.38,8.4]
     //            ]);
+
+    function setGenericAxis(axisConfig,spec){
+        MappingObj={};
+        MappingObj["tickSize"]="tickSize";
+        MappingObj["tickPadding"]="tickPadding";
+        MappingObj["title"]="title";
+        MappingObj["grid"]="grid";
+        MappingObj["offset"]="offset";
+        MappingObj["ticks"]="ticks";
+
+        MappingObj["labelColor"]="fill";
+        MappingObj["labelAngle"]="angle";
+        MappingObj["labelAlign"]="align";
+        MappingObj["labelFontSize"]="fontSize";
+        MappingObj["labelDx"]="dx";
+        MappingObj["labelDy"]="dy";
+        MappingObj["labelBaseLine"]="baseline";
+
+        MappingObj["titleDx"]="dx";
+        MappingObj["titleDy"]="dy";
+        MappingObj["titleFontSize"]="fontSize";
+
+        MappingObj["axisColor"]="stroke";
+        MappingObj["axisWidth"]="strokeWidth";
+
+        MappingObj["tickColor"]="ticks.stroke";
+        MappingObj["tickWidth"]="ticks.strokeWidth";
+
+
+        console.log("previous Axis",spec)
+        for(var propt in axisConfig){
+
+            if(propt=="tickSize" || propt=="tickPadding")
+            continue;
+
+            if (axisConfig.hasOwnProperty(propt)) {
+
+                if(propt.indexOf("label")==0)
+                   spec.properties.labels[MappingObj[propt]].value=axisConfig[propt];
+                else if(propt.indexOf("ticks")==0)
+                  spec.properties.ticks[MappingObj[propt]].value=axisConfig[propt];
+                else if(propt.indexOf("title")==0)
+                    spec.properties.title[MappingObj[propt]].value=axisConfig[propt];
+                else if(propt.indexOf("axis")==0)
+                    spec.properties.axis[MappingObj[propt]].value=axisConfig[propt];
+                else
+                   spec[MappingObj[propt]]=axisConfig[propt];
+            }
+        }
+
+        console.log("NEW SPEC",spec);
+    }
+    Chart.prototype.setXAxis=function(xAxisConfig){
+
+        /*
+        *         axis=  {
+         "type": axisConfig.type,
+         "scale": axisConfig.scale,
+         'title': axisConfig.title,
+         "grid":axisConfig.grid,
+
+         "properties": {
+         "ticks": {
+         // "stroke": {"value": "steelblue"}
+         },
+         "majorTicks": {
+         "strokeWidth": {"value": 2}
+         },
+         "labels": {
+         // "fill": {"value": "steelblue"},
+         "angle": {"value": axisConfig.angle},
+         // "fontSize": {"value": 14},
+         "align": {"value": axisConfig.align},
+         "baseline": {"value": "middle"},
+         "dx": {"value": axisConfig.dx},
+         "dy": {"value": axisConfig.dy}
+         },
+         "title": {
+         "fontSize": {"value": 16},
+
+         "dx":{'value':axisConfig.titleDx},
+         "dy":{'value':axisConfig.titleDy}
+         },
+         "axis": {
+         "stroke": {"value": "#333"},
+         "strokeWidth": {"value": 1.5}
+         }
+
+         }
+
+         }
+
+         if (axisConfig.hasOwnProperty("tickSize")) {
+         axis["tickSize"] = axisConfig.tickSize;
+         }
+
+
+         if (axisConfig.hasOwnProperty("tickPadding")) {
+         axis["tickPadding"] = axisConfig.tickPadding;
+         }
+         */
+        var xAxisSpec=this.spec.axes[0];
+            setGenericAxis(xAxisConfig,xAxisSpec);
+        /*xAxisConfig.tickSize
+        xAxisConfig.tickPadding
+        xAxisConfig.title;
+        xAxisConfig.grid;
+        xAxisConfig.offset
+        xAxisConfig.ticks
+
+
+        xAxisConfig.labelFill
+        xAxisConfig.labelFontSize
+        xAxisConfig.labelAngle
+        xAxisConfig.labelAlign
+        xAxisConfig.labelDx
+        xAxisConfig.labelDy
+        xAxisConfig.labelBaseLine;
+
+        xAxisConfig.titleDx;
+        xAxisConfig.titleDy
+        xAxisConfig.titleFontSize;
+
+        xAxisConfig.axisColor;
+        xAxisConfig.axisWidth;
+
+        xAxisConfig.tickColor;
+        xAxisConfig.tickWidth;
+*/
+
+
+
+
+       return this;
+    }
+
+    Chart.prototype.setYAxis=function(yAxisConfig){
+
+        var yAxisSpec=this.spec.axes[1];
+        setGenericAxis(yAxisConfig,yAxisSpec);
+
+        return this;
+    }
+
+    Chart.prototype.setPadding=function(paddingConfig){
+
+        if(this.spec.padding==undefined) {
+            this.spec.padding = {}
+            this.spec.padding.top=0;
+            this.spec.padding.bottom=0;
+            this.spec.padding.left=0;
+            this.spec.padding.right=0;
+        }
+        for(var propt in paddingConfig){
+            if (paddingConfig.hasOwnProperty(propt)) {
+
+                this.spec.padding[propt]=paddingConfig[propt];
+            }
+        }
+
+        this.spec.width=this.originalWidth-this.spec.padding.left-this.spec.padding.right;
+        this.spec.height=this.originalHeight-this.spec.padding.top-this.spec.padding.bottom;
+
+        return this;
+    }
+
+    Chart.prototype.unsetPadding=function(){
+        delete this.spec.padding;
+        this.spec.width=this.originalWidth;
+        this.spec.height=this.originalHeight;
+        return this;
+    }
+
+    Chart.prototype.setDimension=function(dimensionConfig){
+
+        if(dimensionConfig.width!=undefined){
+
+            this.spec.width=dimensionConfig.width;
+            this.originalWidth=dimensionConfig.width;
+
+        }
+
+        if(dimensionConfig.height!=undefined){
+
+            this.spec.height=dimensionConfig.height;
+            this.originalHeight=dimensionConfig.height;
+
+        }
+
+    }
+
+
+
     Chart.prototype.load = function (data) {
         for (var i = 0; i < data.length; i++) {
             this.dataTable.addRow(data[i])
