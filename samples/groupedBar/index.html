@@ -149,14 +149,14 @@
                                   <tr class="danger">
                                       <td>xAxis</td>
                                       <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for X-axis</td>
+                                      <td>Variable which represent a single bar</td>
 
                                   </tr>
 
                                   <tr class="danger">
-                                      <td>pointLabel</td>
+                                      <td>groupedBy</td>
                                       <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for text labels</td>
+                                      <td>Variable which represents a list of xAxis Bars</td>
 
                                   </tr>
 
@@ -180,19 +180,14 @@
                                       <td>Type of the chart</td>
 
                                   </tr>
+
                                   <tr class="info">
-                                      <td>textAngle</td>
-                                      <td>(-360,+360)</td>
-                                      <td>Angle between lables and X-axis</td>
+                                      <td>orientation</td>
+                                      <td>'H' or 'V'</td>
+                                      <td>Orientation of the chart</td>
 
                                   </tr>
-                                  <tr class="info">
-                                      <td>barColor</td>
-                                      <td>color code</td>
-                                      <td>color of the bars</td>
-
-                                  </tr>
-                                 </tbody>
+                                  </tbody>
                               </table>
 
                           </div>
@@ -354,7 +349,7 @@
         "width": width,
         "height": height,
         "padding": 60,
-        "chartType": "bar"
+        "chartType": "bar",
 
 
     }

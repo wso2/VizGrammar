@@ -296,13 +296,13 @@
                         }
 
                         //draw a table which color its rows according to the numerical values of given column , on #rowBased div
-                        igviz.plot("#rowBased",tableConfigRowBased,dataTable);
+                        igviz.draw("#rowBased",tableConfigRowBased,dataTable);
 
                         //draw a table which color its columns according to the numerical values of given column on #rowBased div
-                        igviz.plot("#colorBased",tableConfigColorBased,dataTable);
+                        igviz.draw("#colorBased",tableConfigColorBased,dataTable);
 
                         //draw a table which resize its text according to the numerical values of given column on #fontBased div
-                        igviz.plot("#fontBased",tableConfigFontBased,dataTable);
+                        igviz.draw("#fontBased",tableConfigFontBased,dataTable);
 
             &lt;/script&gt
 
@@ -373,11 +373,11 @@ var tableConfigColorBased = {
 }
 
 //draw a bar chart on div #rowBased
-igviz.plot("#rowBased",tableConfigRowBased,dataTable);
+igviz.draw("#rowBased",tableConfigRowBased,dataTable);
 
-igviz.plot("#colorBased",tableConfigColorBased,dataTable);
+igviz.draw("#colorBased",tableConfigColorBased,dataTable);
 
-igviz.plot("#fontBased",tableConfigFontBased,dataTable);
+igviz.draw("#fontBased",tableConfigFontBased,dataTable);
 
     //draw a scatter chart on div #scatter
 

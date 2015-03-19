@@ -200,17 +200,11 @@
                                   </tr>
                                   <tr class="danger">
                                       <td>xAxis</td>
-                                      <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for X-axis</td>
+                                      <td>[{index:INT,child:INT}]</td>
+                                      <td>Hierarchical relationship between X axis columns</td>
 
                                   </tr>
 
-                                  <tr class="danger">
-                                      <td>pointLabel</td>
-                                      <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for text labels</td>
-
-                                  </tr>
 
                                   <tr class="danger">
                                       <td>width</td>
@@ -228,14 +222,8 @@
 
                                   <tr class="danger">
                                       <td>chartType</td>
-                                      <td>bar</td>
+                                      <td>drill</td>
                                       <td>Type of the chart</td>
-
-                                  </tr>
-                                  <tr class="info">
-                                      <td>textAngle</td>
-                                      <td>(-360,+360)</td>
-                                      <td>Angle between lables and X-axis</td>
 
                                   </tr>
                                   <tr class="info">
@@ -371,7 +359,7 @@
                         }
 
                           //draw a drill downing  chart on div
-                        igviz.plot("#drill",config,dataTable);
+                        igviz.draw("#drill",config,dataTable);
 
                     &lt;/script&gt
                 </pre>
@@ -474,15 +462,15 @@
     var config = {
         "title": "Sample Drill Downing",
         "yAxis": 3,
-        "xAxis": [{"index":0,"child":2,"div":"drill"},{"index":2,"child":1,"div":"drill"}],
-
+        "xAxis": [{"index":0,"child":2},{"index":2,"child":1}],
         "width": width,
         "height": height,
         "chartType": "drill"
     }
 
       //draw a drill downing  chart on div
-    igviz.plot("#drill",config,dataTable);
+    igviz.draw("#drill",config,dataTable);
+    //igviz.draw()
 
 </script>
 

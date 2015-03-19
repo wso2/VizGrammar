@@ -706,9 +706,8 @@ var stackedDataTable = {
 var stackedConfig = {
     "title": "Area By Country",
     "yAxis": 2,
-    "xAxis": 1,
-    "groupedBy":0,
-    "pointLabel": 0,
+    "xAxis": 0,
+    "areaVar":1,
     "width": width,
     "height": height,
     "padding": 60,
@@ -731,10 +730,10 @@ var stackedBarConfig = {
     "format":"stacked"
 }
 
-igviz.plot("#map",mapConfig,dataTable);
+igviz.draw("#map",mapConfig,dataTable);
 //draw a table on div #table
-igviz.plot("#table",tableConfig,dataTable2);
-igviz.plot("#arc",arcConfig,dataTable2);
+igviz.draw("#table",tableConfig,dataTable2);
+igviz.draw("#arc",arcConfig,dataTable2);
 
 
 barChart=igviz.setUp("#bar",barChartConfig,dataTable);
@@ -821,7 +820,7 @@ barChart.plot(dataTable.data,function(){
                                             stackedBarChart=igviz.setUp("#stackedBar",stackedBarConfig,groupData);
                                             stackedBarChart.plot(groupData.data,function(){
 
-                                                igviz.plot("#drill",drillconfig,drillDataTable);
+                                                igviz.draw("#drill",drillconfig,drillDataTable);
 
                                             });
 

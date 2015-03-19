@@ -138,13 +138,6 @@
                                   </tr>
 
                                   <tr class="danger">
-                                      <td>pointLabel</td>
-                                      <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for text labels</td>
-
-                                  </tr>
-
-                                  <tr class="danger">
                                       <td>width</td>
                                       <td>px</td>
                                       <td>width of the chart</td>
@@ -160,23 +153,17 @@
 
                                   <tr class="danger">
                                       <td>chartType</td>
-                                      <td>bar</td>
+                                      <td>area</td>
                                       <td>Type of the chart</td>
 
                                   </tr>
                                   <tr class="info">
-                                      <td>textAngle</td>
-                                      <td>(-360,+360)</td>
-                                      <td>Angle between lables and X-axis</td>
-
+                                      <td>interpolationMode</td>
+                                      <td>basis,step-after,step-before,linear,cardinal,monotone</td>
+                                      <td>method of interpolation </td>
                                   </tr>
-                                  <tr class="info">
-                                      <td>barColor</td>
-                                      <td>color code</td>
-                                      <td>color of the bars</td>
 
-                                  </tr>
-                                 </tbody>
+                                  </tbody>
                               </table>
 
                           </div>
@@ -311,12 +298,9 @@
         "title": "Area By Country",
         "yAxis": 1,
         "xAxis":0,
-        "pointLabel": 0,
         "width": width,
         "height": height,
-        "padding": 60,
         "chartType": "area"
-
     }
 
 

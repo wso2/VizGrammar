@@ -153,12 +153,6 @@
 
                                   </tr>
 
-                                  <tr class="danger">
-                                      <td>pointLabel</td>
-                                      <td>0 to (dataset.length-1)</td>
-                                      <td>column index of the dataset for text labels</td>
-
-                                  </tr>
 
                                   <tr class="danger">
                                       <td>width</td>
@@ -175,21 +169,15 @@
                                   </tr>
 
                                   <tr class="danger">
+                                      <td>areaVar</td>
+                                      <td>0 to (dataset.length-1)</td>
+                                      <td>column index to represetn area</td>
+
+                                  </tr>
+                                  <tr class="danger">
                                       <td>chartType</td>
-                                      <td>bar</td>
+                                      <td>area</td>
                                       <td>Type of the chart</td>
-
-                                  </tr>
-                                  <tr class="info">
-                                      <td>textAngle</td>
-                                      <td>(-360,+360)</td>
-                                      <td>Angle between lables and X-axis</td>
-
-                                  </tr>
-                                  <tr class="info">
-                                      <td>barColor</td>
-                                      <td>color code</td>
-                                      <td>color of the bars</td>
 
                                   </tr>
                                  </tbody>
@@ -274,8 +262,8 @@
                         var config = {
                             "title": "Stacked Area Sample",
                             "yAxis": 2,
-                            "xAxis": 1,
-                            "groupedBy":0,
+                            "xAxis": 0,
+                            "areaVar":0,
                             "width": width,
                             "height": height,
                             "chartType": "area"
@@ -351,8 +339,8 @@
     var config = {
         "title": "Stacked Area Sample",
         "yAxis": 2,
-        "xAxis": 1,
-        "groupedBy":0,
+        "areaVar": 1,
+        "xAxis":0,
         "width": width,
         "height": height,
         "chartType": "area"
