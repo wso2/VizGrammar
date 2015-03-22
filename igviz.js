@@ -3168,7 +3168,7 @@
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
         var data={table:table}
 
-        divId=this.canvas;
+        var divId=this.canvas;
         this.data=data;
         this.table=table;
 
@@ -3195,9 +3195,9 @@
 
         specification=this.spec;
         var isTool=this.toolTip;
-        toolTipFunction=this.toolTipFunction
+        toolTipFunction=this.toolTipFunction;
 
-        ref=this
+        ref=this;
 
         vg.parse.spec(specification, function (chart) {
            ref.chart = chart({
