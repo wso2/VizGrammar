@@ -1823,11 +1823,11 @@
                     "enter": {
                         "x": {"scale": "x", "field": xString},
                         "y": {"scale": "y", "field": yString},
-                        "fill": {"scale": "c", "field": cString},
+                        "fill": {"scale": "c", "field": cString}
                         //"fillOpacity": {"value": 0.5}
                     },
                     "update": {
-                        "size": {"scale":"r","field":rString},
+                        "size": {"scale":"r","field":rString}
                        // "stroke": {"value": "transparent"}
                     },
                     "hover": {
