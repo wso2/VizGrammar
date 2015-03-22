@@ -3087,9 +3087,9 @@
     Chart.prototype.update = function (pointObj) {
 
 
-      newTable =setData([pointObj],this.config,this.dataTable.metadata);
+      var newTable =setData([pointObj],this.config,this.dataTable.metadata);
 
-       point= this.table.shift();
+       var point= this.table.shift();
         this.dataTable.data.shift();
         this.dataTable.data.push(pointObj);
 
@@ -3110,7 +3110,7 @@
         var newTable = setData(dataList, this.config,this.dataTable.metadata);
 
         for (i = 0; i < dataList.length; i++) {
-           point = this.table.shift();
+         var  point = this.table.shift();
           this.table.push(newTable[i]);
         }
 
@@ -3120,15 +3120,15 @@
     }
 
     Chart.prototype.resize=function(){
-        ref=this;
-        newH= document.getElementById(ref.canvas.replace('#','')).offsetHeight
-        newW=document.getElementById(ref.canvas.replace('#','')).offsetWidth
+       var ref=this;
+       var newH= document.getElementById(ref.canvas.replace('#','')).offsetHeight
+       var newW=document.getElementById(ref.canvas.replace('#','')).offsetWidth
         console.log("Resized",newH,newW,ref)
 
-        left=0;top=0;right=0;bottom=0;
+       var left= 0,top= 0,right= 0,bottom=0;
 
-        w=ref.spec.width;
-        h=ref.spec.height;
+        var w=ref.spec.width;
+       var h=ref.spec.height;
         //if(ref.spec.padding==undefined)
         //{
         //    w=newW;
@@ -3168,7 +3168,7 @@
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
         var data={table:table}
 
-        divId=this.canvas;
+        var divId=this.canvas;
         this.data=data;
         this.table=table;
 
@@ -3193,11 +3193,11 @@
             this.spec.legends[0].values= legendsList;
         }
 
-        specification=this.spec;
+        var specification=this.spec;
         var isTool=this.toolTip;
-        toolTipFunction=this.toolTipFunction
+        var toolTipFunction=this.toolTipFunction
 
-        ref=this
+        var ref=this
 
         vg.parse.spec(specification, function (chart) {
            ref.chart = chart({
