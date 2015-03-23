@@ -33,24 +33,43 @@
         </div>
           </a>
 
-        <div class="row" >
+          <div class="row">
 
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                        <h3 class="panel-title">
-                          Area Chart Sample
-                        </h3>
-                      </div>
-                      <div class="panel-body">
-                        <div id="area"></div>
-                      </div>
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Area Chart Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="staticArea"></div>
+                          </div>
 
+                      </div>
                   </div>
-              </div>
+
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Dynamic Area Chart Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="dynamicArea"></div>
+                          </div>
+                      </div>
+                  </div>
 
 
-            </div>
+
+
+
+
+          </div>
+
+
 
 
           <div class="row">
@@ -294,7 +313,7 @@
       ]
     }
 
-    var width = document.getElementById("area").offsetWidth; //canvas width
+    var width = document.getElementById("staticArea").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
 
@@ -310,7 +329,12 @@
 
 
     //draw a bar chart on div #bar
-    chart=igviz.setUp("#area",config,dataTable);
+
+staticChart=igviz.setUp("#staticArea",config,dataTable);
+staticChart.plot(dataTable.data);
+
+
+    chart=igviz.setUp("#dynamicArea",config,dataTable);
     chart.setXAxis({'zero':false})
     chart.plot(dataTable.data);
 

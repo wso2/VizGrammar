@@ -31,24 +31,33 @@
         </div>
           </a>
 
-        <div class="row" >
-              
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                        <h3 class="panel-title">
-                          Multi Area Chart Sample
-                        </h3>
-                      </div>
-                      <div class="panel-body">
-                        <div id="area"></div>
-                      </div>
-                        
+          <div class="col-md-6" class="tile">
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <h3 class="panel-title">
+                          Area Chart Sample
+                      </h3>
+                  </div>
+                  <div class="panel-body">
+                      <div id="staticArea"></div>
+                  </div>
+
+              </div>
+          </div>
+
+          <div class="col-md-6" class="tile">
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <h3 class="panel-title">
+                          Dynamic Area Chart Sample
+                      </h3>
+                  </div>
+                  <div class="panel-body">
+                      <div id="dynamicArea"></div>
                   </div>
               </div>
+          </div>
 
-
-            </div>
 
 
           <div class="row">
@@ -182,36 +191,57 @@
                     var dataTable = {
                         "metadata" : {
                             "names" : ["Year","Sales","Expenses"],
-                            "types" : ["T","N","N"]
+                            "types" : ["N","N","N"]
                         },
                         "data" : [
-                            ["2004",1000,400],
-                            ["2005",1170, 460],
-                            ["2006",660, 1120],
-                            ["2007",1030,540]
+                            [1990,1000,400],
+                            [1991,1170, 460],
+                            [1992,660, 1120],
+                            [1993,1030,540],
+                            [1994,1000,400],
+                            [1995,1170, 460],
+                            [1996,660, 1120],
+                            [1997,1030,540],
                         ]
                     };
 
-                    var width = document.getElementById("area").offsetWidth; //canvas width
+                    var width = document.getElementById("staticArea").offsetWidth; //canvas width
                         var height = 300;   //canvas height
 
                         var config = {
-                            "title": "Sample Multi Area Chart",
+                            "title": "Area By Country",
                             "yAxis": [1,2],
                             "xAxis": 0,
+                            "pointLabel": 0,
                             "width": width,
                             "height": height,
+                            "padding": 60,
                             "chartType": "area"
                        }
 
 
+                    staticChart=igviz.setUp("#staticArea",config,dataTable);
+                    staticChart.setXAxis({"zero":false})
+                    staticChart.plot(dataTable.data);
+
 
 
                         //draw a bar chart on div #bar
-                    chart=igviz.setUp("#bar",config,dataTable);
+                    chart=igviz.setUp("#dynamicArea",config,dataTable);
+                    chart.setXAxis({"zero":false})
                     chart.plot(dataTable.data)
 
-                    //responsive handler for window resize event
+
+                    var indexX=1998
+                    setInterval(function(){
+
+                        number=Math.floor(Math.random()*1000)
+                        number2=Math.floor(Math.random()*1000)
+                    //    console.log(number2,number*number2)
+                        chart.update([indexX,number,number2]);
+                        indexX++;
+                    },2000)
+
                     window.onresize=function(){chart.resize()};
             &lt;/script&gt
                 </pre>
@@ -243,7 +273,7 @@ var dataTable = {
     ]
 };
 
-var width = document.getElementById("area").offsetWidth; //canvas width
+var width = document.getElementById("staticArea").offsetWidth; //canvas width
     var height = 300;   //canvas height
 
     var config = {
@@ -258,10 +288,14 @@ var width = document.getElementById("area").offsetWidth; //canvas width
    }
 
 
+staticChart=igviz.setUp("#staticArea",config,dataTable);
+staticChart.setXAxis({"zero":false})
+staticChart.plot(dataTable.data);
+
 
 
     //draw a bar chart on div #bar
-chart=igviz.setUp("#area",config,dataTable);
+chart=igviz.setUp("#dynamicArea",config,dataTable);
 chart.setXAxis({"zero":false})
 chart.plot(dataTable.data)
 

@@ -38,7 +38,7 @@
 
     <div class="row">
 
-        <div class="col-md-12">
+        <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -46,14 +46,32 @@
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="line"></div>
+                    <div id="staticLine"></div>
                 </div>
 
             </div>
         </div>
 
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Real-time Line Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dynamicLine"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
 
     </div>
+
 
     <div class="row">
         <div class="col-md-6">
@@ -213,13 +231,28 @@
 
 
                 //draw a line chart on div #line
-                chart=igviz.setUp("#line", lineChartConfig, dataTable);
+                staticChart=igviz.setUp("#staticLine", lineChartConfig, dataTable);
+                staticChart.setXAxis({zero:false});
+                staticChart.plot(dataTable.data);
 
+
+                //draw a dynamic line chart on div #bar
+                chart=igviz.setUp("#dynamicLine", lineChartConfig, dataTable);
+                chart.setXAxis({zero:false});
                 chart.plot(dataTable.data);
+                var indexX=6
+                setInterval(function(){
 
-                //applying responsive behavior for window resize event
+                    number=Math.floor(Math.random()*1000)
+                    number2=Math.floor(Math.random()*100)
+                    console.log(number2,number*number2)
+                    chart.update([indexX,number,number2]);
+                    indexX++;
+                },2000)
+
+
+                //resizeHandler
                 window.onresize=function(){chart.resize()};
-
 
             &lt;/script&gt
                 </pre>
@@ -248,12 +281,7 @@
                         [4,660, 1120],
                         [5,1030,540],
 
-                        [6,1000,400],
-                        [7,1170, 460],
-                        [8,660, 1120],
-                        [9,1030,540],
-                        [10,660, 1120],
-                        [11,1030,540],
+                        [6,1000,400]
 
 
                     ]
@@ -261,7 +289,7 @@
 
 
 
-                var width = document.getElementById("line").offsetWidth ; //canvas width
+                var width = document.getElementById("staticLine").offsetWidth ; //canvas width
                 var height = 270;   //canvas height
 
                 var lineChartConfig = {
@@ -274,21 +302,27 @@
                    }
 
 
+    staticChart=igviz.setUp("#staticLine", lineChartConfig, dataTable);
 
-                //draw a bar chart on div #bar
-                chart=igviz.setUp("#line", lineChartConfig, dataTable);
+
+    staticChart.setXAxis({zero:false});
+    staticChart.plot(dataTable.data);
+
+
+    //draw a bar chart on div #bar
+                chart=igviz.setUp("#dynamicLine", lineChartConfig, dataTable);
 
 
                 chart.setXAxis({zero:false});
                 chart.plot(dataTable.data);
 
-                var indexX=12
+                var indexX=6
                 setInterval(function(){
 
-                    number=Math.floor(Math.random()*100)
-                    number2=Math.floor(Math.random()*10)
+                    number=Math.floor(Math.random()*1000)
+                    number2=Math.floor(Math.random()*500)
                     console.log(number2,number*number2)
-                    chart.update([indexX,number*number2,number2]);
+                    chart.update([indexX,number,number2]);
                     indexX++;
                 },2000)
                 window.onresize=function(){chart.resize()};

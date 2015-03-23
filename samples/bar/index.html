@@ -31,42 +31,38 @@
         </div>
           </a>
 
-        <div class="row" >
-              
-              <div class="col-md-12"  >
-                  <div class="panel panel-default">
-                      <div class="panel-heading">
-                        <h3 class="panel-title">
-                          Bar Chart Sample
-                        </h3>
-                      </div>
-                      <div class="panel-body">
+          <div class="row">
 
-                        <div id="bar"></div></div>
-
-                        
-                  </div>
-              </div>
-
-
-            </div>
-
-
-          <div class="row" >
-
-              <div class="col-md-12"  >
+              <div class="col-md-6" class="tile">
                   <div class="panel panel-default">
                       <div class="panel-heading">
                           <h3 class="panel-title">
-                             Real-time Bar Chart Sample
+                              Bar Chart Sample
                           </h3>
                       </div>
                       <div class="panel-body">
-                          <div id="bar2"></div>
+                          <div id="staticBar"></div>
                       </div>
 
                   </div>
               </div>
+
+              <div class="col-md-6" class="tile">
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <h3 class="panel-title">
+                              Real-time bar Chart Sample
+                          </h3>
+                      </div>
+                      <div class="panel-body">
+                          <div id="dynamicBar"></div>
+                      </div>
+                  </div>
+              </div>
+
+
+
+
 
 
           </div>
@@ -314,7 +310,7 @@
       ]
     }
 
-    var width = document.getElementById("bar").offsetWidth; //canvas width
+    var width = document.getElementById("staticBar").offsetWidth; //canvas width
     var height = 270;   //canvas height
 
     var config = {
@@ -329,7 +325,7 @@
 
   
 
-staticChart=igviz.setUp("#bar",config,dataTable);
+staticChart=igviz.setUp("#staticBar",config,dataTable);
 staticChart
         .setXAxis(
             {
@@ -348,38 +344,18 @@ staticChart
                 height:270
             })
 
-dynamicChart={}
 
-staticChart.plot(dataTable.data,function(){
+staticChart.plot(dataTable.data)
 
-    //call back function to draw the second graph
-    dynamicChart = igviz.setUp("#bar2", config, dataTable);
-    dynamicChart.plot(dataTable.data,customUpdateSync);
-
-})
+dynamicChart = igviz.setUp("#dynamicBar", config, dataTable);
+dynamicChart.plot(dataTable.data);
 
 
-d3.select('div').on('click',customUpdateAsync)
-
-function customUpdateSync(){
            setInterval(function(){
-               console.log("Per Second Event");
                 newDataSet=[dataTable.data[0],dataTable.data[1]]
                 dynamicChart.updateList(newDataSet);
-             },2000)
-}
-function customUpdateAsync(){
-    console.log("Asynchronous Event");
+             },1000)
 
-        newDataSet=dataTable.data[0]
-        dynamicChart.update(newDataSet);
-}
-
-
-d3.select(window).on('resize',function(){
-
-staticChart.resize();
-})
 </script>
 
 </html>
