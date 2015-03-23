@@ -89,8 +89,9 @@
         if(chartConfig.interpolationMode==undefined){
             chartConfig.interpolationMode="monotone";
         }
+        var tempMargin=160;
         var spec=        {
-            "width": chartConfig.width-160,
+            "width": chartConfig.width-tempMargin,
             "height": chartConfig.height,
           //  "padding":{"top":40,"bottom":60,'left':90,"right":150},
             "data": [
@@ -145,7 +146,7 @@
                 "from": {"data": "table"},
                 "properties": {
                     "enter": {
-                        "x": {"value": 400},
+                        "x": {"value": chartConfig.width-tempMargin},
                         "interpolate": {"value": chartConfig.interpolationMode},
                         "y": {"scale": "y:prev", "field": yStrings[i]},
                         "stroke": {"scale":"color","value" :dataTable.metadata.names[chartConfig.yAxis[i]]},
@@ -156,31 +157,39 @@
                         "y": {"scale": "y", "field": yStrings[i]}
                     },
                     "exit": {
-                        "x": {"value": -20},
+                        "x": {"value": 0},
                         "y": {"scale": "y", "field": yStrings[i]} }
                 }
             };
             pointObj={
                 "type": "symbol",
+
+                "key": xString,
                 "from": {"data": "table"},
                 "properties": {
                     "enter": {
-                        "x": {"scale": "x", "field": xString},
-                        "y": {"scale": "y", "field": yStrings[i]},
-                        "fill": {"scale":"color","value" :dataTable.metadata.names[chartConfig.yAxis[i]]
-                        //"fillOpacity": {"value": 0.5}
-                    },
-                    "update": {
-                        //"size": {"scale":"r","field":rString},
-                        // "stroke": {"value": "transparent"}
-                    },
-                    "hover": {
-                        "size": {"value": 300},
-                        "stroke": {"value": "white"}
+                        //"x":{"value":400},
+                        " x": {"value":chartConfig.width-tempMargin},
+                        "y": {"scale": "y:prev", "field": yStrings[i]},
+                        "fill": {
+                            "scale": "color", "value": dataTable.metadata.names[chartConfig.yAxis[i]]
+                            //"fillOpacity": {"value": 0.5}
+                        }
+                        },
+                        "update": {
+                            "x": {"scale": "x", "field": xString},
+                            "y": {"scale": "y", "field": yStrings[i]}
+
+                        }
+                            ,
+                        "exit": {
+                                "x": {"value": 0},
+                                "y": {"scale": "y", "field": yStrings[i]},
+                                "fillOpacity":{"value":0}
+                        }
+                        }
                     }
-                  }
-                }
-            }
+
 
 
             spec.marks.push(markObj);
@@ -314,8 +323,9 @@
                         "enter": {
                             "x": {"scale": "x", "field": xString},
                             "width": {"scale": "x", "band": true, "offset":-10},
-                            "y": {"scale": "y:prev", "field": yString, "duration": 2000},
+                            "y": {"scale": "y:prev", "field": yString},
                             "y2": {"scale": "y", "value": 0}
+
 
                         },
                         "update": {
@@ -896,6 +906,7 @@
 
 
 
+        var tempMargin=100;
         var spec ={
             "width": chartConfig.width-100,
             "height": chartConfig.height,
@@ -923,17 +934,24 @@
                     "from": {"data": "table"},
                     "properties": {
                         "enter": {
-                            "x": {"scale": "x", "field": xString},
+                            "x": {"value":chartConfig.width-tempMargin},
                             "interpolate": {"value": chartConfig.interpolationMode},
 
-                            "y": {"scale": "y", "field": yStrings},
-                            "y2": {"scale": "y", "value": 0},
+                             "y": {"scale": "y:prev", "field": yStrings},
+                            "y2": {"scale": "y:prev", "value": 0},
                             "fill": {"scale":"color","value": 2},
                             "fillOpacity": {"value": 0.5}
                         },
                         "update":{
-                            "fillOpacity": {"value": 0.5}
+                            "x": {"scale": "x", "field": xString},
+                            "y": {"scale": "y", "field": yStrings},
+                            "y2": {"scale": "y", "value": 0}
 
+                        },
+                        "exit":{
+                            "x": {"value": 0},
+                            "y": {"scale": "y", "field": yStrings},
+                            "y2":{"scale": "y","value":0}
                         },
                         "hover":{
                             "fillOpacity": {"value": 0.2}
@@ -949,7 +967,7 @@
                     "from": {"data": "table"},
                     "properties": {
                         "enter": {
-                            "x": {"value": 400},
+                            "x": {"value":chartConfig.width-tempMargin},
                             "interpolate": {"value": chartConfig.interpolationMode},
                             "y": {"scale": "y:prev", "field": yStrings},
                             "stroke": {"scale":"color","value" :2 },
@@ -960,7 +978,7 @@
                             "y": {"scale": "y", "field": yStrings}
                         },
                         "exit": {
-                            "x": {"value": -20},
+                            "x": {"value": 0},
                             "y": {"scale": "y", "field": yStrings}
                         }
                     }
@@ -970,18 +988,24 @@
                     "from": {"data": "table"},
                     "properties": {
                         "enter": {
-                            "x": {"scale": "x", "field": xString},
-                            "y": {"scale": "y", "field": yStrings},
+                            "x": {"value":chartConfig.width-tempMargin},
+                            "y": {"scale": "y:prev", "field": yStrings},
                             "fill": {"scale":"color","value" :2},
                             "size":{"value":50}
                                 //"fillOpacity": {"value": 0.5}
                             },
                             "update": {
-                                "size":{"value":50}
+                                "size":{"value":50},
 
+                                "x": {"scale": "x", "field": xString},
+                                "y": {"scale": "y", "field": yStrings}
                                 //"size": {"scale":"r","field":rString},
                                 // "stroke": {"value": "transparent"}
                             },
+                        "exit":{
+                            "x": {"value":0},
+                            "y": {"scale": "y", "field": yStrings}
+                        },
                             "hover": {
                                 "size": {"value": 100},
                                 "stroke": {"value": "white"}
@@ -1075,8 +1099,9 @@
         }
 
 
+        var tempMargin=160
         var spec ={
-            "width": chartConfig.width-160,
+            "width": chartConfig.width-tempMargin,
             "height": chartConfig.height,
         //    "padding":{"top":40,"bottom":60,'left':60,"right":145},
             "data": [
@@ -1133,17 +1158,27 @@
                     "enter": {
                         "x": {"scale": "x", "field": xString},
                         "interpolate": {"value": chartConfig.interpolationMode},
-                        "y": {"scale": "y", "field": yStrings[i]},
-                        "y2": {"scale": "y", "value": 0},
+                        "y": {"scale": "y:prev", "field": yStrings[i]},
+                        "y2": {"scale": "y:prev", "value": 0},
                         "fill": {"scale":"color","value": dataTable.metadata.names[chartConfig.yAxis[i]]},
                         "fillOpacity": {"value": 0.5}
                     },
                     "update":{
-                        "fillOpacity": {"value": 0.5}
+
+                        "x": {"scale": "x", "field": xString},
+                        "y": {"scale": "y", "field": yStrings[i]},
+                        "y2": {"scale": "y", "value": 0}
 
                     },
                     "hover":{
-                        "fillOpacity": {"value": 0.2} }
+                        "fillOpacity": {"value": 0.2}
+
+                    },
+                    "exit":{
+                        "x": {"value":0},
+                        "y": {"scale": "y", "field": yStrings[i]},
+                        "y2": {"scale": "y", "value": 0}
+                    }
 
                 }
             }
@@ -1154,7 +1189,7 @@
                 "from": {"data": "table"},
                 "properties": {
                     "enter": {
-                        "x": {"value": 400},
+                        "x": {"scale": "x", "field": xString},
                         "interpolate": {"value": chartConfig.interpolationMode},
                         "y": {"scale": "y:prev", "field": yStrings[i]},
                         "stroke": {"scale":"color","value" :dataTable.metadata.names[chartConfig.yAxis[i]]},
@@ -1165,7 +1200,7 @@
                         "y": {"scale": "y", "field": yStrings[i]}
                     },
                     "exit": {
-                        "x": {"value": -20},
+                        "x": {"value": 0},
                         "y": {"scale": "y", "field": yStrings[i]} }
                 }
             }
@@ -1177,16 +1212,19 @@
                 "properties": {
                     "enter": {
                         "x": {"scale": "x", "field": xString},
-                        "y": {"scale": "y", "field": yStrings[i]},
+                        "y": {"scale": "y:prev", "field": yStrings[i]},
                         "fill": {"scale":"color","value" :dataTable.metadata.names[chartConfig.yAxis[i]]},
                             "size":{"value":50}
                             //"fillOpacity": {"value": 0.5}
                         },
-                        "update": {
-                            "size":{"value":50}
-                            //"size": {"scale":"r","field":rString},
-                            // "stroke": {"value": "transparent"}
-                        },
+                                       "update": {
+                        "x": {"scale": "x", "field": xString},
+                        "y": {"scale": "y", "field": yStrings[i]}
+                    },
+                    "exit": {
+                        "x": {"value": 0},
+                        "y": {"scale": "y", "field": yStrings[i]}
+                    },
                         "hover": {
                             "size": {"value": 100},
                             "stroke": {"value": "white"}
@@ -2995,6 +3033,10 @@
          }
          */
         var xAxisSpec=this.spec.axes[0];
+        if(xAxisConfig.zero!=undefined)
+        {
+            this.spec.scales[0].zero=xAxisConfig.zero;
+        }
             setGenericAxis(xAxisConfig,xAxisSpec);
         /*xAxisConfig.tickSize
         xAxisConfig.tickPadding
@@ -3094,18 +3136,16 @@
         this.dataTable.data.push(pointObj);
 
        this.table.push(newTable[0]);
-       this.chart.data(this.data).update();
+       this.chart.data(this.data).update({"duration":500});
 
     }
 
     Chart.prototype.updateList = function (dataList,callback) {
 
-
         for(i=0;i<dataList.length;i++){
             this.dataTable.data.shift();
             this.dataTable.data.push(dataList[i]);
         }
-
 
         var newTable = setData(dataList, this.config,this.dataTable.metadata);
 
@@ -3115,7 +3155,7 @@
         }
 
        //     console.log(point,this.chart,this.data);
-        this.chart.data(this.data).update();
+        this.chart.data(this.data).update({"duration":500});
 
     }
 
@@ -3125,10 +3165,11 @@
        var newW=document.getElementById(ref.canvas.replace('#','')).offsetWidth
         console.log("Resized",newH,newW,ref)
 
-       var left= 0,top= 0,right= 0,bottom=0;
+        var left= 0,top= 0,right= 0,bottom=0;
 
         var w=ref.spec.width;
-       var h=ref.spec.height;
+        var h=ref.spec.height;
+
         //if(ref.spec.padding==undefined)
         //{
         //    w=newW;
@@ -3158,6 +3199,7 @@
         //    h=newH-top-bottom;
         //
         //}
+
         console.log(w,h);
         ref.chart.width(w).height(h).renderer('svg').update({props:'enter'}).update();
 
@@ -3172,6 +3214,7 @@
         this.data=data;
         this.table=table;
 
+        var delay={};
 
         if(this.legend){
             legendsList=[];
@@ -3190,6 +3233,7 @@
                 }
             }
 
+            delay={"duration":600}
             this.spec.legends[0].values= legendsList;
         }
 

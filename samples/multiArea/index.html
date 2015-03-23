@@ -229,13 +229,17 @@
 var dataTable = {
     "metadata" : {
         "names" : ["Year","Sales","Expenses"],
-        "types" : ["T","N","N"]
+        "types" : ["N","N","N"]
     },
     "data" : [
-        ["2004",1000,400],
-        ["2005",1170, 460],
-        ["2006",660, 1120],
-        ["2007",1030,540]
+        [1990,1000,400],
+        [1991,1170, 460],
+        [1992,660, 1120],
+        [1993,1030,540],
+        [1994,1000,400],
+        [1995,1170, 460],
+        [1996,660, 1120],
+        [1997,1030,540],
     ]
 };
 
@@ -258,7 +262,19 @@ var width = document.getElementById("area").offsetWidth; //canvas width
 
     //draw a bar chart on div #bar
 chart=igviz.setUp("#area",config,dataTable);
+chart.setXAxis({"zero":false})
 chart.plot(dataTable.data)
+
+
+var indexX=1998
+setInterval(function(){
+
+    number=Math.floor(Math.random()*1000)
+    number2=Math.floor(Math.random()*1000)
+//    console.log(number2,number*number2)
+    chart.update([indexX,number,number2]);
+    indexX++;
+},2000)
 
 window.onresize=function(){chart.resize()};
 

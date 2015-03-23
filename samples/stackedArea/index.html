@@ -354,6 +354,18 @@ chart.plot(dataTable.data)
 window.onresize=function(){chart.resize()};
 
 
+var indexX=13
+setInterval(function(){
+
+    number=Math.floor(Math.random()*10)
+    number2=Math.floor(Math.random*10);
+    number3=Math.floor(Math.random*10);
+
+    chart.updateList([indexX,number]);
+    indexX++;
+},2000)
+
+
 //
 //
 //
