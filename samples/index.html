@@ -217,16 +217,20 @@
           <!-- /.row -->
 
           <div class="row">
-              <a href="table/" class="tile">
+
+
+              <a href="discreteTime/index.html">
                   <div class="col-md-6" class="tile">
                       <div class="panel panel-default">
                           <div class="panel-heading">
                               <h3 class="panel-title">
-                                  Table Sample
+                                  Discrete Time Signal Sample
                               </h3>
                           </div>
                           <div class="panel-body">
-                              <div id="table"></div>
+                              <div id="discrete">
+
+                              </div>
                           </div>
 
                       </div>
@@ -291,6 +295,27 @@
               
           </div>
 
+          <div class="row">
+
+
+              <a href="table/" class="tile">
+                  <div class="col-md-6" class="tile">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                  Table Sample
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div id="table"></div>
+                          </div>
+
+                      </div>
+                  </div>
+              </a>
+
+
+          </div>
 
 
 
@@ -730,6 +755,26 @@ var stackedBarConfig = {
     "format":"stacked"
 }
 
+var sampleData={
+    "metadata":{
+        "names":["Time","Temperature","humidity"],
+        "types":['T', 'N' ,'N']
+    }    ,
+    "data": [
+        ["October 13, 2014 11:13:00",0,2],
+
+        ["October 13, 2014 12:14:00",4,0],
+        ["October 14, 2014 1:23:00",2,4],
+        ["October 13, 2014 13:16:00",0,2],
+        ["October 13, 2014 14:15:00",1,3],
+        ["October 14, 2014 5:23:00",3,4],
+        ["October 13, 2014 16:16:00",4,2]
+
+
+    ]
+}
+
+
 igviz.draw("#map",mapConfig,dataTable);
 //draw a table on div #table
 igviz.draw("#table",tableConfig,dataTable2);
@@ -824,6 +869,33 @@ multiAreaChart.plot(lineData.data);
 
 stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable);
 stackedChart.plot(stackedDataTable.data);
+
+
+
+
+
+
+var width = document.getElementById("discrete").offsetWidth; //canvas width
+var height = 270;   //canvas height
+
+
+
+var discreteConfig = {
+    "title": "Area By Country",
+    "yAxis": [1,2],
+    "xAxis": 0,
+    "width": width,
+    "height": height,
+    "lineMark":true,
+    "pointMark":true,
+    "chartType": "series"
+
+}
+
+
+staticChart=igviz.setUp("#discrete",discreteConfig,sampleData);
+staticChart.plot(sampleData.data)
+
 
 
 igviz.draw("#drill",drillconfig,drillDataTable);
