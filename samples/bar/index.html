@@ -308,7 +308,24 @@
         ["Latvia",64589,16800,4.4,72.93,1.1,-0.6,12.8]
 
       ]
-    }
+    };
+
+var sampleData={
+    "metadata":{
+        "names":["Country","Area"],
+        "types":['C', 'N' ]
+    }    ,
+    "data": [
+    ["08:41:40",1],
+    ["08:41:52",1],
+    ["09:39:04",1],
+    ["09:39:40",1],
+
+    ]
+}
+
+
+
 
     var width = document.getElementById("staticBar").offsetWidth; //canvas width
     var height = 270;   //canvas height
@@ -321,38 +338,29 @@
         "height": height,
         "chartType": "bar"
 
-    }
-
-  
-
-staticChart=igviz.setUp("#staticBar",config,dataTable);
-staticChart
-        .setXAxis(
-            {
-                "labelAngle":-35,
-                "labelAlign":"right",
-                "labelDy":0,
-                "labelDx":0,
-                "titleDy":25
-            })
-        .setYAxis(
-            {
-                "titleDy":-30
-            })
-        .setDimension(
-            {
-                height:270
-            })
+    };
 
 
-staticChart.plot(dataTable.data)
+var config2 = {
+    "title": "Area By Country",
+    "yAxis": 1,
+    "xAxis": 0,
+    "width": width,
+    "height": height,
+    "chartType": "line"
+
+}
+
+
+staticChart=igviz.setUp("#staticBar",config2,sampleData);
+staticChart.plot(sampleData.data)
 
 dynamicChart = igviz.setUp("#dynamicBar", config, dataTable);
 dynamicChart.plot(dataTable.data);
 
 
            setInterval(function(){
-                newDataSet=[dataTable.data[0],dataTable.data[1]]
+                var newDataSet=[dataTable.data[0],dataTable.data[1]]
                 dynamicChart.updateList(newDataSet);
              },1000)
 

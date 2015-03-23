@@ -47,20 +47,20 @@
     /*************************************************** Line chart ***************************************************************************************************/
 
     igviz.drawLineChart=function(chartObj){
-        divId=chartObj.canvas;
-        chartConfig=chartObj.config;
-        dataTable=chartObj.dataTable;
+        var divId=chartObj.canvas;
+        var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
        // table=setData(dataTable,chartConfig)
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings=[];
+       var      xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+       var  yStrings=[];
         for(i=0;i<chartConfig.yAxis.length;i++){
             yStrings[i]="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
         }
 
 
-        xScaleConfig={
+       var xScaleConfig={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "x",
@@ -69,7 +69,7 @@
             "field": xString
         }
 
-        yScaleConfig= {
+      var  yScaleConfig= {
             "index":chartConfig.yAxis[0],
             "schema":dataTable.metadata,
             "name": "y",
@@ -140,7 +140,7 @@
         }
 
         for(i=0;i<chartConfig.yAxis.length;i++) {
-            markObj = {
+           var markObj = {
                 "type": "line",
                 "key": xString,
                 "from": {"data": "table"},
@@ -161,7 +161,7 @@
                         "y": {"scale": "y", "field": yStrings[i]} }
                 }
             };
-            pointObj={
+            var pointObj={
                 "type": "symbol",
 
                 "key": xString,
@@ -236,9 +236,9 @@
     /*************************************************** Bar chart ***************************************************************************************************/
     igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         //  console.log(this);
-        divId=mychart.canvas;
-        chartConfig=mychart.config;
-        dataTable=mychart.dataTable;
+       var divId=mychart.canvas;
+       var chartConfig=mychart.config;
+       var dataTable=mychart.dataTable;
         if(chartConfig.hasOwnProperty("groupedBy")){
             var format="grouped";
             if(chartConfig.hasOwnProperty("format")){
@@ -263,7 +263,7 @@
         var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
         var yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
 
-        xScaleConfig={
+       var xScaleConfig={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "x",
@@ -272,7 +272,7 @@
             "field": xString
         }
 
-        yScaleConfig= {
+        var        yScaleConfig= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "y",
@@ -381,18 +381,18 @@
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
      //   var table = setData(dataTable,chartConfig);
-        divId=chartObj.canvas;
+        var divId=chartObj.canvas;
 
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
-        groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
+        var groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
        // console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
-        cat={
+        var cat={
             "index":chartConfig.groupedBy,
             "schema":dataTable.metadata,
             "name": "cat",
@@ -402,7 +402,7 @@
         }
 
 
-        val= {
+        var val= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "val",
@@ -424,7 +424,7 @@
 
 
 
-        spec={
+        var spec={
             "width": chartConfig.width-160,
             "height": chartConfig.height-100,
             "padding": {"top": 10, "left": 60, "bottom": 60, "right":100},
@@ -524,18 +524,18 @@
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
       //  var table = setData(dataTable,chartConfig);
-        divId=chartObj.canvas;
+        var divId=chartObj.canvas;
 
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
-        groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
+        var groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
       //  console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
-        cat={
+        var cat={
             "index":chartConfig.groupedBy,
             "schema":dataTable.metadata,
             "name": "cat",
@@ -545,7 +545,7 @@
         }
 
 
-        val= {
+        var val= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "val",
@@ -567,7 +567,7 @@
 
 
 
-        spec={
+        var spec={
             "width": chartConfig.width,
             "height": chartConfig.height,
 
@@ -686,18 +686,18 @@
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
       //  var table = setData(dataTable,chartConfig);
-        divId=chartObj.canvas;
+        var divId=chartObj.canvas;
 
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
-        groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
+        var groupedBy="data."+createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
 
       //  console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
-        cat={
+        var cat={
             "index":chartConfig.groupedBy,
             "schema":dataTable.metadata,
             "name": "cat",
@@ -707,7 +707,7 @@
         }
 
 
-        val= {
+        var val= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "val",
@@ -729,7 +729,7 @@
 
 
 
-        spec={
+        var spec={
             "width": chartConfig.width-150,
             "height": chartConfig.height,
             "data": [
@@ -859,16 +859,16 @@
             return this.drawStackedAreaChart(chartObj);
         }
 
-        divId=chartObj.canvas;
+        var divId=chartObj.canvas;
 
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
      //   console.log(table,xString,yStrings);
         // sortDataSet(table);
 
-        xScaleConfig={
+        var xScaleConfig={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "x",
@@ -877,7 +877,7 @@
         }
 
 
-        yScaleConfig= {
+        var yScaleConfig= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "y",
@@ -1023,7 +1023,6 @@
             console.log(tool,event,item);
             if(item.mark.marktype=='symbol') {
 
-
                 xVar = dataTable.metadata.names[chartConfig.xAxis]
                 yVar = dataTable.metadata.names[chartConfig.yAxis]
 
@@ -1054,20 +1053,20 @@
 
     igviz.drawMultiAreaChart = function (chartObj) {
 
-        divId=chartObj.canvas;
-        chartConfig=chartObj.config;
-        dataTable=chartObj.dataTable;
+        var divId=chartObj.canvas;
+        var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
        // table=setData(dataTable,chartConfig)
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yStrings=[];
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yStrings=[];
         for(i=0;i<chartConfig.yAxis.length;i++){
             yStrings[i]="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
         }
 
 
-        xScaleConfig={
+        var xScaleConfig={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "x",
@@ -1076,7 +1075,7 @@
             "field": xString
         }
 
-        yScaleConfig= {
+        var yScaleConfig= {
             "index":chartConfig.yAxis[0],
             "schema":dataTable.metadata,
             "name": "y",
@@ -1150,7 +1149,7 @@
         }
 
         for(i=0;i<chartConfig.yAxis.length;i++) {
-            areaObj =  {
+            var areaObj =  {
                 "type": "area",
                 "key":xString,
                 "from": {"data": "table"},
@@ -1183,7 +1182,7 @@
                 }
             }
 
-            lineObj= {
+            var lineObj= {
                 "type": "line",
                 "key": xString,
                 "from": {"data": "table"},
@@ -1206,7 +1205,7 @@
             }
 
 
-            pointObj={
+            var pointObj={
                 "type": "symbol",
                 "from": {"data": "table"},
                 "properties": {
@@ -1289,18 +1288,18 @@
         var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
         //  var table = setData(dataTable,chartConfig);
-        divId=chartObj.canvas;
+        var divId=chartObj.canvas;
 
 
-        areaString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.areaVar])
-        yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+        var areaString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.areaVar])
+        var yStrings="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
 
         //     console.log(table,xString,yStrings,groupedBy);
         // sortDataSet(table);
 
-        cat={
+        var cat={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "cat",
@@ -1334,7 +1333,7 @@
 
 
 
-        spec={
+        var spec={
             "width": chartConfig.width-160,
             "height": chartConfig.height-100,
             "padding": {"top": 10, "left": 60, "bottom": 60, "right":100},
@@ -1712,18 +1711,18 @@
     /*************************************************** Scatter chart ***************************************************************************************************/
 
     igviz.drawScatterPlot=function(chartObj){
-        divId=chartObj.canvas;
-        chartConfig=chartObj.config;
-        dataTable=chartObj.dataTable;
+        var divId=chartObj.canvas;
+        var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
     //    table=setData(dataTable,chartConfig)
 
-        xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-        yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
-        rString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.pointSize])
-        cString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.pointColor])
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+        var yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+        var rString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.pointSize])
+        var cString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.pointColor])
 
 
-        xScaleConfig={
+        var xScaleConfig={
             "index":chartConfig.xAxis,
             "schema":dataTable.metadata,
             "name": "x",
@@ -1733,14 +1732,14 @@
 
         }
 
-        rScaleConfig={
+        var rScaleConfig={
             "index":chartConfig.pointSize,
             "range": [0,576],
             "schema":dataTable.metadata,
             "name": "r",
             "field": rString
         }
-        cScaleConfig={
+        var cScaleConfig={
             "index":chartConfig.pointColor            ,
             "schema": dataTable.metadata,
             "name": "c",
@@ -1748,7 +1747,7 @@
             "field": cString
         }
 
-        yScaleConfig= {
+        var yScaleConfig= {
             "index":chartConfig.yAxis,
             "schema":dataTable.metadata,
             "name": "y",
@@ -1907,9 +1906,9 @@
     /*************************************************** Single Number chart ***************************************************************************************************/
 
     igviz.drawSingleNumberDiagram = function (chartObj) {
-        divId=chartObj.canvas;
-         chartConfig=chartObj.config;
-        dataTable=chartObj.dataTable;
+        var divId=chartObj.canvas;
+         var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
 
         //Width and height
         var w = chartConfig.width;
@@ -2237,7 +2236,7 @@
     igviz.drawMap = function (divId, chartConfig, dataTable) {
     //add this
         //Width and height
-        divId = divId.substr(1);
+        var divId = divId.substr(1);
         var w = chartConfig.width;
         var h = chartConfig.height;
 
@@ -2427,14 +2426,14 @@
             var filters = d3.select('#links').selectAll('.filter');
             filters.on('click', function (d, i) {
 
-                filtersList = filters.data();
+            var    filtersList = filters.data();
 
                 console.log(filtersList)
                 var filterdDataset = [];
                 var selectionObj = JSON.parse(JSON.stringify(originaltable));
-                itr = 0;
+          var      itr = 0;
                 for (l = 0; l < originaltable.data.length; l++) {
-                    isFiltered = true;
+             var       isFiltered = true;
                     for (k = 0; k <= i; k++) {
 
                         if (originaltable.data[l][filtersList[k][0]] !== filtersList[k][1]) {
@@ -2520,7 +2519,7 @@
 
         console.log(scaleConfig.schema,scaleConfig.index);
 
-        dataFrom="table";
+        var dataFrom="table";
 
         scale.range=scaleConfig.range;
 
@@ -2592,7 +2591,7 @@
 
         console.log("Axis",axisConfig);
 
-        axis=  {
+        var axis=  {
             "type": axisConfig.type,
             "scale": axisConfig.scale,
             'title': axisConfig.title,
@@ -2650,7 +2649,7 @@
         var table = [];
         for (i = 0; i < dataTableObj.length; i++) {
             var ptObj = {};
-            namesArray=schema.names;
+            var namesArray=schema.names;
             for(j=0;j<namesArray.length;j++){
                 if(schema.types[j]=='T'){
                     ptObj[createAttributeNames(namesArray[j])]=new Date(dataTableObj[i][j]);
@@ -2669,7 +2668,7 @@
     }
 
     function setGenericAxis(axisConfig,spec){
-        MappingObj={};
+       var MappingObj={};
         MappingObj["tickSize"]="tickSize";
         MappingObj["tickPadding"]="tickPadding";
         MappingObj["title"]="title";
@@ -3130,7 +3129,6 @@
 
 
       var newTable =setData([pointObj],this.config,this.dataTable.metadata);
-
        var point= this.table.shift();
         this.dataTable.data.shift();
         this.dataTable.data.push(pointObj);
