@@ -581,6 +581,10 @@
         var transFormedYString = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
 
+        if(operation=="count"){
+            transFormedYString="data.count";
+        }
+
         console.log(xString,yString,transFormedYString,operation)
 
         var xScaleConfig={
