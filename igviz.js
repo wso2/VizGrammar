@@ -24,6 +24,7 @@
         }  else if (config.chartType == "drill") {
             this.drillDown(0, canvas, config, dataTable, dataTable);
         }
+
         return chart;
         //return
     };
@@ -50,7 +51,6 @@
 
     igviz.drawSeries=function(chartObj) {
 
-
         var divId = chartObj.canvas;
         var chartConfig = chartObj.config;
         var dataTable = chartObj.dataTable;
@@ -58,6 +58,7 @@
 
         var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
         var yStrings = [];
+
         for (i = 0; i < chartConfig.yAxis.length; i++) {
             yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
@@ -218,6 +219,7 @@
         chartObj.spec=spec;
     }
     /*************************************************** Line chart ***************************************************************************************************/
+
 
     igviz.drawLineChart=function(chartObj){
         var divId=chartObj.canvas;
@@ -412,6 +414,10 @@
        var divId=mychart.canvas;
        var chartConfig=mychart.config;
        var dataTable=mychart.dataTable;
+        if(chartConfig.hasOwnProperty('aggregate')){
+
+            return this.drawAggregatedBar(mychart);
+        }
         if(chartConfig.hasOwnProperty("groupedBy")){
             var format="grouped";
             if(chartConfig.hasOwnProperty("format")){
@@ -530,24 +536,156 @@
         mychart.originalHeight=chartConfig.height;
 
         mychart.spec = spec;
-        //mychart.data = data;
-        //mychart.table = table;
-        ////vg.parse.spec(spec, function (chart) {
-        //    mychart.chart = chart({
-        //        el: divId,
-        //        renderer: 'svg',
-        //        data: data,
-        //        hover: false
-        //
-        //    }).update();
-        //
-        //    // mychart.chart.data(data).update();
-        //    //self.counter=0;
-        //    //console.log('abc');
-        //    //setInterval(updateTable,1500);
-        //
-        //});
+
     };
+
+    function setTitle(str){
+       var title=        {
+            "type": "x",
+            "scale": "x",
+            "title": str,
+            "orient": "top",
+            "values": [],
+            "properties": {
+            "title": {
+                "fill": {
+                    "value": "orange"
+                },
+                "fontSize": {
+                    "value": 20
+                }
+            },
+            "axis": {
+                "strokeOpacity": {
+                    "value": 0
+                }
+            }
+        }
+        }
+        return title;
+
+    }
+
+    igviz.drawAggregatedBar=function(chartObj){
+
+        var chartConfig=chartObj.config;
+        var dataTable=chartObj.dataTable;
+        var xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
+        var yString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+
+        var operation="sum";
+        if(chartConfig.aggregate!=undefined) {
+             operation = chartConfig.aggregate;
+        }
+
+        var transFormedYString = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+
+
+        console.log(xString,yString,transFormedYString,operation)
+
+        var xScaleConfig={
+            "index":chartConfig.xAxis,
+            "schema":dataTable.metadata,
+            "name": "x",
+            "range": "width",
+            "round": true,
+            "field": xString,
+            "dataFrom":"myTable"
+        }
+
+        var yScaleConfig= {
+             "type":"linear",
+            "name": "y",
+            "range": "height",
+            "nice": true,
+            "field": transFormedYString,
+            "dataFrom":"myTable"
+        }
+
+        var xScale=setScale(xScaleConfig)
+        var yScale=setScale(yScaleConfig);
+
+        var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":false ,"dx":0,"dy":0,"align":"right","titleDy":30,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis] ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
+        var xAxis=setAxis(xAxisConfig);
+        var yAxis=setAxis(yAxisConfig);
+        var title=setTitle(chartConfig.title);
+
+        if(chartConfig.barColor==undefined){
+            chartConfig.barColor="steelblue";
+        }
+
+
+            var spec={
+                "width": chartConfig.width-150,
+                //"padding":{'top':30,"left":80,"right":80,'bottom':60},
+                "height": chartConfig.height,
+                "data": [
+                    {
+                        "name":"table"
+                    },
+                    {
+                        "name": "myTable",
+                        "source":'table',
+                        "transform": [
+                            {
+                                "type": "aggregate",
+                                "groupby": [xString],
+                                "fields": [
+                                    {"op": operation, "field": yString}
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "scales": [
+                    xScale,yScale
+                ],
+                "axes": [
+                    xAxis,yAxis,title
+          ,
+
+                ],
+                "marks": [
+                    {
+                        "key": xString,
+
+                        "type": "rect",
+                        "from": {"data": "myTable"},
+                        "properties": {
+                            "enter": {
+                                "x": {"scale": "x", "field": xString},
+                                "width": {"scale": "x", "band": true, "offset": -10},
+                                "y": {"scale": "y:prev", "field": transFormedYString},
+                                "y2": {"scale": "y", "value": 0}
+
+
+                            },
+                            "update": {
+                                "x": {"scale": "x", "field": xString},
+                                "y": {"scale": "y", "field": transFormedYString},
+                                "y2": {"scale": "y", "value": 0},
+                                "fill": {"value": chartConfig.barColor}
+                            },
+                            "exit": {
+                                "x": {"value": 0},
+                                "y": {"scale": "y:prev", "field": transFormedYString},
+                                "y2": {"scale": "y", "value": 0}
+                            },
+
+                            "hover": {
+
+                                "fill": {'value': 'orange'}
+                            }
+                        }
+                        }
+                ]
+            }
+
+        chartObj.spec=spec
+
+
+    }
 
     igviz.drawStackedBarChart=function(chartObj){
 
@@ -2689,14 +2827,11 @@
 
     function setScale(scaleConfig){
         var scale={"name":scaleConfig.name};
-
         console.log(scaleConfig.schema,scaleConfig.index);
-
         var dataFrom="table";
-
         scale.range=scaleConfig.range;
 
-
+        if(scaleConfig.index!=undefined){
         switch (scaleConfig.schema.types[scaleConfig.index]){
             case 'T':
                 scale["type"]='time'
@@ -2715,6 +2850,10 @@
 
                 break;
         }
+        }else{
+            scale["type"]=scaleConfig.type;
+        }
+
         if (scaleConfig.hasOwnProperty("dataFrom")) {
             dataFrom= scaleConfig.dataFrom;
         }
@@ -3283,14 +3422,11 @@
     Chart.prototype.setDimension=function(dimensionConfig){
 
         if(dimensionConfig.width!=undefined){
-
             this.spec.width=dimensionConfig.width;
             this.originalWidth=dimensionConfig.width;
-
         }
 
         if(dimensionConfig.height!=undefined){
-
             this.spec.height=dimensionConfig.height;
             this.originalHeight=dimensionConfig.height;
 
@@ -3300,12 +3436,18 @@
 
     Chart.prototype.update = function (pointObj) {
 
-
       var newTable =setData([pointObj],this.config,this.dataTable.metadata);
-       var point= this.table.shift();
-        this.dataTable.data.shift();
+
+       if(this.config.update=="slide"){
+
+            var point= this.table.shift();
+            this.dataTable.data.shift();
+
+        }
+
         this.dataTable.data.push(pointObj);
 
+        console.log(dataTable.data);
        this.table.push(newTable[0]);
        this.chart.data(this.data).update({"duration":500});
 
@@ -3314,14 +3456,21 @@
     Chart.prototype.updateList = function (dataList,callback) {
 
         for(i=0;i<dataList.length;i++){
+           if(this.config.update=="slide")
             this.dataTable.data.shift();
+
             this.dataTable.data.push(dataList[i]);
         }
 
         var newTable = setData(dataList, this.config,this.dataTable.metadata);
 
         for (i = 0; i < dataList.length; i++) {
-         var  point = this.table.shift();
+
+
+            if(this.config.update=="slide"){
+                this.table.shift();
+            }
+
           this.table.push(newTable[i]);
         }
 
@@ -3381,10 +3530,14 @@
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
         var data={table:table}
 
+        if(this.config.update==undefined){
+            this.config.update="slide";
+        }
         var divId=this.canvas;
         this.data=data;
         this.table=table;
 
+        console.log(data);
         var delay={};
 
         if(this.legend){
@@ -3411,7 +3564,6 @@
         var specification=this.spec;
         var isTool=this.toolTip;
         var toolTipFunction=this.toolTipFunction
-
         var ref=this
 
         vg.parse.spec(specification, function (chart) {

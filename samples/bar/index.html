@@ -319,7 +319,8 @@
         "xAxis": 0,
         "width": width,
         "height": height,
-        "chartType": "bar"
+        "chartType": "bar",
+        //"update":'batch'
 
     }
 
@@ -352,8 +353,9 @@
 
 
     setInterval(function(){
+        console.log("helo")
         newDataSet=[dataTable.data[0],dataTable.data[1]]
-        dynamicChart.updateList(newDataSet);
+        dynamicChart.update(dataTable.data[0]);
     },1000)
 
 </script>
