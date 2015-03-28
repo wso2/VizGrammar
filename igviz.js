@@ -2319,12 +2319,124 @@
 
     /*************************************************** Table chart ***************************************************************************************************/
 
+    function unique(array){
+
+
+        var uni=array.filter(function(itm,i,array){
+            return i==array.indexOf(itm);
+        });
+
+        return uni;
+    }
+
+
+    function aggregate(value1,value2,op){
+        var result=0;
+        switch('op'){
+            case 'sum':result=value1+value2; break;
+            case 'avg':result=value1+value2; break;
+            case 'min':result=value1+value2; break;
+            case 'max':result=value1+value2; break;
+            case 'count':result=value1+value2; break;
+        }
+    }
+
+    function tableTransformation(dataTable,rowIndex,columnIndex,aggregate,cellIndex){
+        var resultant=[];
+        var AllRows=[];
+        var AllCols=[];
+        var a=0;var b=0;
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            AllRows[i]=dataTable.data[i][rowIndex];
+
+            AllCols[i]=dataTable.data[i][columnIndex];
+        }
+        var meta=unique(AllCols);
+        var rows=unique(AllRows);
+
+
+        var counter=[];
+        for(i=0;i<rows.length;i++){
+            resultant[i]=[];
+            counter[i]=[];
+            resultant[i][0]=rows[i];
+            for(j=0;j<meta.length;j++){
+                switch(aggregate){
+                    case "max":resultant[i][j+1]=Number.MIN_VALUE;break;
+                    case "min":resultant[i][j+1]=Number.MAX_VALUE;break;
+                    default :resultant[i][j+1]=0;
+                }
+
+                counter[i][j+1]=0;
+            }
+        }
+
+//        console.log(rows,meta,resultant);
+
+
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            var row= dataTable.data[i][rowIndex];
+            var col=dataTable.data[i][columnIndex];
+            var value=dataTable.data[i][cellIndex];
+
+                // console.log(row,col,value,rows.indexOf(row),meta.indexOf(col))
+           // resultant[rows.indexOf(row)][1+meta.indexOf(col)]+=value;
+
+            counter[rows.indexOf(row)][1+meta.indexOf(col)]++;
+            existing=resultant[rows.indexOf(row)][1+meta.indexOf(col)];
+            existingCounter=counter[rows.indexOf(row)][1+meta.indexOf(col)];
+            //existingCounter++;
+            var resultValue=0
+            switch(aggregate){
+                case "sum":resultValue=existing+value;break;
+                case "min":resultValue=(existing>value)?value:existing;break;
+                case "max":resultValue=(existing<value)?value:existing;break;
+                case "avg":resultValue=(existing*(existingCounter-1)+value)/existingCounter;break;
+                case "count":resultValue=existingCounter;break;
+            }
+
+            //console.log(resultValue);
+            resultant[rows.indexOf(row)][1+meta.indexOf(col)]=resultValue;
+
+        }
+
+        var newDataTable={};
+        newDataTable.metadata={};
+        newDataTable.metadata.names=[];
+        newDataTable.metadata.types=[];
+        newDataTable.data=resultant;
+
+        newDataTable.metadata.names[0]=dataTable.metadata.names[rowIndex]+" \\ "+dataTable.metadata.names[columnIndex];
+        newDataTable.metadata.types[0]='C';
+
+        for(i=0;i<meta.length;i++)
+        {
+            newDataTable.metadata.names[i+1]=meta[i];
+
+            newDataTable.metadata.types[i+1]='N';
+        }
+
+        console.log(newDataTable);
+        return newDataTable;
+
+    }
+
     igviz.drawTable = function (divId, chartConfig, dataTable) {
         var w = chartConfig.width;
         var h = chartConfig.height;
         var padding = chartConfig.padding;
         var dataSeries = chartConfig.dataSeries;
         var highlightMode = chartConfig.highlightMode;
+
+
+        if(chartConfig.rowIndex!=undefined && chartConfig.columnIndex!=undefined){
+
+            dataTable=tableTransformation(dataTable,chartConfig.rowIndex,chartConfig.columnIndex,chartConfig.aggregate,chartConfig.cellIndex);
+            //chartConfig.colorBasedStyle=true;
+
+        }
 
         var dataset = dataTable.data.map(function (d) {
             return {
