@@ -3140,6 +3140,92 @@
 
     }
 
+    function aggregatedTable(dataTable,groupedBy,aggregate){
+        var newDataTable=[];
+        var counter=[];
+
+        var AllRows=[]
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            AllRows[i]=dataTable.data[i][groupedBy];
+        }
+
+        var rows=unique(AllRows);
+
+        for(i=0;i<rows.length;i++){
+            newDataTable[i]=[];
+            counter[i]=0;
+            for(j=0;j<dataTable.metadata.names.length;j++){
+                if(groupedBy!=j) {
+                    switch (aggregate) {
+                        case "max":
+                            newDataTable[i][j] = Number.MIN_VALUE;
+                            break;
+                        case "min":
+                            newDataTable[i][j] = Number.MAX_VALUE;
+                            break;
+                        default :
+                            newDataTable[i][j] = 0;
+                    }
+
+                }else
+                {
+                    newDataTable[i][j]=rows[i];
+                }
+            }
+
+
+        }
+
+
+
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            var gvalue= dataTable.data[i][groupedBy];
+            counter[rows.indexOf(gvalue)]++;
+            var existingRow=newDataTable[rows.indexOf(gvalue)];
+            var existingCounter=counter[rows.indexOf(gvalue)];
+
+            for(j=0;j<existingRow.length;j++)
+            {
+                if(j!=groupedBy) {
+                    var existing = existingRow[j];
+                    var value = dataTable.data[i][j];
+
+                    var resultValue = 0
+                    switch (aggregate) {
+                        case "sum":
+                            resultValue = existing + value;
+                            break;
+                        case "min":
+                            resultValue = (existing > value) ? value : existing;
+                            break;
+                        case "max":
+                            resultValue = (existing < value) ? value : existing;
+                            break;
+                        case "avg":
+                            resultValue = (existing * (existingCounter - 1) + value) / existingCounter;
+                            break;
+                        case "count":
+                            resultValue = existingCounter;
+                            break;
+                    }
+
+                    //console.log(resultValue);
+                    newDataTable[rows.indexOf(gvalue)][j] = resultValue;
+                }
+            }
+
+
+
+        }
+
+
+        console.log(newDataTable);
+        return newDataTable;
+
+    }
+
     igviz.drawTable = function (divId, chartConfig, dataTable) {
         var w = chartConfig.width;
         var h = chartConfig.height;
@@ -3148,16 +3234,15 @@
         var highlightMode = chartConfig.highlightMode;
 
 
-        if(chartConfig.rowIndex!=undefined && chartConfig.columnIndex!=undefined){
+        if (chartConfig.rowIndex != undefined && chartConfig.columnIndex != undefined) {
 
-            dataTable=tableTransformation(dataTable,chartConfig.rowIndex,chartConfig.columnIndex,chartConfig.aggregate,chartConfig.cellIndex);
+            dataTable = tableTransformation(dataTable, chartConfig.rowIndex, chartConfig.columnIndex, chartConfig.aggregate, chartConfig.cellIndex);
             //chartConfig.colorBasedStyle=true;
 
-        }else if(chartConfig.aggregate!=undefined){
-            //dataTable=//
+        } else if (chartConfig.aggregate != undefined) {
+            dataTable = aggregatedTable(dataTable, chartConfig.groupedBy, chartConfig.aggregate);
 
         }
-
 
 
         var dataset = dataTable.data.map(function (d) {
@@ -3255,129 +3340,182 @@
 
         var cells;
 
-        if (isColorBasedSet == true && isFontBasedSet == true) {
+        if (!chartConfig.heatMap) {
+            if (isColorBasedSet == true && isFontBasedSet == true) {
 
-            //adding the  data to the table rows
-            cells = rows.selectAll("td")
+                //adding the  data to the table rows
+                cells = rows.selectAll("td")
 
-                //Lets do a callback when we get each array from the data set
-                .data(function (d, i) {
-                    return d;
-                })
-                //select the table rows (<tr>) and append table data (<td>)
-                .enter()
-                .append("td")
-                .text(function (d, i) {
-                    return d;
-                })
-                .style("font-size", function (d, i) {
+                    //Lets do a callback when we get each array from the data set
+                    .data(function (d, i) {
+                        return d;
+                    })
+                    //select the table rows (<tr>) and append table data (<td>)
+                    .enter()
+                    .append("td")
+                    .text(function (d, i) {
+                        return d;
+                    })
+                    .style("font-size", function (d, i) {
 
 
-                    fontSize.domain([
-                        d3.min(parseColumnFrom2DArray(tableData, i)),
-                        d3.max(parseColumnFrom2DArray(tableData, i))
+                        fontSize.domain([
+                            d3.min(parseColumnFrom2DArray(tableData, i)),
+                            d3.max(parseColumnFrom2DArray(tableData, i))
+                        ]);
+                        return fontSize(d) + "px";
+                    })
+                    .style('background-color', function (d, i) {
+
+                        //This is where the color is decided for the cell
+                        //The domain set according to the data set we have now
+                        //Minimum & maximum values for the particular data column is used as the domain
+                        alpha.domain([d3.min(parseColumnFrom2DArray(tableData, i)), d3.max(parseColumnFrom2DArray(tableData, i))]);
+
+                        //return the color for the cell
+                        return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
+
+                    });
+
+            } else if (isColorBasedSet && !isFontBasedSet) {
+                //adding the  data to the table rows
+                cells = rows.selectAll("td")
+
+                    //Lets do a callback when we get each array from the data set
+                    .data(function (d, i) {
+                        return d;
+                    })
+                    //select the table rows (<tr>) and append table data (<td>)
+                    .enter()
+                    .append("td")
+                    .text(function (d, i) {
+                        return d;
+                    })
+                    .style('background-color', function (d, i) {
+
+                        //This is where the color is decided for the cell
+                        //The domain set according to the data set we have now
+                        //Minimum & maximum values for the particular data column is used as the domain
+                        alpha.domain([
+                            d3.min(parseColumnFrom2DArray(tableData, i)),
+                            d3.max(parseColumnFrom2DArray(tableData, i))
+                        ]);
+
+                        //return the color for the cell
+                        return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
+
+                    });
+
+            } else if (!isColorBasedSet && isFontBasedSet) {
+
+                //adding the  data to the table rows
+                cells = rows.selectAll("td")
+
+                    //Lets do a callback when we get each array from the data set
+                    .data(function (d, i) {
+                        return d;
+                    })
+                    //select the table rows (<tr>) and append table data (<td>)
+                    .enter()
+                    .append("td")
+                    .text(function (d, i) {
+                        return d;
+                    })
+                    .style("font-size", function (d, i) {
+
+                        fontSize.domain([
+                            d3.min(parseColumnFrom2DArray(tableData, i)),
+                            d3.max(parseColumnFrom2DArray(tableData, i))
+                        ]);
+                        return fontSize(d) + "px";
+                    });
+
+            } else {
+                console.log("We are here baby!");
+                //appending the rows inside the table body
+                rows.style('background-color', function (d, i) {
+
+                    colorRows.domain([
+                        d3.min(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
+                        d3.max(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
                     ]);
-                    return fontSize(d) + "px";
+                    return colorRows(d[chartConfig.xAxis]);
                 })
-                .style('background-color', function (d, i) {
+                    .style("font-size", function (d, i) {
 
-                    //This is where the color is decided for the cell
-                    //The domain set according to the data set we have now
-                    //Minimum & maximum values for the particular data column is used as the domain
-                    alpha.domain([d3.min(parseColumnFrom2DArray(tableData, i)), d3.max(parseColumnFrom2DArray(tableData, i))]);
+                        fontSize.domain([
+                            d3.min(parseColumnFrom2DArray(tableData, i)),
+                            d3.max(parseColumnFrom2DArray(tableData, i))
+                        ]);
+                        return fontSize(d) + "px";
+                    });
 
-                    //return the color for the cell
-                    return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
-
-                });
-
-        } else if (isColorBasedSet && !isFontBasedSet) {
-            //adding the  data to the table rows
-            cells = rows.selectAll("td")
-
-                //Lets do a callback when we get each array from the data set
-                .data(function (d, i) {
-                    return d;
-                })
-                //select the table rows (<tr>) and append table data (<td>)
-                .enter()
-                .append("td")
-                .text(function (d, i) {
-                    return d;
-                })
-                .style('background-color', function (d, i) {
-
-                    //This is where the color is decided for the cell
-                    //The domain set according to the data set we have now
-                    //Minimum & maximum values for the particular data column is used as the domain
-                    alpha.domain([
-                        d3.min(parseColumnFrom2DArray(tableData, i)),
-                        d3.max(parseColumnFrom2DArray(tableData, i))
-                    ]);
-
-                    //return the color for the cell
-                    return 'rgba(' + colors[i].r + ',' + colors[i].g + ',' + colors[i].b + ',' + alpha(d) + ')';
-
-                });
-
-        } else if (!isColorBasedSet && isFontBasedSet) {
-
-            //adding the  data to the table rows
-            cells = rows.selectAll("td")
-
-                //Lets do a callback when we get each array from the data set
-                .data(function (d, i) {
-                    return d;
-                })
-                //select the table rows (<tr>) and append table data (<td>)
-                .enter()
-                .append("td")
-                .text(function (d, i) {
-                    return d;
-                })
-                .style("font-size", function (d, i) {
-
-                    fontSize.domain([
-                        d3.min(parseColumnFrom2DArray(tableData, i)),
-                        d3.max(parseColumnFrom2DArray(tableData, i))
-                    ]);
-                    return fontSize(d) + "px";
-                });
-
-        } else {
-            console.log("We are here baby!");
-            //appending the rows inside the table body
-            rows.style('background-color', function (d, i) {
-
-                colorRows.domain([
-                    d3.min(parseColumnFrom2DArray(tableData, chartConfig.xAxis)),
-                    d3.max(parseColumnFrom2DArray(tableData, chartConfig.xAxis))
-                ]);
-                return colorRows(d[chartConfig.xAxis]);
-            })
-                .style("font-size", function (d, i) {
-
-                    fontSize.domain([
-                        d3.min(parseColumnFrom2DArray(tableData, i)),
-                        d3.max(parseColumnFrom2DArray(tableData, i))
-                    ]);
-                    return fontSize(d) + "px";
-                });
-
-            //adding the  data to the table rows
-            cells = rows.selectAll("td")
-                //Lets do a callback when we get each array from the data set
-                .data(function (d, i) {
-                    return d;
-                })
-                //select the table rows (<tr>) and append table data (<td>)
-                .enter()
-                .append("td")
-                .text(function (d, i) {
-                    return d;
-                })
+                //adding the  data to the table rows
+                cells = rows.selectAll("td")
+                    //Lets do a callback when we get each array from the data set
+                    .data(function (d, i) {
+                        return d;
+                    })
+                    //select the table rows (<tr>) and append table data (<td>)
+                    .enter()
+                    .append("td")
+                    .text(function (d, i) {
+                        return d;
+                    })
+            }
         }
+        else
+        {
+            //console.log("done");
 
+            var minimum=dataTable.data[0][1];
+            var maximum=dataTable.data[0][1];
+            for(j=0;j<dataTable.data.length;j++){
+                for(a=0;a<dataTable.metadata.names.length;a++)
+                {
+                    if(dataTable.metadata.types[a]=='N'){
+
+                        if(dataTable.data[j][a]>maximum){
+                            maximum=dataTable.data[j][a];
+                        }
+
+                        if(dataTable.data[j][a]<minimum){
+                            minimum=dataTable.data[j][a];
+                        }
+
+                    }
+
+                }
+            }
+
+
+            alpha.domain([minimum, maximum]);
+            cells = rows.selectAll("td")
+
+                //Lets do a callback when we get each array from the data set
+                .data(function (d, i) {
+                    console.log(d,i);
+                    return d;
+                })
+                //select the table rows (<tr>) and append table data (<td>)
+                .enter()
+                .append("td")
+                .text(function (d, i) {
+                    return d;
+                })
+
+                .style('background-color', function (d, i) {
+
+
+
+
+              //      console.log(d,i,'rgba(' + colors[0].r + ',' + colors[0].g + ',' + colors[0].b + ',' + alpha(d) + ')')
+;
+                    return 'rgba(' + colors[0].r + ',' + colors[0].g + ',' + colors[0].b + ',' + alpha(d) + ')';
+
+                });
+
+        }
     };
 
     /*************************************************** map ***************************************************************************************************/
