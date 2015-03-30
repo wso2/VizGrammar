@@ -3140,6 +3140,92 @@
 
     }
 
+    function aggregatedTable(dataTable,groupedBy,aggregate){
+        var newDataTable=[];
+        var counter=[];
+
+        var AllRows=[]
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            AllRows[i]=dataTable.data[i][groupedBy];
+        }
+
+        var rows=unique(AllRows);
+
+        for(i=0;i<rows.length;i++){
+            newDataTable[i]=[];
+            counter[i]=0;
+            for(j=0;j<dataTable.metadata.names.length;j++){
+                if(groupedBy!=j) {
+                    switch (aggregate) {
+                        case "max":
+                            newDataTable[i][j] = Number.MIN_VALUE;
+                            break;
+                        case "min":
+                            newDataTable[i][j] = Number.MAX_VALUE;
+                            break;
+                        default :
+                            newDataTable[i][j] = 0;
+                    }
+
+                }else
+                {
+                    newDataTable[i][j]=rows[i];
+                }
+            }
+
+
+        }
+
+
+
+        for(i=0;i<dataTable.data.length;i++)
+        {
+            var gvalue= dataTable.data[i][groupedBy];
+            counter[rows.indexOf(gvalue)]++;
+            var existingRow=newDataTable[rows.indexOf(gvalue)];
+            var existingCounter=counter[rows.indexOf(gvalue)];
+
+            for(j=0;j<existingRow.length;j++)
+            {
+                if(j!=groupedBy) {
+                    var existing = existingRow[j];
+                    var value = dataTable.data[i][j];
+
+                    var resultValue = 0
+                    switch (aggregate) {
+                        case "sum":
+                            resultValue = existing + value;
+                            break;
+                        case "min":
+                            resultValue = (existing > value) ? value : existing;
+                            break;
+                        case "max":
+                            resultValue = (existing < value) ? value : existing;
+                            break;
+                        case "avg":
+                            resultValue = (existing * (existingCounter - 1) + value) / existingCounter;
+                            break;
+                        case "count":
+                            resultValue = existingCounter;
+                            break;
+                    }
+
+                    //console.log(resultValue);
+                    newDataTable[rows.indexOf(gvalue)][j] = resultValue;
+                }
+            }
+
+
+
+        }
+
+
+        console.log(newDataTable);
+        return newDataTable;
+
+    }
+
     igviz.drawTable = function (divId, chartConfig, dataTable) {
         var w = chartConfig.width;
         var h = chartConfig.height;
@@ -3154,7 +3240,7 @@
             //chartConfig.colorBasedStyle=true;
 
         }else if(chartConfig.aggregate!=undefined){
-            //dataTable=//
+              dataTable=aggregatedTable(dataTable,chartConfig.groupedBy,chartConfig.aggregate);
 
         }
 
