@@ -1444,7 +1444,7 @@
             "type": "y",
             "scale": "y",
             "angle": 0,
-            "title": dataTable.metadata.names[chartConfig.yAxis[0]],
+            "title": dataTable.metadata.names[chartConfig.yAxis],
             "grid": true,
             "dx": 0,
             "dy": 0,
@@ -3153,7 +3153,12 @@
             dataTable=tableTransformation(dataTable,chartConfig.rowIndex,chartConfig.columnIndex,chartConfig.aggregate,chartConfig.cellIndex);
             //chartConfig.colorBasedStyle=true;
 
+        }else if(chartConfig.aggregate!=undefined){
+            //dataTable=//
+
         }
+
+
 
         var dataset = dataTable.data.map(function (d) {
             return {
@@ -3667,9 +3672,11 @@
         if(scaleConfig.index!=undefined){
         switch (scaleConfig.schema.types[scaleConfig.index]){
             case 'T':
-                scale["type"]='time'
+                scale["type"]='time';
 
                 break;
+            case 'U':
+                scale["type"]='utc';break;
 
             case 'C':
                 scale["type"]='ordinal'
@@ -3798,13 +3805,17 @@
             for(j=0;j<namesArray.length;j++){
                 if(schema.types[j]=='T'){
                     ptObj[createAttributeNames(namesArray[j])]=new Date(dataTableObj[i][j]);
+                }else if(schema.types[j]=='U'){
+                    ptObj[createAttributeNames(namesArray[j])]=(new Date(dataTableObj[i][j])).getTime();
                 }else
                     ptObj[createAttributeNames(namesArray[j])]=dataTableObj[i][j];
             }
 
+
             table[i] = ptObj;
         }
 
+        console.log(table);
         return table;
     }
 
@@ -4180,6 +4191,10 @@
         if(xAxisConfig.zero!=undefined)
         {
             this.spec.scales[0].zero=xAxisConfig.zero;
+        }
+        if(xAxisConfig.nice!=undefined)
+        {
+            this.spec.scales[0].nice=xAxisConfig.nice;
         }
             setGenericAxis(xAxisConfig,xAxisSpec);
         /*xAxisConfig.tickSize
