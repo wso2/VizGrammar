@@ -14,15 +14,15 @@
         var chart = new Chart(canvas, config, dataTable);
 
         if (config.chartType == "singleNumber") {
-            this.drawSingleNumberDiagram(chart);
+            chart.diagram=this.drawSingleNumberDiagram(chart);
         } else if (config.chartType == "map") {
-            this.drawMap(canvas, config, dataTable);
+            chart.diagram=this.drawMap(canvas, config, dataTable);
         } else if (config.chartType == "table") {
-            this.drawTable(canvas, config, dataTable);
+            chart.diagram=this.drawTable(canvas, config, dataTable);
         } else if (config.chartType == "arc") {
-            this.drawArc(canvas, config, dataTable);
+            chart.diagram=this.drawArc(canvas, config, dataTable);
         }  else if (config.chartType == "drill") {
-            this.drillDown(0, canvas, config, dataTable, dataTable);
+            chart.diagram=this.drillDown(0, canvas, config, dataTable, dataTable);
         }
 
         return chart;
@@ -2939,7 +2939,7 @@
 
     igviz.drawSingleNumberDiagram = function (chartObj) {
         var divId=chartObj.canvas;
-         var chartConfig=chartObj.config;
+        var chartConfig=chartObj.config;
         var dataTable=chartObj.dataTable;
 
         //Width and height
@@ -2948,15 +2948,30 @@
         var padding = chartConfig.padding;
 
         //configure font sizes
-        var MAX_FONT_SIZE = 40;
-        var AVG_FONT_SIZE = 70;
-        var MIN_FONT_SIZE = 40;
+        var MAX_FONT_SIZE = w/25;
+        var AVG_FONT_SIZE = w/18;
+        var MIN_FONT_SIZE = w/25;
 
         //div elements to append single number diagram components
         var minDiv = "minValue";
         var maxDiv = "maxValue";
         var avgDiv = "avgValue";
 
+
+        var chartConfig={
+            "xAxis":chartConfig.xAxis,
+            "yAxis":1,
+            "aggregate":"sum",
+            "chartType":"bar",
+            "width":600,
+            "height":h*3/4
+        };
+
+
+
+
+        chart=igviz.setUp(divId, chartConfig,dataTable );
+        chart.plot(dataTable.data);
 
         //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
         //so you can use util methods
@@ -3004,20 +3019,21 @@
             .text("Max: " + d3.max(selectedColumn))
             //.text(50)
             .attr("font-size", MIN_FONT_SIZE)
-            .attr("x", 3 * w / 4)
-            .attr("y", h / 4)
-            .style("fill", "black")
-            .style("text-anchor", "middle")
+            .attr("x",w*3/4)
+            .attr("y", 6*h / 7)
+            .style("fill", "Red")
+            .style("text-anchor", "start")
             .style("lignment-baseline", "middle");
 
         //Average value goes here
         SingleNumberDiagram.append("text")
             .attr("id", avgDiv)
-            .text(getAvg(selectedColumn))
+            .text("Avg :"+getAvg(selectedColumn))
             .attr("font-size", AVG_FONT_SIZE)
             .attr("x", w / 2)
-            .attr("y", h / 2 + d3.select("#" + avgDiv).attr("font-size") / 5)
-            .style("fill", "black")
+            .attr("y", 6*h / 7)
+            //d3.select("#" + avgDiv).attr("font-size") / 5)
+            .style("fill", "Green")
             .style("text-anchor", "middle")
             .style("lignment-baseline", "middle");
 
@@ -3026,10 +3042,10 @@
             .attr("id", maxDiv)
             .text("Min: " + d3.min(selectedColumn))
             .attr("font-size", MAX_FONT_SIZE)
-            .attr("x", 3 * w / 4)
-            .attr("y", 3 * h / 4)
-            .style("fill", "black")
-            .style("text-anchor", "middle")
+            .attr("x",  w / 4)
+            .attr("y", 6 * h / 7)
+            .style("fill", "Black")
+            .style("text-anchor", "end")
             .style("lignment-baseline", "middle");
     };
 
@@ -3516,6 +3532,7 @@
                 });
 
         }
+        return table;
     };
 
     /*************************************************** map ***************************************************************************************************/
