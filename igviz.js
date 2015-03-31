@@ -231,7 +231,7 @@
             return igviz.drawAggregatedLine(chartObj);
 
         }
-       var      xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+       var  xString="data."+createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
        var  yStrings=[];
         for(i=0;i<chartConfig.yAxis.length;i++){
             yStrings[i]="data."+createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
@@ -372,6 +372,7 @@
 
 
             spec.marks.push(markObj);
+            if(chartConfig.pointVisible)
             spec.marks.push(pointObj);
             spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
 
@@ -382,11 +383,22 @@
         chartObj.toolTipFunction=[];
         chartObj.toolTipFunction[0]=function(event,item){
 
-            console.log(tool,event,item);
             if(item.mark.marktype=='symbol') {
-                xVar = dataTable.metadata.names[chartConfig.xAxis]
-                yVar = dataTable.metadata.names[chartConfig.yAxis]
+                var     xVar = dataTable.metadata.names[chartConfig.xAxis]
 
+
+                var colorScale=d3.scale.category20()
+
+                var foundIndex=-1;
+                for( index=0;index<yStrings.length;index++)
+                     if(item.fill===colorScale(yStrings[index]))
+                     {
+                         foundIndex=index;
+                         break;
+                     }
+
+                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+                //console.log( item);
                 contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
 
@@ -588,6 +600,8 @@
 
 
             spec.marks.push(markObj);
+
+            if(chartConfig.pointVisible)
             spec.marks.push(pointObj);
             spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
 
@@ -598,10 +612,22 @@
 
             console.log(tool,event,item);
             if(item.mark.marktype=='symbol') {
-                xVar = dataTable.metadata.names[chartConfig.xAxis]
-                yVar = dataTable.metadata.names[chartConfig.yAxis]
+                var     xVar = dataTable.metadata.names[chartConfig.xAxis]
 
-                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+
+                var colorScale=d3.scale.category20()
+
+                var foundIndex=-1;
+                for( index=0;index<yStrings.length;index++)
+                    if(item.fill===colorScale(yStrings[index]))
+                    {
+                        foundIndex=index;
+                        break;
+                    }
+
+                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+
+              var  contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -1826,6 +1852,8 @@
 
             spec.marks.push(areaObj);
             spec.marks.push(markObj);
+
+            if(chartConfig.pointVisible)
             spec.marks.push(pointObj);
             spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
 
@@ -1836,8 +1864,20 @@
 
             console.log(tool,event,item);
             if(item.mark.marktype=='symbol') {
-                xVar = dataTable.metadata.names[chartConfig.xAxis]
-                yVar = dataTable.metadata.names[chartConfig.yAxis]
+                var     xVar = dataTable.metadata.names[chartConfig.xAxis]
+
+
+                var colorScale=d3.scale.category20()
+
+                var foundIndex=-1;
+                for( index=0;index<yStrings.length;index++)
+                    if(item.fill===colorScale(yStrings[index]))
+                    {
+                        foundIndex=index;
+                        break;
+                    }
+
+                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
 
                 contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
@@ -2011,6 +2051,14 @@
                         }
                     }
                 },
+
+            ]
+        }
+
+
+        if(chartConfig.pointVisible)
+        {
+            spec.marks.push(
                 {
                     "type": "symbol",
                     "from": {"data": "table"},
@@ -2020,28 +2068,26 @@
                             "y": {"scale": "y:prev", "field": yStrings},
                             "fill": {"scale":"color","value" :2},
                             "size":{"value":50}
-                                //"fillOpacity": {"value": 0.5}
-                            },
-                            "update": {
-                                "size":{"value":50},
+                            //"fillOpacity": {"value": 0.5}
+                        },
+                        "update": {
+                            "size":{"value":50},
 
-                                "x": {"scale": "x", "field": xString},
-                                "y": {"scale": "y", "field": yStrings}
-                                //"size": {"scale":"r","field":rString},
-                                // "stroke": {"value": "transparent"}
-                            },
+                            "x": {"scale": "x", "field": xString},
+                            "y": {"scale": "y", "field": yStrings}
+                            //"size": {"scale":"r","field":rString},
+                            // "stroke": {"value": "transparent"}
+                        },
                         "exit":{
                             "x": {"value":0},
                             "y": {"scale": "y", "field": yStrings}
                         },
-                            "hover": {
-                                "size": {"value": 100},
-                                "stroke": {"value": "white"}
-                            }
+                        "hover": {
+                            "size": {"value": 100},
+                            "stroke": {"value": "white"}
                         }
                     }
-
-            ]
+                })
         }
 
         chartObj.toolTipFunction=[];
@@ -2268,6 +2314,8 @@
 
             spec.marks.push(areaObj);
 
+
+            if(chartConfig.pointVisible)
             spec.marks.push(pointObj);
             spec.marks.push(lineObj);
             spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
@@ -2285,8 +2333,20 @@
             if(item.mark.marktype=='symbol') {
            // window.alert(a);
 
-                xVar = dataTable.metadata.names[chartConfig.xAxis]
-                yVar = dataTable.metadata.names[chartConfig.yAxis]
+                var     xVar = dataTable.metadata.names[chartConfig.xAxis]
+
+
+                var colorScale=d3.scale.category20()
+
+                var foundIndex=-1;
+                for( index=0;index<yStrings.length;index++)
+                    if(item.fill===colorScale(yStrings[index]))
+                    {
+                        foundIndex=index;
+                        break;
+                    }
+
+                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
 
                 contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
