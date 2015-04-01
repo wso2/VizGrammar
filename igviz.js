@@ -3828,8 +3828,8 @@
 
             if (index < chartConfig.xAxis.length) {
                 console.log(x);
-                d3.select(x.chart._el).selectAll('g.type-rect rect').on('click', function (d, i) {
-                    // console.log(d, i, this);
+                    d3.select(x.chart._el).selectAll('g.type-rect rect').on('click', function (d, i) {
+        console.log(d, i, this);
                     console.log(d, i);
                     var selectedName = d.datum.data[x.dataTable.metadata.names[x.config.xAxis]];
                     //  console.log(selectedName);
@@ -4588,9 +4588,51 @@
 
     }
 
+    function sortDataTable(dataTable,xAxis){
+        dataTable.data.sort(function(a,b){
+
+            return a[xAxis]-b[xAxis];
+        })
+
+    }
+
+    function getIndexOfMaxRange(dataTable,yAxis){
+
+        var currntMaxIndex=-1;
+        var currentMax=Number.MIN_VALUE;
+        for(i=0;i<yAxis.length;i++){
+
+           var  newMax=d3.max(parseColumnFrom2DArray(dataTable.data,yAxis[i]));
+           console.log(parseColumnFrom2DArray(dataTable.data,yAxis[i]));
+            if(currentMax<newMax){
+                currntMaxIndex=i;
+                currentMax=newMax;
+            }
+        }
+
+        return currntMaxIndex;
+    }
+
     Chart.prototype.plot=function (dataset,callback){
 
+
+
+
+        sortDataTable(this.dataTable,this.config.xAxis);
+
+
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
+        if(this.config.yAxis.constructor==Array){
+
+            var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
+            var name=this.dataTable.metadata.names[this.config.yAxis[scaleIndex]];
+            console.log(name,scaleIndex,this.config.yAxis[scaleIndex]);
+            this.spec.scales[1].domain.field="data."+createAttributeNames(name);
+
+        }
+
+
+
         var data={table:table}
 
         if(this.config.update==undefined){
