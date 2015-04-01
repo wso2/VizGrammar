@@ -17,6 +17,9 @@ Download [d3.v3.js](http://d3js.org/ "d3js.org"). This is the only required libr
 Download the latest igviz.js (version 1.0 alpha). It is still in WIP state.
 Don’t forget the igviz.css file!
 
+##Documentation
+[IGViz Documentation](https://github.com/dunithd/igviz/wiki)
+
 ##Data table
 IGViz required you to arrange your source dataset in a tabular way similar to follwing JSON format.
 ```javascript
