@@ -30,6 +30,13 @@
     };
 
     igviz.setUp = function (canvas, config, dataTable) {
+        if(!dataTable.hasOwnProperty("metadata")){
+            newDataTable={metadata:dataTable,data:[]}
+            dataTable=newDataTable;
+            console.log(dataTable);
+        }
+
+
           var         chartObject = new Chart(canvas, config, dataTable);
 
         if (config.chartType == "bar") {
@@ -4591,6 +4598,9 @@
     function sortDataTable(dataTable,xAxis){
         dataTable.data.sort(function(a,b){
 
+            if(a[xAxis] instanceof Date)
+            return a[xAxis].getTime()-b[xAxis].getTime();
+            else
             return a[xAxis]-b[xAxis];
         })
 
@@ -4617,8 +4627,9 @@
 
 
 
+        this.dataTable.data=dataset;
 
-        sortDataTable(this.dataTable,this.config.xAxis);
+       sortDataTable(this.dataTable,this.config.xAxis);
 
 
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
