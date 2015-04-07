@@ -449,6 +449,7 @@ var dataTable = {
 
 
     var lineChartConfig = {
+        "markerSize":20,
         "title": "Area By Country",
         "xAxis": 0,
         "yAxis": [1,2],
@@ -485,19 +486,17 @@ var dataTable2 = {
     //igviz.plot("#scatter",scatterChartConfig,dataTable);
 
 
-    var lineData = new igviz.DataTable();
-    lineData.addColumn("Year","T");
-    lineData.addColumn("Sales","N");
-    lineData.addColumn("Expenses","N");
-             
-    lineData.addRows(
+    var lineData = {
+        metadata:{names:["year","sales","expenses"],types:["T",'N','N']},
+        data:
+
         [
             ["2004",  1000,      400],
             ["2005",  1170,      460],
             ["2006",  660,       1120],
             ["2007",  1030,      540]
         ]
-    );
+};
 
 //draw a line chart on
 
@@ -827,7 +826,7 @@ var aggregateConfig = {
 
 
 
-staticChart=igviz.setUp("#aggregate",aggregateConfig,aggregateData);
+staticChart=igviz.setUp("#aggregate",aggregateConfig,aggregateData.metadata);
 staticChart.plot(aggregateData.data);
 
 
@@ -839,7 +838,7 @@ igviz.draw("#table",tableConfig,dataTable2);
 igviz.draw("#arc",arcConfig,dataTable2);
 
 
-barChart=igviz.setUp("#bar",barChartConfig,dataTable);
+barChart=igviz.setUp("#bar",barChartConfig,dataTable.metadata);
 
 barChart.setXAxis(
         {
@@ -858,19 +857,19 @@ barChart.setXAxis(
 barChart.plot(dataTable.data);
 
 
-stackedBarChart=igviz.setUp("#stackedBar",stackedBarConfig,groupData);
+stackedBarChart=igviz.setUp("#stackedBar",stackedBarConfig,groupData.metadata);
 stackedBarChart.plot(groupData.data);
 
-stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable);
+stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable.metadata);
 stackedChart.plot(stackedDataTable.data);
 
-scatterChart= igviz.setUp("#scatter",scatterChartConfig,dataTable);
+scatterChart= igviz.setUp("#scatter",scatterChartConfig,dataTable.metadata);
 scatterChart.setDimension({"height":190});
 scatterChart.plot(dataTable.data)
 
 
 
-lineChart=igviz.setUp("#line",lineChartConfig,lineData);
+lineChart=igviz.setUp("#line",lineChartConfig,lineData.metadata);
 lineChart.setXAxis(
         {
             "labelAngle":-35,
@@ -886,7 +885,7 @@ lineChart.setXAxis(
 
 lineChart.plot(lineData.data,function(){});
 
-areChart=igviz.setUp("#area",areaConfig,areaData);
+areChart=igviz.setUp("#area",areaConfig,areaData.metadata);
 areChart.setXAxis(
         {
             "labelAngle":-35,
@@ -920,12 +919,12 @@ groupedBarchart.plot(groupData.data,function(){});
 
 
 
-multiAreaChart=igviz.setUp("#multiArea",multiAreaConfig,lineData);
+multiAreaChart=igviz.setUp("#multiArea",multiAreaConfig,lineData.metadata);
 multiAreaChart.setDimension({'height':190})
 multiAreaChart.plot(lineData.data);
 
 
-stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable);
+stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable.metadata);
 stackedChart.plot(stackedDataTable.data);
 
 
