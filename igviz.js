@@ -4555,14 +4555,29 @@
     }
 
     function sortDataTable(dataTable,xAxis){
-        dataTable.data.sort(function(a,b){
+        if(dataTable.metadata.types[xAxis]=='U' || dataTable.metadata.types[xAxis]=='T')
+        {
+            dataTable.data.sort(function(a,b){
 
-            if(a[xAxis] instanceof Date)
-                 return a[xAxis].getTime()-b[xAxis].getTime();
-            else if(typeof a[xAxis] == 'string' || a[xAxis] instanceof String)
+                    return (new Date(a[xAxis])).getTime()-(new Date(b[xAxis])).getTime();
+            })
+
+
+       }
+       else if( dataTable.metadata.types[xAxis]=='C'){
+            dataTable.data.sort(function(a,b){
+
                 return a[xAxis].localeCompare(b[xAxis])
-            return a[xAxis]-b[xAxis];
-        })
+            })
+
+        }else{
+
+            dataTable.data.sort(function(a,b){
+
+                return a[xAxis]-b[xAxis];
+            })
+
+        }
 
     }
 
