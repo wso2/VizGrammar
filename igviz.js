@@ -410,7 +410,7 @@
 
                 var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
                 //console.log( item);
-                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+                var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -643,7 +643,7 @@
 
                 var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
 
-              var  contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+              var  contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[chartConfig.aggregate+"_"+yVar] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -4387,53 +4387,6 @@
 
     Chart.prototype.setXAxis=function(xAxisConfig){
 
-        /*
-        *         axis=  {
-         "type": axisConfig.type,
-         "scale": axisConfig.scale,
-         'title': axisConfig.title,
-         "grid":axisConfig.grid,
-
-         "properties": {
-         "ticks": {
-         // "stroke": {"value": "steelblue"}
-         },
-         "majorTicks": {
-         "strokeWidth": {"value": 2}
-         },
-         "labels": {
-         // "fill": {"value": "steelblue"},
-         "angle": {"value": axisConfig.angle},
-         // "fontSize": {"value": 14},
-         "align": {"value": axisConfig.align},
-         "baseline": {"value": "middle"},
-         "dx": {"value": axisConfig.dx},
-         "dy": {"value": axisConfig.dy}
-         },
-         "title": {
-         "fontSize": {"value": 16},
-
-         "dx":{'value':axisConfig.titleDx},
-         "dy":{'value':axisConfig.titleDy}
-         },
-         "axis": {
-         "stroke": {"value": "#333"},
-         "strokeWidth": {"value": 1.5}
-         }
-
-         }
-
-         }
-
-         if (axisConfig.hasOwnProperty("tickSize")) {
-         axis["tickSize"] = axisConfig.tickSize;
-         }
-
-
-         if (axisConfig.hasOwnProperty("tickPadding")) {
-         axis["tickPadding"] = axisConfig.tickPadding;
-         }
-         */
         var xAxisSpec=this.spec.axes[0];
         if(xAxisConfig.zero!=undefined)
         {
@@ -4444,34 +4397,6 @@
             this.spec.scales[0].nice=xAxisConfig.nice;
         }
             setGenericAxis(xAxisConfig,xAxisSpec);
-        /*xAxisConfig.tickSize
-        xAxisConfig.tickPadding
-        xAxisConfig.title;
-        xAxisConfig.grid;
-        xAxisConfig.offset
-        xAxisConfig.ticks
-
-
-        xAxisConfig.labelFill
-        xAxisConfig.labelFontSize
-        xAxisConfig.labelAngle
-        xAxisConfig.labelAlign
-        xAxisConfig.labelDx
-        xAxisConfig.labelDy
-        xAxisConfig.labelBaseLine;
-
-        xAxisConfig.titleDx;
-        xAxisConfig.titleDy
-        xAxisConfig.titleFontSize;
-
-        xAxisConfig.axisColor;
-        xAxisConfig.axisWidth;
-
-        xAxisConfig.tickColor;
-        xAxisConfig.tickWidth;
-*/
-
-
 
 
        return this;
@@ -4480,6 +4405,15 @@
     Chart.prototype.setYAxis=function(yAxisConfig){
 
         var yAxisSpec=this.spec.axes[1];
+        if(yAxisConfig.zero!=undefined)
+        {
+            this.spec.scales[1].zero=yAxisConfig.zero;
+        }
+        if(yAxisConfig.nice!=undefined)
+        {
+            this.spec.scales[1].nice=xAxisConfig.nice;
+        }
+
         setGenericAxis(yAxisConfig,yAxisSpec);
 
         return this;
@@ -4624,50 +4558,63 @@
         dataTable.data.sort(function(a,b){
 
             if(a[xAxis] instanceof Date)
-            return a[xAxis].getTime()-b[xAxis].getTime();
-            else
+                 return a[xAxis].getTime()-b[xAxis].getTime();
+            else if(typeof a[xAxis] == 'string' || a[xAxis] instanceof String)
+                return a[xAxis].localeCompare(b[xAxis])
             return a[xAxis]-b[xAxis];
         })
 
     }
 
-    function getIndexOfMaxRange(dataTable,yAxis){
+    function getIndexOfMaxRange(dataTable,yAxis,aggregate,groupedBy){
 
-        var currntMaxIndex=-1;
-        var currentMax=Number.MIN_VALUE;
-        for(i=0;i<yAxis.length;i++){
+        var  newDataTable=JSON.parse(JSON.stringify(dataTable));
+        if(aggregate!=undefined){
+            newDataTable.data=aggregatedTable(dataTable,groupedBy,aggregate)
+        }
 
-           var  newMax=d3.max(parseColumnFrom2DArray(dataTable.data,yAxis[i]));
-           console.log(parseColumnFrom2DArray(dataTable.data,yAxis[i]));
-            if(currentMax<newMax){
-                currntMaxIndex=i;
-                currentMax=newMax;
+
+        var currentMaxIndex = -1;
+        var currentMax = Number.NEGATIVE_INFINITY;
+        for (i = 0; i < yAxis.length; i++) {
+
+            var newMax = d3.max(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
+            console.log(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
+            if (currentMax <= newMax) {
+                currentMaxIndex = i;
+                currentMax = newMax;
             }
         }
 
-        return currntMaxIndex;
-    }
+        if(aggregate==undefined){
+            return "data."+createAttributeNames(dataTable.metadata.names[yAxis[currentMaxIndex]]);
 
-    Chart.prototype.plot=function (dataset,callback){
+         }else
+        {
+            return "data."+aggregate+"_"+createAttributeNames(dataTable.metadata.names[yAxis[currentMaxIndex]]);
 
-
-
-        this.dataTable.data=dataset;
-
-       sortDataTable(this.dataTable,this.config.xAxis);
-
-
-        var table=  setData(dataset,this.config ,this.dataTable.metadata);
-        if(this.config.yAxis.constructor==Array){
-
-            var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
-            var name=this.dataTable.metadata.names[this.config.yAxis[scaleIndex]];
-            console.log(name,scaleIndex,this.config.yAxis[scaleIndex]);
-            this.spec.scales[1].domain.field="data."+createAttributeNames(name);
 
         }
 
+    }
 
+    Chart.prototype.plot=function (dataset,callback){
+        this.dataTable.data=dataset;
+       console.log(this.dataTable)
+        sortDataTable(this.dataTable,this.config.xAxis);
+
+        var table=  setData(dataset,this.config ,this.dataTable.metadata);
+        if(this.config.yAxis.constructor==Array){
+            //var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
+            var name=getIndexOfMaxRange(this.dataTable,this.config.yAxis,this.config.aggregate,this.config.xAxis);
+            //console.log(name,scaleIndex,this.config.yAxis[scaleIndex]);
+            console.log("YField",name)
+
+            this.spec.scales[1].domain.field=name;
+        }
+
+
+        console.log(this.dataTable)
 
         var data={table:table}
 
