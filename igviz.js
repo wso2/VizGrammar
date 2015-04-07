@@ -408,7 +408,7 @@
                          break;
                      }
 
-                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+                var yVar = createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[foundIndex]])
                 //console.log( item);
                 var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
