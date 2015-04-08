@@ -408,9 +408,10 @@
                          break;
                      }
 
-                var yVar = createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[foundIndex]])
+                var yName=dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+                var yVar = createAttributeNames(yName)
                 //console.log( item);
-                var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+                var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -483,7 +484,7 @@
         var yScale=setScale(yScaleConfig);
 
         var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":false ,"dx":0,"dy":0,"align":"right","titleDy":30,"titleDx":0}
-        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis[0]] ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
         var title=setTitle(chartConfig.title,"black",12,"top");
@@ -641,9 +642,10 @@
                         break;
                     }
 
-                var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+                var yName=dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+                var yVar = createAttributeNames(yName)
 
-              var  contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[chartConfig.aggregate+"_"+yVar] + '</td></tr></table>';
+              var  contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[chartConfig.aggregate+"_"+yVar] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -1706,7 +1708,7 @@
         var yScale=setScale(yScaleConfig);
 
         var xAxisConfig= {"type": "x", "scale":"x","angle":-35, "title": dataTable.metadata.names[chartConfig.xAxis] ,"grid":false ,"dx":0,"dy":0,"align":"right","titleDy":30,"titleDx":0}
-        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": dataTable.metadata.names[chartConfig.yAxis[0]] ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
+        var yAxisConfig= {"type": "y", "scale":"y","angle":0, "title": "values" ,"grid":true,"dx":0,"dy":0  ,"align":"right","titleDy":-35,"titleDx":0}
         var xAxis=setAxis(xAxisConfig);
         var yAxis=setAxis(yAxisConfig);
         var title=setTitle(chartConfig.title,"black",12,"top");
@@ -1904,7 +1906,7 @@
 
                 var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
 
-                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[chartConfig.aggregate+"_"+createAttributeNames(yVar)] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -2129,7 +2131,7 @@
                 xVar = dataTable.metadata.names[chartConfig.xAxis]
                 yVar = dataTable.metadata.names[chartConfig.yAxis]
 
-                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[createAttributeNames(yVar)] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -2380,7 +2382,7 @@
 
                 var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
 
-                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
+                contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[createAttributeNames(yVar)] + '</td></tr></table>';
 
 
                 tool.html(contentString).style({
@@ -4110,8 +4112,10 @@
                     spec.properties.labels[MappingObj[propt]].value=axisConfig[propt];
                 else if(propt.indexOf("ticks")==0)
                     spec.properties.ticks[MappingObj[propt]].value=axisConfig[propt];
-                else if(propt.indexOf("title")==0)
+                else if(propt.indexOf("title")==0 && propt!="title")
                     spec.properties.title[MappingObj[propt]].value=axisConfig[propt];
+                else if(propt=='title')
+                    spec.title=axisConfig[propt];
                 else if(propt.indexOf("axis")==0)
                     spec.properties.axis[MappingObj[propt]].value=axisConfig[propt];
                 else
@@ -4606,6 +4610,9 @@
 
          }else
         {
+            if(aggregate=='count')
+            return "data."+aggregate;
+            else
             return "data."+aggregate+"_"+createAttributeNames(dataTable.metadata.names[yAxis[currentMaxIndex]]);
 
 
@@ -4619,11 +4626,11 @@
         sortDataTable(this.dataTable,this.config.xAxis);
 
         var table=  setData(dataset,this.config ,this.dataTable.metadata);
-        if(this.config.yAxis.constructor==Array){
+        if(this.config.yAxis!=undefined && this.config.yAxis.constructor==Array){
             //var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
             var name=getIndexOfMaxRange(this.dataTable,this.config.yAxis,this.config.aggregate,this.config.xAxis);
-            //console.log(name,scaleIndex,this.config.yAxis[scaleIndex]);
-            console.log("YField",name)
+            console.log("myName",name);
+
 
             this.spec.scales[1].domain.field=name;
         }
