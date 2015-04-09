@@ -60,12 +60,13 @@ module.exports = function (grunt) {
         },
         uglify: {
             options: {
-                banner: "/*Hello*/"
+                banner: "/***igviz.js***/"
             },
 
             js: {
                 files: {
-                    'build/igviz.min.js': ['build/igviz.js']
+                    'build/igviz.min.js': ['build/igviz.js'],
+                    'igviz.min.js': ['build/igviz.js']
                 }
             }
         }
