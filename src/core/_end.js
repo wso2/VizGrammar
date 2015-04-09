@@ -1,0 +1,4 @@
+//footer
+
+})
+(window.igviz || {});
