@@ -1,4 +1,8 @@
-
+/**
+ * This function will draw the area graph of a single series
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAreaChart = function (chartObj) {
     // var padding = chartConfig.padding;
     var chartConfig = chartObj.config;
@@ -19,10 +23,8 @@ igviz.drawAreaChart = function (chartObj) {
     }
 
 
-    var divId = chartObj.canvas;
 
-
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     //   console.log(table,xString,yStrings);
@@ -34,7 +36,7 @@ igviz.drawAreaChart = function (chartObj) {
         "name": "x",
         "range": "width",
         "field": xString
-    }
+    };
 
 
     var yScaleConfig = {
@@ -43,10 +45,11 @@ igviz.drawAreaChart = function (chartObj) {
         "name": "y",
         "range": "height",
         "field": yStrings
-    }
+    };
 
 
-    var xScale = setScale(xScaleConfig)
+
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -60,7 +63,7 @@ igviz.drawAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -72,7 +75,7 @@ igviz.drawAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -157,10 +160,10 @@ igviz.drawAreaChart = function (chartObj) {
                         "y": {"scale": "y", "field": yStrings}
                     }
                 }
-            },
+            }
 
         ]
-    }
+    };
 
 
     if (chartConfig.pointVisible) {
@@ -217,12 +220,12 @@ igviz.drawAreaChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -230,7 +233,7 @@ igviz.drawAreaChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;

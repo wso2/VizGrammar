@@ -1,18 +1,20 @@
-
-
+/**
+ *
+ * @param chartObj
+ * @returns {*}
+ */
 igviz.drawMultiAreaChart = function (chartObj) {
 
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
     if (chartConfig.aggregate != undefined) {
         return igviz.drawAggregatedMultiArea(chartObj);
     }
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
@@ -25,7 +27,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -34,9 +36,9 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -50,7 +52,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "align": "left",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -62,7 +64,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -72,7 +74,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
     }
 
 
-    var tempMargin = 160
+    var tempMargin = 160;
     var spec = {
         "width": chartConfig.width - tempMargin,
         "height": chartConfig.height,
@@ -118,7 +120,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         ,
 
         "marks": []
-    }
+    };
 
     if (chartConfig.markerSize == undefined) {
         chartConfig.markerSize = 30;
@@ -158,7 +160,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                 }
 
             }
-        }
+        };
 
         var lineObj = {
             "type": "line",
@@ -184,7 +186,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                     "y": {"scale": "y", "field": yStrings[i]}
                 }
             }
-        }
+        };
 
 
         var pointObj = {
@@ -214,7 +216,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                     "stroke": {"value": "white"}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(areaObj);
@@ -237,19 +239,19 @@ igviz.drawMultiAreaChart = function (chartObj) {
         if (item.mark.marktype == 'symbol') {
             // window.alert(a);
 
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+            var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
 
             contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[createAttributeNames(yVar)] + '</td></tr></table>';
 
@@ -258,12 +260,12 @@ igviz.drawMultiAreaChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -271,7 +273,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;

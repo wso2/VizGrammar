@@ -1,21 +1,25 @@
 
-
+/**
+ * This function will calculate the stacked y-value for grouped x-values , And draws the Stacked area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ * @return :void
+ */
 igviz.drawStackedAreaChart = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var areaString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.areaVar])
+    //setting data attributes for vega spec
+    var areaString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.areaVar]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
 
-    //     console.log(table,xString,yStrings,groupedBy);
-    // sortDataSet(table);
 
+
+    //Scale for grouped X axis
     var cat = {
         "index": chartConfig.xAxis,
         "schema": dataTable.metadata,
@@ -25,21 +29,22 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "padding": 0.2,
         "zero": false,
         "nice": true
-    }
+    };
 
 
+    //Scale for stacked y values
     var val = {
         "index": chartConfig.yAxis,
         "schema": dataTable.metadata,
         "name": "val",
         "range": "height",
         "dataFrom": "stats",
-        "field": "sum",
+        "field": "sum", //aggregation
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -53,7 +58,7 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "align": "left",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "val",
@@ -65,12 +70,12 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
 
-    var spec = {
+    chartObj.spec = {
         "width": chartConfig.width - 160,
         "height": chartConfig.height - 100,
         "padding": {"top": 10, "left": 60, "bottom": 60, "right": 100},
@@ -79,7 +84,7 @@ igviz.drawStackedAreaChart = function (chartObj) {
                 "name": "table"
             },
             {
-                "name": "stats",
+                "name": "stats", //apply grouped by and aggregate transformations
                 "source": "table",
                 "transform": [
                     {"type": "facet", "keys": [xString]},
@@ -162,7 +167,6 @@ igviz.drawStackedAreaChart = function (chartObj) {
                         "properties": {
                             "enter": {
                                 "x": {"scale": "cat", "field": xString},
-                                //"x": {"value": 400},
                                 "interpolate": {"value": "monotone"},
                                 "y": {"scale": "val", "field": "y"},
                                 "stroke": {"scale": "color", "field": areaString},
@@ -173,11 +177,9 @@ igviz.drawStackedAreaChart = function (chartObj) {
                 ]
             }
         ]
-    }
-
-    chartObj.spec = spec;
+    };
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.areaVar;
 
 
-}
+};

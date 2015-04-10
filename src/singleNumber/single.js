@@ -10,7 +10,6 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
     //Width and height
     var w = chartConfig.width;
     var h = chartConfig.height;
-    var padding = chartConfig.padding;
 
     //configure font sizes
     var MAX_FONT_SIZE = w / 25;
@@ -33,7 +32,7 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
     };
 
 
-    chart = igviz.setUp(divId, chartConfig, dataTable);
+    var chart = igviz.setUp(divId, chartConfig, dataTable);
     chart.plot(dataTable.data);
 
     //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
@@ -73,7 +72,7 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", w)
-        .attr("height", h)
+        .attr("height", h);
 
 
     //Minimum value goes here

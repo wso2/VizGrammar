@@ -8,7 +8,7 @@
     //dataTable.addColumn("OrderId","C");
     //dataTable.addColumn("Amount","N");
     //dataTable.addRow(["12SS",1234.56]);
-igviz.DataTable = function (data) {
+igviz.DataTable = function () {
     this.metadata = {};
     this.metadata.names = [];
     this.metadata.types = [];
@@ -28,7 +28,7 @@ igviz.DataTable.prototype.addRows = function (rows) {
     for (var i = 0; i < rows.length; i++) {
         this.data.push(rows[i]);
     }
-    ;
+
 };
 
 igviz.DataTable.prototype.getColumnNames = function () {

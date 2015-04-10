@@ -4,17 +4,13 @@ igviz.drawStackedBarChart = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //   var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
-
-    // console.log(table,xString,yStrings,groupedBy);
-    // sortDataSet(table);
 
     var cat = {
         "index": chartConfig.groupedBy,
@@ -23,7 +19,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "range": "width",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -34,10 +30,10 @@ igviz.drawStackedBarChart = function (chartObj) {
         "dataFrom": "stats",
         "field": "sum",
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -51,7 +47,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "val",
@@ -63,7 +59,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -156,10 +152,10 @@ igviz.drawStackedBarChart = function (chartObj) {
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};

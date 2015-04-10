@@ -5,15 +5,15 @@
 igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, originaltable) {
     //	console.log(dataTable,chartConfig,divId);
     if (index == 0) {
-        d3.select(divId).append('div').attr({id: 'links', height: 20, 'bgcolor': 'blue'})
-        d3.select(divId).append('div').attr({id: 'chartDiv'})
+        d3.select(divId).append('div').attr({id: 'links', height: 20, 'bgcolor': 'blue'});
+        d3.select(divId).append('div').attr({id: 'chartDiv'});
         chartConfig.height = chartConfig.height - 20;
         divId = "#chartDiv";
     }
     var currentChartConfig = JSON.parse(JSON.stringify(chartConfig));
     var current_x = 0;
     if (index < chartConfig.xAxis.length)
-        current_x = chartConfig.xAxis[index].index
+        current_x = chartConfig.xAxis[index].index;
     else
         current_x = chartConfig.xAxis[index - 1].child;
 
@@ -24,10 +24,13 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
             types: [dataTable.metadata.types[current_x], dataTable.metadata.types[current_y]]
         },
         data: []
-    }
+    };
 
     var tempData = [];
-    for (i = 0; i < dataTable.data.length; i++) {
+    var name;
+    var currentYvalue;
+    var isFound;
+    for (var i = 0; i < dataTable.data.length; i++) {
         name = dataTable.data[i][current_x];
         currentYvalue = dataTable.data[i][current_y];
         isFound = false;
@@ -56,11 +59,11 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
     var x = this.setUp(divId, currentChartConfig, currentData);
     x.plot(currentData.data, function () {
 
-        var filters = d3.select('#links .root').on('click', function () {
+         d3.select('#links .root').on('click', function () {
             d3.select("#links").html('');
             igviz.drillDown(0, divId, chartConfig, originaltable, originaltable);
 
-        })
+        });
 
 
         var filters = d3.select('#links').selectAll('.filter');
@@ -68,13 +71,13 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
 
             var filtersList = filters.data();
 
-            console.log(filtersList)
-            var filterdDataset = [];
+            //console.log(filtersList)
+            var filteredDataSet = [];
             var selectionObj = JSON.parse(JSON.stringify(originaltable));
             var itr = 0;
-            for (l = 0; l < originaltable.data.length; l++) {
+            for (var l = 0; l < originaltable.data.length; l++) {
                 var isFiltered = true;
-                for (k = 0; k <= i; k++) {
+                for (var k = 0; k <= i; k++) {
 
                     if (originaltable.data[l][filtersList[k][0]] !== filtersList[k][1]) {
                         isFiltered = false;
@@ -82,7 +85,7 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                     }
                 }
                 if (isFiltered) {
-                    filterdDataset[itr++] = originaltable.data[l];
+                    filteredDataSet[itr++] = originaltable.data[l];
                 }
 
             }
@@ -91,10 +94,10 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 if (indx > i) {
                     this.remove();
                 }
-            })
+            });
 
 
-            selectionObj.data = filterdDataset;
+            selectionObj.data = filteredDataSet;
 
             igviz.drillDown(i + 1, divId, chartConfig, selectionObj, originaltable, true);
 
@@ -110,7 +113,6 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 var selectedName = d.datum.data[x.dataTable.metadata.names[x.config.xAxis]];
                 //  console.log(selectedName);
                 var selectedCurrentData = JSON.parse(JSON.stringify(dataTable));
-                var innerText;
 
                 var links = d3.select('#links').append('g').append('text').text(dataTable.metadata.names[current_x] + " : ").attr({
 
@@ -123,11 +125,12 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 d3.select('#links:first-child').selectAll('text').attr('class', 'root');
 
                 d3.select('#links g:last-child').append('span').data([[current_x, selectedName]]).attr('class', 'filter').text(selectedName + "  >  ")
+                ;
 
                 var l = selectedCurrentData.data.length;
                 var newdata = [];
-                b = 0;
-                for (a = 0; a < l; a++) {
+                var b = 0;
+                for (var a = 0; a < l; a++) {
                     if (selectedCurrentData.data[a][current_x] === selectedName) {
                         newdata[b++] = selectedCurrentData.data[a];
                     }
@@ -146,5 +149,5 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
     });
 
 
-}
+};
 

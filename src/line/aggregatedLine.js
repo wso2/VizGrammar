@@ -5,7 +5,7 @@ igviz.drawAggregatedLine = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
     var operation = "sum";
 
@@ -15,8 +15,8 @@ igviz.drawAggregatedLine = function (chartObj) {
 
     var transFormedYStrings = [];
     var newFields = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
-        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
+        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         transFormedYStrings[i] = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         newFields.push({"op": operation, "field": yStrings[i]})
     }
@@ -34,7 +34,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -43,9 +43,9 @@ igviz.drawAggregatedLine = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings[0],
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -59,7 +59,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -71,7 +71,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
@@ -138,7 +138,7 @@ igviz.drawAggregatedLine = function (chartObj) {
             }
         ],
         "marks": []
-    }
+    };
 
 
     if (chartConfig.markerSize == undefined) {
@@ -201,7 +201,7 @@ igviz.drawAggregatedLine = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(markObj);
@@ -217,20 +217,20 @@ igviz.drawAggregatedLine = function (chartObj) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
-            var yVar = createAttributeNames(yName)
+            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
+            var yVar = createAttributeNames(yName);
 
             var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[chartConfig.aggregate + "_" + yVar] + '</td></tr></table>';
 
@@ -239,10 +239,10 @@ igviz.drawAggregatedLine = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
     chartObj.toolTipFunction[1] = function (event, item) {
 
@@ -252,11 +252,11 @@ igviz.drawAggregatedLine = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     //   chartObj.spec=spec;
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
 
-}
+};

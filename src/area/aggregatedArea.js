@@ -1,11 +1,15 @@
 
-
+/**
+ * This function will calculate the aggregated y-value if there are repeated x-values , And draws the area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAggregatedArea = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings;
     var operation = "sum";
 
@@ -15,7 +19,7 @@ igviz.drawAggregatedArea = function (chartObj) {
 
     var transFormedYStrings;
     var newFields = [];
-    yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
     transFormedYStrings = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     console.log("values", newFields, transFormedYStrings, yStrings);
@@ -32,7 +36,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -41,9 +45,9 @@ igviz.drawAggregatedArea = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings,
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -57,7 +61,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -69,7 +73,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
@@ -202,7 +206,7 @@ igviz.drawAggregatedArea = function (chartObj) {
 
 
         ]
-    }
+    };
 
 
     chartObj.toolTipFunction = [];
@@ -210,8 +214,8 @@ igviz.drawAggregatedArea = function (chartObj) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            xVar = dataTable.metadata.names[chartConfig.xAxis]
-            yVar = dataTable.metadata.names[chartConfig.yAxis]
+            xVar = dataTable.metadata.names[chartConfig.xAxis];
+            yVar = dataTable.metadata.names[chartConfig.yAxis];
 
             contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
@@ -220,12 +224,12 @@ igviz.drawAggregatedArea = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
 
         }
 
-        chartObj.toolTipFunction[1] = function (event, item) {
+        chartObj.toolTipFunction[1] = function (event) {
 
             tool.html("").style({
                 'left': event.pageX + 10 + 'px',
@@ -233,7 +237,7 @@ igviz.drawAggregatedArea = function (chartObj) {
                 'opacity': 0
             })
 
-        }
+        };
 
         //   chartObj.spec=spec;
         chartObj.toolTip = true;
@@ -241,4 +245,4 @@ igviz.drawAggregatedArea = function (chartObj) {
 
 
     }
-}
+};

@@ -3,15 +3,13 @@
 /*************************************************** Scatter chart ***************************************************************************************************/
 
 igviz.drawScatterPlot = function (chartObj) {
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //    table=setData(dataTable,chartConfig)
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
-    var rString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointSize])
-    var cString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointColor])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+    var rString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointSize]);
+    var cString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointColor]);
 
 
     var xScaleConfig = {
@@ -22,7 +20,7 @@ igviz.drawScatterPlot = function (chartObj) {
 
         "field": xString
 
-    }
+    };
 
     var rScaleConfig = {
         "index": chartConfig.pointSize,
@@ -30,14 +28,14 @@ igviz.drawScatterPlot = function (chartObj) {
         "schema": dataTable.metadata,
         "name": "r",
         "field": rString
-    }
+    };
     var cScaleConfig = {
         "index": chartConfig.pointColor,
         "schema": dataTable.metadata,
         "name": "c",
         "range": [chartConfig.minColor, chartConfig.maxColor],
         "field": cString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis,
@@ -46,12 +44,12 @@ igviz.drawScatterPlot = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yString
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
     var rScale = setScale(rScaleConfig);
-    var cScale = setScale(cScaleConfig)
+    var cScale = setScale(cScaleConfig);
 
     var xAxisConfig = {
         "type": "x",
@@ -64,7 +62,7 @@ igviz.drawScatterPlot = function (chartObj) {
         "align": "right",
         "titleDy": 25,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -76,7 +74,7 @@ igviz.drawScatterPlot = function (chartObj) {
         "align": "right",
         "titleDy": -30,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -184,14 +182,14 @@ igviz.drawScatterPlot = function (chartObj) {
                 }
             }
         ]
-    }
+    };
     chartObj.toolTipFunction = [];
     chartObj.toolTipFunction[0] = function (event, item) {
         console.log(tool, event, item);
-        xVar = dataTable.metadata.names[chartConfig.xAxis]
-        yVar = dataTable.metadata.names[chartConfig.yAxis]
-        pSize = dataTable.metadata.names[chartConfig.pointSize]
-        pColor = dataTable.metadata.names[chartConfig.pointColor]
+        xVar = dataTable.metadata.names[chartConfig.xAxis];
+        yVar = dataTable.metadata.names[chartConfig.yAxis];
+        pSize = dataTable.metadata.names[chartConfig.pointSize];
+        pColor = dataTable.metadata.names[chartConfig.pointColor];
 
         contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr>' + '<tr><td> Size </td><td> (' + pSize + ') </td><td>' + item.datum.data[pSize] + '</td></tr>' + '<tr><td bgcolor="' + item.fill + '">&nbsp; </td><td> (' + pColor + ') </td><td>' + item.datum.data[pColor] + '</td></tr>' +
         '</table>';
@@ -201,12 +199,12 @@ igviz.drawScatterPlot = function (chartObj) {
             'left': event.pageX + 10 + 'px',
             'top': event.pageY + 10 + 'px',
             'opacity': 1
-        })
+        });
         tool.selectAll('tr td').style('padding', "3px");
 
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -214,8 +212,8 @@ igviz.drawScatterPlot = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
-}
+};

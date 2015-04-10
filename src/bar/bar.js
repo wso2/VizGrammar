@@ -2,8 +2,7 @@
 /*************************************************** Bar chart ***************************************************************************************************/
 
 igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
-    //  console.log(this);
-    var divId = mychart.canvas;
+
     var chartConfig = mychart.config;
     var dataTable = mychart.dataTable;
     if (chartConfig.hasOwnProperty('aggregate')) {
@@ -17,7 +16,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
 
         }
         if (format == "grouped") {
-            console.log("groupedDFJSDFKSD:JFKDJF");
+            //console.log("groupedDFJSDFKSD:JFKDJF");
             if (chartConfig.orientation == 'H') {
                 console.log('horizontal');
                 return this.drawGroupedBarChart(mychart);
@@ -31,7 +30,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
     }
 
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var xScaleConfig = {
         "index": chartConfig.xAxis,
@@ -40,7 +39,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "range": "width",
         "round": true,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis,
@@ -49,7 +48,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "range": "height",
         "nice": true,
         "field": yString
-    }
+    };
 
     var xScale = setScale(xScaleConfig)
     var yScale = setScale(yScaleConfig);
@@ -65,7 +64,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -77,7 +76,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -140,7 +139,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
                 }
             }
         ]
-    }
+    };
 
 
 //        var data = {table: table}

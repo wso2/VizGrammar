@@ -5,7 +5,7 @@
     //Constructor for Axis object
 
 igviz.Axis = (function () {
-    var axis = function (axisConfig) {
+    return function (axisConfig) {
         this.axis = {
             "type": axisConfig.type,
             "scale": axisConfig.scale,
@@ -41,7 +41,7 @@ igviz.Axis = (function () {
 
             }
 
-        }
+        };
         if (axisConfig.hasOwnProperty("tickSize")) {
             this.axis["tickSize"] = axisConfig.tickSize;
         }
@@ -51,15 +51,12 @@ igviz.Axis = (function () {
             this.axis["tickPadding"] = axisConfig.tickPadding;
         }
 
-    }
+    };
 
-
-    return axis;
-
-})()
+})();
 
 
 igviz.axes = function (axisConfig) {
     return new igviz.Axis(axisConfig)
-}
+};
 

@@ -1,11 +1,15 @@
-
-
+/**
+ * This function will calculate the aggregated y-value if there are repeated x-values , And draws the multi area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAggregatedMultiArea = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    //attribute name for x,vy in  vega spec
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
     var operation = "sum";
 
@@ -15,16 +19,19 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
 
     var transFormedYStrings = [];
     var newFields = [];
+
+    //attribute names of transformed data set
     for (i = 0; i < chartConfig.yAxis.length; i++) {
-        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
+        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         transFormedYStrings[i] = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
-        newFields.push({"op": operation, "field": yStrings[i]})
+        newFields.push({"op": operation, "field": yStrings[i]});
     }
     console.log("values", newFields, transFormedYStrings, yStrings);
     if (operation == "count") {
         transFormedYStrings = "data.count";
     }
 
+    //Configuration for X Scale
     var xScaleConfig = {
         "index": chartConfig.xAxis,
         "schema": dataTable.metadata,
@@ -34,7 +41,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -43,11 +50,14 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings[0],
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    //generating scales
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
+
+    //Axis configuration goes here....
     var xAxisConfig = {
         "type": "x",
         "scale": "x",
@@ -59,7 +69,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -71,17 +81,20 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
 
+
+    //Default interpolation mode is -'monotone' and other possiblities are : cardinal,basis,step-before,step-after,linear
 
     if (chartConfig.interpolationMode == undefined) {
         chartConfig.interpolationMode = "monotone";
     }
 
 
+    //Vega spec object
     var spec = {
         "width": chartConfig.width - 170,
         //"padding":{'top':30,"left":80,"right":80,'bottom':60},
@@ -137,14 +150,17 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
             }
         ],
         "marks": []
-    }
+    };
 
+
+    //If marker size is unspecified , take 30 as the default value
     if (chartConfig.markerSize == undefined) {
         chartConfig.markerSize = 30;
     }
 
 
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
+        //Adding area marks
         var areaObj = {
             "type": "area",
             "key": xString,
@@ -179,9 +195,10 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 }
 
             }
-        }
+        };
 
 
+        //Adding line marks
         var markObj = {
             "type": "line",
             "key": xString,
@@ -209,6 +226,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         };
 
 
+        //Adding point marks
         var pointObj = {
             "type": "symbol",
 
@@ -242,29 +260,32 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 }
             }
         }
-
+;
 
         spec.marks.push(areaObj);
         spec.marks.push(markObj);
 
+        //Allows user to customize the visibility of points
         if (chartConfig.pointVisible)
             spec.marks.push(pointObj);
+
+        //Set legend values
         spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
+
+    //Adding tooltip handlers...
 
     chartObj.toolTipFunction = [];
     chartObj.toolTipFunction[0] = function (event, item) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
-
-
-            var colorScale = d3.scale.category20()
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
@@ -279,12 +300,13 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    //Adding styles for when tooltip is hide
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -292,11 +314,11 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
-    //   chartObj.spec=spec;
+    // Store the references of spec and tooltips in chartObject
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
 
-}
+};

@@ -1,16 +1,14 @@
 
 
 igviz.drawSeries = function (chartObj) {
-
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
 
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
     }
 
@@ -22,7 +20,7 @@ igviz.drawSeries = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -31,9 +29,9 @@ igviz.drawSeries = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -47,7 +45,7 @@ igviz.drawSeries = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -59,7 +57,7 @@ igviz.drawSeries = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -109,7 +107,7 @@ igviz.drawSeries = function (chartObj) {
         ],
 
         "marks": []
-    }
+    };
 
     for (i = 0; i < chartConfig.yAxis.length; i++) {
         var markObj = {
@@ -158,7 +156,7 @@ igviz.drawSeries = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         if (chartConfig.lineMark)
@@ -171,4 +169,4 @@ igviz.drawSeries = function (chartObj) {
 
     }
     chartObj.spec = spec;
-}
+};

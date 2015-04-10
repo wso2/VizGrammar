@@ -3,11 +3,9 @@
 igviz.drawGroupedBarChart = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
@@ -22,7 +20,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "range": "height",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -33,10 +31,10 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "round": 'true',
         "field": yStrings,
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -50,7 +48,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "cat",
@@ -64,7 +62,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -157,41 +155,25 @@ igviz.drawGroupedBarChart = function (chartObj) {
                                 "fillOpacity": {"value": 1}
                             }
                         }
-                    },
-                    //{
-                    //    "type": "text",
-                    //    "properties": {
-                    //        "enter": {
-                    //            "y": {"scale": "pos", "field": xString},
-                    //            "dy": {"scale": "pos", "band": true, "mult": 0.5},
-                    //            "x": {"scale": "val", "field": yStrings, "offset": -4},
-                    //            "fill": {"value": "white"},
-                    //            "align": {"value": "right"},
-                    //            "baseline": {"value": "middle"},
-                    //            "text": {"field": xString}
-                    //        }
-                    //    }
-                    //}
+                    }
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};
 
 
 igviz.drawGroupedBarChartVertical = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
@@ -206,7 +188,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "range": "width",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -217,10 +199,10 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "round": 'true',
         "field": yStrings,
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var yAxisConfig = {
@@ -234,7 +216,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var xAxisConfig = {
         "type": "x",
         "scale": "cat",
@@ -248,7 +230,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -344,10 +326,10 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};

@@ -12,35 +12,34 @@ function unique(array) {
     return uni;
 }
 
-
-function aggregate(value1, value2, op) {
-    var result = 0;
-    switch ('op') {
-        case 'sum':
-            result = value1 + value2;
-            break;
-        case 'avg':
-            result = value1 + value2;
-            break;
-        case 'min':
-            result = value1 + value2;
-            break;
-        case 'max':
-            result = value1 + value2;
-            break;
-        case 'count':
-            result = value1 + value2;
-            break;
-    }
-}
+//
+//function aggregate(value1, value2, op) {
+//    var result = 0;
+//    switch (op) {
+//        case 'sum':
+//            result = value1 + value2;
+//            break;
+//        case 'avg':
+//            result = value1 + value2;
+//            break;
+//        case 'min':
+//            result = value1 + value2;
+//            break;
+//        case 'max':
+//            result = value1 + value2;
+//            break;
+//        case 'count':
+//            result = value1 + value2;
+//            break;
+//    }
+//}
 
 function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIndex) {
     var resultant = [];
     var AllRows = [];
     var AllCols = [];
-    var a = 0;
-    var b = 0;
-    for (i = 0; i < dataTable.data.length; i++) {
+
+    for (var i = 0; i < dataTable.data.length; i++) {
         AllRows[i] = dataTable.data[i][rowIndex];
 
         AllCols[i] = dataTable.data[i][columnIndex];
@@ -50,11 +49,11 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
 
 
     var counter = [];
-    for (i = 0; i < rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         resultant[i] = [];
         counter[i] = [];
         resultant[i][0] = rows[i];
-        for (j = 0; j < meta.length; j++) {
+        for (var j = 0; j < meta.length; j++) {
             switch (aggregate) {
                 case "max":
                     resultant[i][j + 1] = Number.MIN_VALUE;
@@ -73,6 +72,8 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
 //        console.log(rows,meta,resultant);
 
 
+    var existing;
+    var existingCounter;
     for (i = 0; i < dataTable.data.length; i++) {
         var row = dataTable.data[i][rowIndex];
         var col = dataTable.data[i][columnIndex];
@@ -85,7 +86,7 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
         existing = resultant[rows.indexOf(row)][1 + meta.indexOf(col)];
         existingCounter = counter[rows.indexOf(row)][1 + meta.indexOf(col)];
         //existingCounter++;
-        var resultValue = 0
+        var resultValue = 0;
         switch (aggregate) {
             case "sum":
                 resultValue = existing + value;
@@ -133,17 +134,17 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
     var newDataTable = [];
     var counter = [];
 
-    var AllRows = []
-    for (i = 0; i < dataTable.data.length; i++) {
+    var AllRows = [];
+    for (var i = 0; i < dataTable.data.length; i++) {
         AllRows[i] = dataTable.data[i][groupedBy];
     }
 
     var rows = unique(AllRows);
 
-    for (i = 0; i < rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         newDataTable[i] = [];
         counter[i] = 0;
-        for (j = 0; j < dataTable.metadata.names.length; j++) {
+        for (var j = 0; j < dataTable.metadata.names.length; j++) {
             if (groupedBy != j) {
                 switch (aggregate) {
                     case "max":
@@ -166,17 +167,17 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
 
 
     for (i = 0; i < dataTable.data.length; i++) {
-        var gvalue = dataTable.data[i][groupedBy];
-        counter[rows.indexOf(gvalue)]++;
-        var existingRow = newDataTable[rows.indexOf(gvalue)];
-        var existingCounter = counter[rows.indexOf(gvalue)];
+        var groupedValue = dataTable.data[i][groupedBy];
+        counter[rows.indexOf(groupedValue)]++;
+        var existingRow = newDataTable[rows.indexOf(groupedValue)];
+        var existingCounter = counter[rows.indexOf(groupedValue)];
 
         for (j = 0; j < existingRow.length; j++) {
             if (j != groupedBy) {
                 var existing = existingRow[j];
                 var value = dataTable.data[i][j];
 
-                var resultValue = 0
+                var resultValue = 0;
                 switch (aggregate) {
                     case "sum":
                         resultValue = existing + value;
@@ -196,7 +197,7 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
                 }
 
                 //console.log(resultValue);
-                newDataTable[rows.indexOf(gvalue)][j] = resultValue;
+                newDataTable[rows.indexOf(groupedValue)][j] = resultValue;
             }
         }
 
@@ -300,8 +301,8 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
         .range([15, 20]);
 
     //create the table head
-    thead = table.append("thead");
-    tbody = table.append("tbody")
+    var thead = table.append("thead");
+    var tbody = table.append("tbody")
 
     //Append the header to the table
     thead.append("tr")
@@ -319,7 +320,7 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
     var rows = tbody.selectAll("tr")
         .data(tableData)
         .enter()
-        .append("tr")
+        .append("tr");
 
     var cells;
 
@@ -452,8 +453,8 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
 
         var minimum = dataTable.data[0][1];
         var maximum = dataTable.data[0][1];
-        for (j = 0; j < dataTable.data.length; j++) {
-            for (a = 0; a < dataTable.metadata.names.length; a++) {
+        for (var j = 0; j < dataTable.data.length; j++) {
+            for (var a = 0; a < dataTable.metadata.names.length; a++) {
                 if (dataTable.metadata.types[a] == 'N') {
 
                     if (dataTable.data[j][a] > maximum) {

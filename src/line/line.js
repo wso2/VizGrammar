@@ -3,18 +3,16 @@
 
 
 igviz.drawLineChart = function (chartObj) {
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
     if (chartConfig.aggregate != undefined) {
         return igviz.drawAggregatedLine(chartObj);
 
     }
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
@@ -27,7 +25,7 @@ igviz.drawLineChart = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -36,9 +34,9 @@ igviz.drawLineChart = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -52,7 +50,7 @@ igviz.drawLineChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -64,7 +62,7 @@ igviz.drawLineChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -117,7 +115,7 @@ igviz.drawLineChart = function (chartObj) {
         ],
 
         "marks": []
-    }
+    };
 
     if (chartConfig.markerSize == undefined)
         chartConfig.markerSize = 30;
@@ -177,7 +175,7 @@ igviz.drawLineChart = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(markObj);
@@ -192,20 +190,20 @@ igviz.drawLineChart = function (chartObj) {
     chartObj.toolTipFunction[0] = function (event, item) {
 
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
-            var yVar = createAttributeNames(yName)
+            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
+            var yVar = createAttributeNames(yName);
             //console.log( item);
             var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
@@ -214,10 +212,10 @@ igviz.drawLineChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
     chartObj.toolTipFunction[1] = function (event, item) {
 
@@ -227,10 +225,10 @@ igviz.drawLineChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
-}
+};

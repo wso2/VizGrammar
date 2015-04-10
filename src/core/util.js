@@ -49,7 +49,7 @@ function standardDeviation(values) {
  */
 function pX(x, sigma, u) {
 
-    p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
+    var p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
 
     return p;
 }
@@ -83,16 +83,12 @@ function NormalizationCoordinates(xVals) {
  * This function will extract a column from a multi dimensional array
  * @param 2D array
  * @param index of column to be extracted
- * @return array of values
+ * @return Array of values
  */
 
 function parseColumnFrom2DArray(dataset, index) {
 
     var array = [];
-
-    //console.log(dataset.length);
-    //console.log(dataset[0].data);
-    //console.log(dataset[1].data);
 
     for (var i = 0; i < dataset.length; i++) {
         array.push(dataset[i][index])

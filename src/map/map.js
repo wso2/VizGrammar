@@ -13,9 +13,9 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
     var regionO = chartConfig.region;
 
 
-    //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
+    //prepare the dataSet (all plot methods should use { "data":dataLine, "config":chartConfig } format
     //so you can use util methods
-    var dataset = dataTable.data.map(function (d, i) {
+    var dataSet = dataTable.data.map(function (d, i) {
         return {
             "data": d,
             "config": chartConfig,
@@ -26,15 +26,15 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
     var tempArray = [];
     var mainArray = [];
 
-    var locIndex = dataset[0].config.mapLocation;
-    var pColIndex = dataset[0].config.pointColor;
-    var pSizIndex = dataset[0].config.pointSize;
-    tempArray.push(dataset[locIndex].name, dataset[pColIndex].name, dataset[pSizIndex].name);
+    var locIndex = dataSet[0].config.mapLocation;
+    var pColIndex = dataSet[0].config.pointColor;
+    var pSizIndex = dataSet[0].config.pointSize;
+    tempArray.push(dataSet[locIndex].name, dataSet[pColIndex].name, dataSet[pSizIndex].name);
     mainArray.push(tempArray);
 
-    for (var counter = 0; counter < dataset.length; counter++) {
+    for (var counter = 0; counter < dataSet.length; counter++) {
         tempArray = [];
-        tempArray.push(dataset[counter].data[locIndex], dataset[counter].data[pColIndex], dataset[counter].data[pSizIndex]);
+        tempArray.push(dataSet[counter].data[locIndex], dataSet[counter].data[pColIndex], dataSet[counter].data[pSizIndex]);
         mainArray.push(tempArray);
     }
 
@@ -52,8 +52,7 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
         tempArray.push(mainArray[i][0]);
         tempArray.push(str);
         mainStrArray.push(tempArray);
-    }
-    ;
+    };
 
     //hardcoded
     // alert(divId);

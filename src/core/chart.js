@@ -23,7 +23,7 @@ Chart.prototype.setXAxis = function (xAxisConfig) {
     setGenericAxis(xAxisConfig, xAxisSpec);
 
     return this;
-}
+};
 
 
 Chart.prototype.setYAxis = function (yAxisConfig) {
@@ -33,28 +33,28 @@ Chart.prototype.setYAxis = function (yAxisConfig) {
         this.spec.scales[1].zero = yAxisConfig.zero;
     }
     if (yAxisConfig.nice != undefined) {
-        this.spec.scales[1].nice = xAxisConfig.nice;
+        this.spec.scales[1].nice = yAxisConfig.nice;
     }
 
     setGenericAxis(yAxisConfig, yAxisSpec);
 
     return this;
-}
+};
 
 
 Chart.prototype.setPadding = function (paddingConfig) {
 
     if (this.spec.padding == undefined) {
-        this.spec.padding = {}
+        this.spec.padding = {};
         this.spec.padding.top = 0;
         this.spec.padding.bottom = 0;
         this.spec.padding.left = 0;
         this.spec.padding.right = 0;
     }
-    for (var propt in paddingConfig) {
-        if (paddingConfig.hasOwnProperty(propt)) {
+    for (var prop in paddingConfig) {
+        if (paddingConfig.hasOwnProperty(prop)) {
 
-            this.spec.padding[propt] = paddingConfig[propt];
+            this.spec.padding[prop] = paddingConfig[prop];
         }
     }
 
@@ -62,14 +62,14 @@ Chart.prototype.setPadding = function (paddingConfig) {
     this.spec.height = this.originalHeight - this.spec.padding.top - this.spec.padding.bottom;
 
     return this;
-}
+};
 
 Chart.prototype.unsetPadding = function () {
     delete this.spec.padding;
     this.spec.width = this.originalWidth;
     this.spec.height = this.originalHeight;
     return this;
-}
+};
 
 Chart.prototype.setDimension = function (dimensionConfig) {
 
@@ -84,15 +84,15 @@ Chart.prototype.setDimension = function (dimensionConfig) {
 
     }
 
-}
+};
 
 Chart.prototype.update = function (pointObj) {
 
-    var newTable = setData([pointObj], this.config, this.dataTable.metadata);
+    var newTable = setData([pointObj], this.dataTable.metadata);
 
     if (this.config.update == "slide") {
 
-        var point = this.table.shift();
+         this.table.shift();
         this.dataTable.data.shift();
 
     }
@@ -103,20 +103,21 @@ Chart.prototype.update = function (pointObj) {
     this.table.push(newTable[0]);
     this.chart.data(this.data).update({"duration": 500});
 
-}
+};
 
-Chart.prototype.updateList = function (dataList, callback) {
+Chart.prototype.updateList = function (parameters) {
+    var dataList = parameters.dataList;
 
-    for (i = 0; i < dataList.length; i++) {
+    for (var i = 0; i < dataList.length; i++) {
         if (this.config.update == "slide")
             this.dataTable.data.shift();
 
         this.dataTable.data.push(dataList[i]);
     }
 
-    var newTable = setData(dataList, this.config, this.dataTable.metadata);
+    var newTable = setData(dataList, this.dataTable.metadata);
 
-    for (i = 0; i < dataList.length; i++) {
+    for (var i = 0; i < dataList.length; i++) {
 
 
         if (this.config.update == "slide") {
@@ -129,13 +130,12 @@ Chart.prototype.updateList = function (dataList, callback) {
     //     console.log(point,this.chart,this.data);
     this.chart.data(this.data).update({"duration": 500});
 
-}
+};
 
 Chart.prototype.resize = function () {
     var ref = this;
-    var newH = document.getElementById(ref.canvas.replace('#', '')).offsetHeight
-    var newW = document.getElementById(ref.canvas.replace('#', '')).offsetWidth
-    console.log("Resized", newH, newW, ref)
+    var newH = document.getElementById(ref.canvas.replace('#', '')).offsetHeight;
+    var newW = document.getElementById(ref.canvas.replace('#', '')).offsetWidth;
 
     var left = 0, top = 0, right = 0, bottom = 0;
 
@@ -175,7 +175,7 @@ Chart.prototype.resize = function () {
     console.log(w, h);
     ref.chart.width(w).height(h).renderer('svg').update({props: 'enter'}).update();
 
-}
+};
 
 function sortDataTable(dataTable, xAxis) {
     if (dataTable.metadata.types[xAxis] == 'U' || dataTable.metadata.types[xAxis] == 'T') {
@@ -213,7 +213,7 @@ function getIndexOfMaxRange(dataTable, yAxis, aggregate, groupedBy) {
 
     var currentMaxIndex = -1;
     var currentMax = Number.NEGATIVE_INFINITY;
-    for (i = 0; i < yAxis.length; i++) {
+    for (var i = 0; i < yAxis.length; i++) {
 
         var newMax = d3.max(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
         console.log(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
@@ -237,25 +237,19 @@ function getIndexOfMaxRange(dataTable, yAxis, aggregate, groupedBy) {
 
 }
 
-Chart.prototype.plot = function (dataset, callback) {
-    this.dataTable.data = dataset;
-    console.log(this.dataTable)
+Chart.prototype.plot = function (dataSet, callback) {
+    this.dataTable.data = dataSet;
     sortDataTable(this.dataTable, this.config.xAxis);
 
-    var table = setData(dataset, this.config, this.dataTable.metadata);
+    var table = setData(dataSet, this.dataTable.metadata);
     if (this.config.yAxis != undefined && this.config.yAxis.constructor == Array) {
         //var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
-        var name = getIndexOfMaxRange(this.dataTable, this.config.yAxis, this.config.aggregate, this.config.xAxis);
-        console.log("myName", name);
-
-
-        this.spec.scales[1].domain.field = name;
+        this.spec.scales[1].domain.field = getIndexOfMaxRange(this.dataTable, this.config.yAxis, this.config.aggregate, this.config.xAxis);
     }
 
 
-    console.log(this.dataTable)
 
-    var data = {table: table}
+    var data = {table: table};
 
     if (this.config.update == undefined) {
         this.config.update = "slide";
@@ -267,31 +261,34 @@ Chart.prototype.plot = function (dataset, callback) {
     console.log(data);
     var delay = {};
 
+    var legendsList;
+    var a;
+    var isFound;
     if (this.legend) {
         legendsList = [];
-        for (i = 0; i < dataset.length; i++) {
-            a = dataset[i][this.legendIndex]
-            isfound = false;
-            for (j = 0; j < legendsList.length; j++) {
+        for (var i = 0; i < dataSet.length; i++) {
+            a = dataSet[i][this.legendIndex];
+            isFound = false;
+            for (var j = 0; j < legendsList.length; j++) {
                 if (a == legendsList[j]) {
-                    isfound = true;
+                    isFound = true;
                     break;
                 }
             }
 
-            if (!isfound) {
+            if (!isFound) {
                 legendsList.push(a);
             }
         }
 
-        delay = {"duration": 600}
+        delay = {"duration": 600};
         this.spec.legends[0].values = legendsList;
     }
 
     var specification = this.spec;
     var isTool = this.toolTip;
-    var toolTipFunction = this.toolTipFunction
-    var ref = this
+    var toolTipFunction = this.toolTipFunction;
+    var ref = this;
 
     vg.parse.spec(specification, function (chart) {
         ref.chart = chart({
@@ -334,5 +331,5 @@ Chart.prototype.plot = function (dataset, callback) {
     console.log(this);
 
 
-}
+};
 

@@ -5,7 +5,7 @@ igviz.drawAggregatedBar = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var operation = "sum";
     if (chartConfig.aggregate != undefined) {
@@ -19,7 +19,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         transFormedYString = "data.count";
     }
 
-    console.log(xString, yString, transFormedYString, operation)
+    console.log(xString, yString, transFormedYString, operation);
 
     var xScaleConfig = {
         "index": chartConfig.xAxis,
@@ -29,7 +29,8 @@ igviz.drawAggregatedBar = function (chartObj) {
         "round": true,
         "field": xString,
         "dataFrom": "myTable"
-    }
+    };
+
 
     var yScaleConfig = {
         "type": "linear",
@@ -38,9 +39,9 @@ igviz.drawAggregatedBar = function (chartObj) {
         "nice": true,
         "field": transFormedYString,
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -54,7 +55,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -66,7 +67,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title);
@@ -76,7 +77,7 @@ igviz.drawAggregatedBar = function (chartObj) {
     }
 
 
-    var spec = {
+    chartObj.spec = {
         "width": chartConfig.width - 150,
         //"padding":{'top':30,"left":80,"right":80,'bottom':60},
         "height": chartConfig.height,
@@ -103,7 +104,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         ],
         "axes": [
             xAxis, yAxis, title
-            ,
+
 
         ],
         "marks": [
@@ -142,7 +143,5 @@ igviz.drawAggregatedBar = function (chartObj) {
         ]
     }
 
-    chartObj.spec = spec
 
-
-}
+};

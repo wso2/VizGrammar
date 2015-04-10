@@ -3,11 +3,10 @@
 /*************************************************** Arc chart ***************************************************************************************************/
 
 
-igviz.drawArc = function (divId, chartConfig, dataTable) {
 
+igviz.drawArc = function (divId, chartConfig, dataTable) {
     function radialProgress(parent) {
-        var _data = null,
-            _duration = 1000,
+        var _duration = 1000,
             _selection,
             _margin = {
                 top: 0,
@@ -33,10 +32,10 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             _currentValue = 0;
 
         var _arc = d3.svg.arc()
-            .startAngle(0 * (Math.PI / 180)); //just radians
+            .startAngle(0); //just radians
 
         var _arc2 = d3.svg.arc()
-            .startAngle(0 * (Math.PI / 180))
+            .startAngle(0)
             .endAngle(0); //just radians
 
 
@@ -63,7 +62,7 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
                     .on("click", onMouseClick);
 
 
-                _arc.endAngle(360 * (Math.PI / 180))
+                _arc.endAngle(360 * (Math.PI / 180));
 
                 background.append("rect")
                     .attr("class", "background")
@@ -182,8 +181,8 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
 
 
         function measure() {
-            _width = _diameter - _margin.right - _margin.left - _margin.top - _margin.bottom;
-            _height = _width;
+            var _width = _diameter - _margin.right - _margin.left - _margin.top - _margin.bottom;
+            var _height = _width;
             _fontSize = _width * .2;
             _arc.outerRadius(_width / 2);
             _arc.innerRadius(_width / 2 * .85);
@@ -196,14 +195,14 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             measure();
             component();
             return component;
-        }
+        };
 
         component.value = function (_) {
             if (!arguments.length) return _value;
             _value = [_];
             _selection.datum([_value]);
             return component;
-        }
+        };
 
 
         component.margin = function (_) {
@@ -213,7 +212,8 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
         };
 
         component.diameter = function (_) {
-            if (!arguments.length) return _diameter
+            if (!arguments.length) return _diameter;
+
             _diameter = _;
             return component;
         };
@@ -240,13 +240,13 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             if (!arguments.length) return _duration;
             _duration = _;
             return component;
-        }
+        };
 
         component.onClick = function (_) {
             if (!arguments.length) return _mouseClick;
             _mouseClick = _;
             return component;
-        }
+        };
 
         return component;
 
