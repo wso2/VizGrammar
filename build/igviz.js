@@ -19,10 +19,29 @@
  */
 
  
+
 (function (igviz) {
     window.igviz = igviz;
     igviz.var = 20;
 
+
+/*
+ * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *   WSO2 Inc. licenses this file to you under the Apache License,
+ *   Version 2.0 (the "License"); you may not use this file except
+ *   in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing,
+ *   software distributed under the License is distributed on an
+ *   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *   KIND, either express or implied.  See the License for the
+ *   specific language governing permissions and limitations
+ *   under the License.
+ */
 
 /*************************************************** Initializtion functions ***************************************************************************************************/
 
@@ -43,12 +62,12 @@ igviz.draw = function (canvas, config, dataTable) {
     }
 
     return chart;
-    //return
 };
 
 igviz.setUp = function (canvas, config, dataTable) {
+    var newDataTable;
     if (!dataTable.hasOwnProperty("metadata")) {
-        newDataTable = {metadata: dataTable, data: []}
+        newDataTable = {metadata: dataTable, data: []};
         dataTable = newDataTable;
         console.log(dataTable);
     }
@@ -75,16 +94,14 @@ igviz.setUp = function (canvas, config, dataTable) {
 
 
 igviz.drawSeries = function (chartObj) {
-
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
 
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
     }
 
@@ -96,7 +113,7 @@ igviz.drawSeries = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -105,9 +122,9 @@ igviz.drawSeries = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -121,7 +138,7 @@ igviz.drawSeries = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -133,7 +150,7 @@ igviz.drawSeries = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -183,7 +200,7 @@ igviz.drawSeries = function (chartObj) {
         ],
 
         "marks": []
-    }
+    };
 
     for (i = 0; i < chartConfig.yAxis.length; i++) {
         var markObj = {
@@ -232,7 +249,7 @@ igviz.drawSeries = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         if (chartConfig.lineMark)
@@ -245,24 +262,22 @@ igviz.drawSeries = function (chartObj) {
 
     }
     chartObj.spec = spec;
-}
+};
 
 /*************************************************** Line chart ***************************************************************************************************/
 
 
 igviz.drawLineChart = function (chartObj) {
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
     if (chartConfig.aggregate != undefined) {
         return igviz.drawAggregatedLine(chartObj);
 
     }
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
@@ -275,7 +290,7 @@ igviz.drawLineChart = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -284,9 +299,9 @@ igviz.drawLineChart = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -300,7 +315,7 @@ igviz.drawLineChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -312,7 +327,7 @@ igviz.drawLineChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -365,7 +380,7 @@ igviz.drawLineChart = function (chartObj) {
         ],
 
         "marks": []
-    }
+    };
 
     if (chartConfig.markerSize == undefined)
         chartConfig.markerSize = 30;
@@ -425,7 +440,7 @@ igviz.drawLineChart = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(markObj);
@@ -440,20 +455,20 @@ igviz.drawLineChart = function (chartObj) {
     chartObj.toolTipFunction[0] = function (event, item) {
 
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
-            var yVar = createAttributeNames(yName)
+            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
+            var yVar = createAttributeNames(yName);
             //console.log( item);
             var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
@@ -462,10 +477,10 @@ igviz.drawLineChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
     chartObj.toolTipFunction[1] = function (event, item) {
 
@@ -475,13 +490,13 @@ igviz.drawLineChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
-}
+};
 
 
 
@@ -490,7 +505,7 @@ igviz.drawAggregatedLine = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
     var operation = "sum";
 
@@ -500,8 +515,8 @@ igviz.drawAggregatedLine = function (chartObj) {
 
     var transFormedYStrings = [];
     var newFields = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
-        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
+        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         transFormedYStrings[i] = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         newFields.push({"op": operation, "field": yStrings[i]})
     }
@@ -519,7 +534,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -528,9 +543,9 @@ igviz.drawAggregatedLine = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings[0],
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -544,7 +559,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -556,7 +571,7 @@ igviz.drawAggregatedLine = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
@@ -623,7 +638,7 @@ igviz.drawAggregatedLine = function (chartObj) {
             }
         ],
         "marks": []
-    }
+    };
 
 
     if (chartConfig.markerSize == undefined) {
@@ -686,7 +701,7 @@ igviz.drawAggregatedLine = function (chartObj) {
                     "fillOpacity": {"value": 0}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(markObj);
@@ -702,20 +717,20 @@ igviz.drawAggregatedLine = function (chartObj) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
-            var yVar = createAttributeNames(yName)
+            var yName = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
+            var yVar = createAttributeNames(yName);
 
             var contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yName + ') </td><td>' + item.datum.data[chartConfig.aggregate + "_" + yVar] + '</td></tr></table>';
 
@@ -724,10 +739,10 @@ igviz.drawAggregatedLine = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
     chartObj.toolTipFunction[1] = function (event, item) {
 
@@ -737,21 +752,20 @@ igviz.drawAggregatedLine = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     //   chartObj.spec=spec;
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
 
-}
+};
 
 
 /*************************************************** Bar chart ***************************************************************************************************/
 
 igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
-    //  console.log(this);
-    var divId = mychart.canvas;
+
     var chartConfig = mychart.config;
     var dataTable = mychart.dataTable;
     if (chartConfig.hasOwnProperty('aggregate')) {
@@ -765,7 +779,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
 
         }
         if (format == "grouped") {
-            console.log("groupedDFJSDFKSD:JFKDJF");
+            //console.log("groupedDFJSDFKSD:JFKDJF");
             if (chartConfig.orientation == 'H') {
                 console.log('horizontal');
                 return this.drawGroupedBarChart(mychart);
@@ -779,7 +793,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
     }
 
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var xScaleConfig = {
         "index": chartConfig.xAxis,
@@ -788,7 +802,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "range": "width",
         "round": true,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis,
@@ -797,7 +811,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "range": "height",
         "nice": true,
         "field": yString
-    }
+    };
 
     var xScale = setScale(xScaleConfig)
     var yScale = setScale(yScaleConfig);
@@ -813,7 +827,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -825,7 +839,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -888,7 +902,7 @@ igviz.drawBarChart = function (mychart, divId, chartConfig, dataTable) {
                 }
             }
         ]
-    }
+    };
 
 
 //        var data = {table: table}
@@ -907,7 +921,7 @@ igviz.drawAggregatedBar = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var operation = "sum";
     if (chartConfig.aggregate != undefined) {
@@ -921,7 +935,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         transFormedYString = "data.count";
     }
 
-    console.log(xString, yString, transFormedYString, operation)
+    console.log(xString, yString, transFormedYString, operation);
 
     var xScaleConfig = {
         "index": chartConfig.xAxis,
@@ -931,7 +945,8 @@ igviz.drawAggregatedBar = function (chartObj) {
         "round": true,
         "field": xString,
         "dataFrom": "myTable"
-    }
+    };
+
 
     var yScaleConfig = {
         "type": "linear",
@@ -940,9 +955,9 @@ igviz.drawAggregatedBar = function (chartObj) {
         "nice": true,
         "field": transFormedYString,
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -956,7 +971,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -968,7 +983,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title);
@@ -978,7 +993,7 @@ igviz.drawAggregatedBar = function (chartObj) {
     }
 
 
-    var spec = {
+    chartObj.spec = {
         "width": chartConfig.width - 150,
         //"padding":{'top':30,"left":80,"right":80,'bottom':60},
         "height": chartConfig.height,
@@ -1005,7 +1020,7 @@ igviz.drawAggregatedBar = function (chartObj) {
         ],
         "axes": [
             xAxis, yAxis, title
-            ,
+
 
         ],
         "marks": [
@@ -1044,21 +1059,17 @@ igviz.drawAggregatedBar = function (chartObj) {
         ]
     }
 
-    chartObj.spec = spec
 
-
-}
+};
 
 
 
 igviz.drawGroupedBarChart = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
@@ -1073,7 +1084,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "range": "height",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -1084,10 +1095,10 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "round": 'true',
         "field": yStrings,
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -1101,7 +1112,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "cat",
@@ -1115,7 +1126,7 @@ igviz.drawGroupedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -1208,41 +1219,25 @@ igviz.drawGroupedBarChart = function (chartObj) {
                                 "fillOpacity": {"value": 1}
                             }
                         }
-                    },
-                    //{
-                    //    "type": "text",
-                    //    "properties": {
-                    //        "enter": {
-                    //            "y": {"scale": "pos", "field": xString},
-                    //            "dy": {"scale": "pos", "band": true, "mult": 0.5},
-                    //            "x": {"scale": "val", "field": yStrings, "offset": -4},
-                    //            "fill": {"value": "white"},
-                    //            "align": {"value": "right"},
-                    //            "baseline": {"value": "middle"},
-                    //            "text": {"field": xString}
-                    //        }
-                    //    }
-                    //}
+                    }
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};
 
 
 igviz.drawGroupedBarChartVertical = function (chartObj) {
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
@@ -1257,7 +1252,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "range": "width",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -1268,10 +1263,10 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "round": 'true',
         "field": yStrings,
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var yAxisConfig = {
@@ -1285,7 +1280,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var xAxisConfig = {
         "type": "x",
         "scale": "cat",
@@ -1299,7 +1294,7 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -1395,13 +1390,13 @@ igviz.drawGroupedBarChartVertical = function (chartObj) {
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};
 
 
 
@@ -1409,17 +1404,13 @@ igviz.drawStackedBarChart = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //   var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var groupedBy = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.groupedBy]);
-
-    // console.log(table,xString,yStrings,groupedBy);
-    // sortDataSet(table);
 
     var cat = {
         "index": chartConfig.groupedBy,
@@ -1428,7 +1419,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "range": "width",
         "field": groupedBy,
         "padding": 0.2
-    }
+    };
 
 
     var val = {
@@ -1439,10 +1430,10 @@ igviz.drawStackedBarChart = function (chartObj) {
         "dataFrom": "stats",
         "field": "sum",
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -1456,7 +1447,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "val",
@@ -1468,7 +1459,7 @@ igviz.drawStackedBarChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -1561,13 +1552,13 @@ igviz.drawStackedBarChart = function (chartObj) {
                 ]
             }
         ]
-    }
+    };
 
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.xAxis;
     chartObj.spec = spec;
 
-}
+};
 
 
 
@@ -1576,15 +1567,15 @@ igviz.drawStackedBarChart = function (chartObj) {
 igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, originaltable) {
     //	console.log(dataTable,chartConfig,divId);
     if (index == 0) {
-        d3.select(divId).append('div').attr({id: 'links', height: 20, 'bgcolor': 'blue'})
-        d3.select(divId).append('div').attr({id: 'chartDiv'})
+        d3.select(divId).append('div').attr({id: 'links', height: 20, 'bgcolor': 'blue'});
+        d3.select(divId).append('div').attr({id: 'chartDiv'});
         chartConfig.height = chartConfig.height - 20;
         divId = "#chartDiv";
     }
     var currentChartConfig = JSON.parse(JSON.stringify(chartConfig));
     var current_x = 0;
     if (index < chartConfig.xAxis.length)
-        current_x = chartConfig.xAxis[index].index
+        current_x = chartConfig.xAxis[index].index;
     else
         current_x = chartConfig.xAxis[index - 1].child;
 
@@ -1595,10 +1586,13 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
             types: [dataTable.metadata.types[current_x], dataTable.metadata.types[current_y]]
         },
         data: []
-    }
+    };
 
     var tempData = [];
-    for (i = 0; i < dataTable.data.length; i++) {
+    var name;
+    var currentYvalue;
+    var isFound;
+    for (var i = 0; i < dataTable.data.length; i++) {
         name = dataTable.data[i][current_x];
         currentYvalue = dataTable.data[i][current_y];
         isFound = false;
@@ -1627,11 +1621,11 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
     var x = this.setUp(divId, currentChartConfig, currentData);
     x.plot(currentData.data, function () {
 
-        var filters = d3.select('#links .root').on('click', function () {
+         d3.select('#links .root').on('click', function () {
             d3.select("#links").html('');
             igviz.drillDown(0, divId, chartConfig, originaltable, originaltable);
 
-        })
+        });
 
 
         var filters = d3.select('#links').selectAll('.filter');
@@ -1639,13 +1633,13 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
 
             var filtersList = filters.data();
 
-            console.log(filtersList)
-            var filterdDataset = [];
+            //console.log(filtersList)
+            var filteredDataSet = [];
             var selectionObj = JSON.parse(JSON.stringify(originaltable));
             var itr = 0;
-            for (l = 0; l < originaltable.data.length; l++) {
+            for (var l = 0; l < originaltable.data.length; l++) {
                 var isFiltered = true;
-                for (k = 0; k <= i; k++) {
+                for (var k = 0; k <= i; k++) {
 
                     if (originaltable.data[l][filtersList[k][0]] !== filtersList[k][1]) {
                         isFiltered = false;
@@ -1653,7 +1647,7 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                     }
                 }
                 if (isFiltered) {
-                    filterdDataset[itr++] = originaltable.data[l];
+                    filteredDataSet[itr++] = originaltable.data[l];
                 }
 
             }
@@ -1662,10 +1656,10 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 if (indx > i) {
                     this.remove();
                 }
-            })
+            });
 
 
-            selectionObj.data = filterdDataset;
+            selectionObj.data = filteredDataSet;
 
             igviz.drillDown(i + 1, divId, chartConfig, selectionObj, originaltable, true);
 
@@ -1681,7 +1675,6 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 var selectedName = d.datum.data[x.dataTable.metadata.names[x.config.xAxis]];
                 //  console.log(selectedName);
                 var selectedCurrentData = JSON.parse(JSON.stringify(dataTable));
-                var innerText;
 
                 var links = d3.select('#links').append('g').append('text').text(dataTable.metadata.names[current_x] + " : ").attr({
 
@@ -1694,11 +1687,12 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
                 d3.select('#links:first-child').selectAll('text').attr('class', 'root');
 
                 d3.select('#links g:last-child').append('span').data([[current_x, selectedName]]).attr('class', 'filter').text(selectedName + "  >  ")
+                ;
 
                 var l = selectedCurrentData.data.length;
                 var newdata = [];
-                b = 0;
-                for (a = 0; a < l; a++) {
+                var b = 0;
+                for (var a = 0; a < l; a++) {
                     if (selectedCurrentData.data[a][current_x] === selectedName) {
                         newdata[b++] = selectedCurrentData.data[a];
                     }
@@ -1717,10 +1711,14 @@ igviz.drillDown = function drillDown(index, divId, chartConfig, dataTable, origi
     });
 
 
-}
+};
 
 
-
+/**
+ * This function will draw the area graph of a single series
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAreaChart = function (chartObj) {
     // var padding = chartConfig.padding;
     var chartConfig = chartObj.config;
@@ -1741,10 +1739,8 @@ igviz.drawAreaChart = function (chartObj) {
     }
 
 
-    var divId = chartObj.canvas;
 
-
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     //   console.log(table,xString,yStrings);
@@ -1756,7 +1752,7 @@ igviz.drawAreaChart = function (chartObj) {
         "name": "x",
         "range": "width",
         "field": xString
-    }
+    };
 
 
     var yScaleConfig = {
@@ -1765,10 +1761,11 @@ igviz.drawAreaChart = function (chartObj) {
         "name": "y",
         "range": "height",
         "field": yStrings
-    }
+    };
 
 
-    var xScale = setScale(xScaleConfig)
+
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -1782,7 +1779,7 @@ igviz.drawAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -1794,7 +1791,7 @@ igviz.drawAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -1879,10 +1876,10 @@ igviz.drawAreaChart = function (chartObj) {
                         "y": {"scale": "y", "field": yStrings}
                     }
                 }
-            },
+            }
 
         ]
-    }
+    };
 
 
     if (chartConfig.pointVisible) {
@@ -1939,12 +1936,12 @@ igviz.drawAreaChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -1952,7 +1949,7 @@ igviz.drawAreaChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
@@ -1962,13 +1959,17 @@ igviz.drawAreaChart = function (chartObj) {
 };
 
 
-
+/**
+ * This function will calculate the aggregated y-value if there are repeated x-values , And draws the area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAggregatedArea = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings;
     var operation = "sum";
 
@@ -1978,7 +1979,7 @@ igviz.drawAggregatedArea = function (chartObj) {
 
     var transFormedYStrings;
     var newFields = [];
-    yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
+    yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
     transFormedYStrings = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     console.log("values", newFields, transFormedYStrings, yStrings);
@@ -1995,7 +1996,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -2004,9 +2005,9 @@ igviz.drawAggregatedArea = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings,
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -2020,7 +2021,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -2032,7 +2033,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
@@ -2165,7 +2166,7 @@ igviz.drawAggregatedArea = function (chartObj) {
 
 
         ]
-    }
+    };
 
 
     chartObj.toolTipFunction = [];
@@ -2173,8 +2174,8 @@ igviz.drawAggregatedArea = function (chartObj) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            xVar = dataTable.metadata.names[chartConfig.xAxis]
-            yVar = dataTable.metadata.names[chartConfig.yAxis]
+            xVar = dataTable.metadata.names[chartConfig.xAxis];
+            yVar = dataTable.metadata.names[chartConfig.yAxis];
 
             contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr></table>';
 
@@ -2183,12 +2184,12 @@ igviz.drawAggregatedArea = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
 
         }
 
-        chartObj.toolTipFunction[1] = function (event, item) {
+        chartObj.toolTipFunction[1] = function (event) {
 
             tool.html("").style({
                 'left': event.pageX + 10 + 'px',
@@ -2196,7 +2197,7 @@ igviz.drawAggregatedArea = function (chartObj) {
                 'opacity': 0
             })
 
-        }
+        };
 
         //   chartObj.spec=spec;
         chartObj.toolTip = true;
@@ -2204,16 +2205,20 @@ igviz.drawAggregatedArea = function (chartObj) {
 
 
     }
-}
+};
 
-
-
+/**
+ * This function will calculate the aggregated y-value if there are repeated x-values , And draws the multi area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ */
 igviz.drawAggregatedMultiArea = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+    //attribute name for x,vy in  vega spec
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
     var operation = "sum";
 
@@ -2223,16 +2228,19 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
 
     var transFormedYStrings = [];
     var newFields = [];
+
+    //attribute names of transformed data set
     for (i = 0; i < chartConfig.yAxis.length; i++) {
-        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
+        yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
         transFormedYStrings[i] = "data." + operation + "_" + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]]);
-        newFields.push({"op": operation, "field": yStrings[i]})
+        newFields.push({"op": operation, "field": yStrings[i]});
     }
     console.log("values", newFields, transFormedYStrings, yStrings);
     if (operation == "count") {
         transFormedYStrings = "data.count";
     }
 
+    //Configuration for X Scale
     var xScaleConfig = {
         "index": chartConfig.xAxis,
         "schema": dataTable.metadata,
@@ -2242,7 +2250,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "field": xString,
         "clamp": false,
         "dataFrom": "myTable"
-    }
+    };
 
     var yScaleConfig = {
         "type": "linear",
@@ -2251,11 +2259,14 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "nice": true,
         "field": transFormedYStrings[0],
         "dataFrom": "myTable"
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    //generating scales
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
+
+    //Axis configuration goes here....
     var xAxisConfig = {
         "type": "x",
         "scale": "x",
@@ -2267,7 +2278,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "align": "right",
         "titleDy": 30,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -2279,17 +2290,20 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         "align": "right",
         "titleDy": -35,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
     var title = setTitle(chartConfig.title, "black", 12, "top");
 
+
+    //Default interpolation mode is -'monotone' and other possiblities are : cardinal,basis,step-before,step-after,linear
 
     if (chartConfig.interpolationMode == undefined) {
         chartConfig.interpolationMode = "monotone";
     }
 
 
+    //Vega spec object
     var spec = {
         "width": chartConfig.width - 170,
         //"padding":{'top':30,"left":80,"right":80,'bottom':60},
@@ -2345,14 +2359,17 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
             }
         ],
         "marks": []
-    }
+    };
 
+
+    //If marker size is unspecified , take 30 as the default value
     if (chartConfig.markerSize == undefined) {
         chartConfig.markerSize = 30;
     }
 
 
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
+        //Adding area marks
         var areaObj = {
             "type": "area",
             "key": xString,
@@ -2387,9 +2404,10 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 }
 
             }
-        }
+        };
 
 
+        //Adding line marks
         var markObj = {
             "type": "line",
             "key": xString,
@@ -2417,6 +2435,7 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
         };
 
 
+        //Adding point marks
         var pointObj = {
             "type": "symbol",
 
@@ -2450,29 +2469,32 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 }
             }
         }
-
+;
 
         spec.marks.push(areaObj);
         spec.marks.push(markObj);
 
+        //Allows user to customize the visibility of points
         if (chartConfig.pointVisible)
             spec.marks.push(pointObj);
+
+        //Set legend values
         spec.legends[0].values.push(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
+
+    //Adding tooltip handlers...
 
     chartObj.toolTipFunction = [];
     chartObj.toolTipFunction[0] = function (event, item) {
 
         console.log(tool, event, item);
         if (item.mark.marktype == 'symbol') {
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
-
-
-            var colorScale = d3.scale.category20()
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
@@ -2487,12 +2509,13 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    //Adding styles for when tooltip is hide
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -2500,30 +2523,32 @@ igviz.drawAggregatedMultiArea = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
-    //   chartObj.spec=spec;
+    // Store the references of spec and tooltips in chartObject
     chartObj.toolTip = true;
     chartObj.spec = spec;
 
 
-}
+};
 
-
-
+/**
+ *
+ * @param chartObj
+ * @returns {*}
+ */
 igviz.drawMultiAreaChart = function (chartObj) {
 
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    // table=setData(dataTable,chartConfig)
 
     if (chartConfig.aggregate != undefined) {
         return igviz.drawAggregatedMultiArea(chartObj);
     }
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
+
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
     var yStrings = [];
-    for (i = 0; i < chartConfig.yAxis.length; i++) {
+    for (var i = 0; i < chartConfig.yAxis.length; i++) {
         yStrings[i] = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis[i]])
 
     }
@@ -2536,7 +2561,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "range": "width",
         "clamp": false,
         "field": xString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis[0],
@@ -2545,9 +2570,9 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yStrings[0]
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
 
     var xAxisConfig = {
@@ -2561,7 +2586,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "align": "left",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -2573,7 +2598,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -2583,7 +2608,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
     }
 
 
-    var tempMargin = 160
+    var tempMargin = 160;
     var spec = {
         "width": chartConfig.width - tempMargin,
         "height": chartConfig.height,
@@ -2629,7 +2654,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         ,
 
         "marks": []
-    }
+    };
 
     if (chartConfig.markerSize == undefined) {
         chartConfig.markerSize = 30;
@@ -2669,7 +2694,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                 }
 
             }
-        }
+        };
 
         var lineObj = {
             "type": "line",
@@ -2695,7 +2720,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                     "y": {"scale": "y", "field": yStrings[i]}
                 }
             }
-        }
+        };
 
 
         var pointObj = {
@@ -2725,7 +2750,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
                     "stroke": {"value": "white"}
                 }
             }
-        }
+        };
 
 
         spec.marks.push(areaObj);
@@ -2748,19 +2773,19 @@ igviz.drawMultiAreaChart = function (chartObj) {
         if (item.mark.marktype == 'symbol') {
             // window.alert(a);
 
-            var xVar = dataTable.metadata.names[chartConfig.xAxis]
+            var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20()
+            var colorScale = d3.scale.category20();
 
             var foundIndex = -1;
-            for (index = 0; index < yStrings.length; index++)
+            for (var index = 0; index < yStrings.length; index++)
                 if (item.fill === colorScale(yStrings[index])) {
                     foundIndex = index;
                     break;
                 }
 
-            var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]]
+            var yVar = dataTable.metadata.names[chartConfig.yAxis[foundIndex]];
 
             contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[createAttributeNames(xVar)] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[createAttributeNames(yVar)] + '</td></tr></table>';
 
@@ -2769,12 +2794,12 @@ igviz.drawMultiAreaChart = function (chartObj) {
                 'left': event.pageX + 10 + 'px',
                 'top': event.pageY + 10 + 'px',
                 'opacity': 1
-            })
+            });
             tool.selectAll('tr td').style('padding', "3px");
         }
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -2782,7 +2807,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
@@ -2794,23 +2819,27 @@ igviz.drawMultiAreaChart = function (chartObj) {
 };
 
 
-
+/**
+ * This function will calculate the stacked y-value for grouped x-values , And draws the Stacked area graph
+ * @namespace igviz
+ * @param chartObj :{config,dataTable,divID:}
+ * @return :void
+ */
 igviz.drawStackedAreaChart = function (chartObj) {
 
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //  var table = setData(dataTable,chartConfig);
-    var divId = chartObj.canvas;
 
 
-    var areaString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.areaVar])
+    //setting data attributes for vega spec
+    var areaString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.areaVar]);
     var yStrings = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
 
     var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
 
-    //     console.log(table,xString,yStrings,groupedBy);
-    // sortDataSet(table);
 
+
+    //Scale for grouped X axis
     var cat = {
         "index": chartConfig.xAxis,
         "schema": dataTable.metadata,
@@ -2820,21 +2849,22 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "padding": 0.2,
         "zero": false,
         "nice": true
-    }
+    };
 
 
+    //Scale for stacked y values
     var val = {
         "index": chartConfig.yAxis,
         "schema": dataTable.metadata,
         "name": "val",
         "range": "height",
         "dataFrom": "stats",
-        "field": "sum",
+        "field": "sum", //aggregation
         "nice": true
-    }
+    };
 
 
-    var cScale = setScale(cat)
+    var cScale = setScale(cat);
     var vScale = setScale(val);
 
     var xAxisConfig = {
@@ -2848,7 +2878,7 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "align": "left",
         "titleDy": 10,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "val",
@@ -2860,12 +2890,12 @@ igviz.drawStackedAreaChart = function (chartObj) {
         "align": "right",
         "titleDy": -10,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
 
-    var spec = {
+    chartObj.spec = {
         "width": chartConfig.width - 160,
         "height": chartConfig.height - 100,
         "padding": {"top": 10, "left": 60, "bottom": 60, "right": 100},
@@ -2874,7 +2904,7 @@ igviz.drawStackedAreaChart = function (chartObj) {
                 "name": "table"
             },
             {
-                "name": "stats",
+                "name": "stats", //apply grouped by and aggregate transformations
                 "source": "table",
                 "transform": [
                     {"type": "facet", "keys": [xString]},
@@ -2957,7 +2987,6 @@ igviz.drawStackedAreaChart = function (chartObj) {
                         "properties": {
                             "enter": {
                                 "x": {"scale": "cat", "field": xString},
-                                //"x": {"value": 400},
                                 "interpolate": {"value": "monotone"},
                                 "y": {"scale": "val", "field": "y"},
                                 "stroke": {"scale": "color", "field": areaString},
@@ -2968,14 +2997,12 @@ igviz.drawStackedAreaChart = function (chartObj) {
                 ]
             }
         ]
-    }
-
-    chartObj.spec = spec;
+    };
     chartObj.legend = true;
     chartObj.legendIndex = chartConfig.areaVar;
 
 
-}
+};
 
 
 
@@ -3012,10 +3039,10 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             _currentValue = 0;
 
         var _arc = d3.svg.arc()
-            .startAngle(0 * (Math.PI / 180)); //just radians
+            .startAngle(0); //just radians
 
         var _arc2 = d3.svg.arc()
-            .startAngle(0 * (Math.PI / 180))
+            .startAngle(0)
             .endAngle(0); //just radians
 
 
@@ -3042,7 +3069,7 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
                     .on("click", onMouseClick);
 
 
-                _arc.endAngle(360 * (Math.PI / 180))
+                _arc.endAngle(360 * (Math.PI / 180));
 
                 background.append("rect")
                     .attr("class", "background")
@@ -3175,14 +3202,14 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             measure();
             component();
             return component;
-        }
+        };
 
         component.value = function (_) {
             if (!arguments.length) return _value;
             _value = [_];
             _selection.datum([_value]);
             return component;
-        }
+        };
 
 
         component.margin = function (_) {
@@ -3192,7 +3219,7 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
         };
 
         component.diameter = function (_) {
-            if (!arguments.length) return _diameter
+            if (!arguments.length) return _diameter;
             _diameter = _;
             return component;
         };
@@ -3219,13 +3246,13 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
             if (!arguments.length) return _duration;
             _duration = _;
             return component;
-        }
+        };
 
         component.onClick = function (_) {
             if (!arguments.length) return _mouseClick;
             _mouseClick = _;
             return component;
-        }
+        };
 
         return component;
 
@@ -3243,15 +3270,13 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
 /*************************************************** Scatter chart ***************************************************************************************************/
 
 igviz.drawScatterPlot = function (chartObj) {
-    var divId = chartObj.canvas;
     var chartConfig = chartObj.config;
     var dataTable = chartObj.dataTable;
-    //    table=setData(dataTable,chartConfig)
 
-    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis])
-    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis])
-    var rString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointSize])
-    var cString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointColor])
+    var xString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.xAxis]);
+    var yString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.yAxis]);
+    var rString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointSize]);
+    var cString = "data." + createAttributeNames(dataTable.metadata.names[chartConfig.pointColor]);
 
 
     var xScaleConfig = {
@@ -3262,7 +3287,7 @@ igviz.drawScatterPlot = function (chartObj) {
 
         "field": xString
 
-    }
+    };
 
     var rScaleConfig = {
         "index": chartConfig.pointSize,
@@ -3270,14 +3295,14 @@ igviz.drawScatterPlot = function (chartObj) {
         "schema": dataTable.metadata,
         "name": "r",
         "field": rString
-    }
+    };
     var cScaleConfig = {
         "index": chartConfig.pointColor,
         "schema": dataTable.metadata,
         "name": "c",
         "range": [chartConfig.minColor, chartConfig.maxColor],
         "field": cString
-    }
+    };
 
     var yScaleConfig = {
         "index": chartConfig.yAxis,
@@ -3286,12 +3311,12 @@ igviz.drawScatterPlot = function (chartObj) {
         "range": "height",
         "nice": true,
         "field": yString
-    }
+    };
 
-    var xScale = setScale(xScaleConfig)
+    var xScale = setScale(xScaleConfig);
     var yScale = setScale(yScaleConfig);
     var rScale = setScale(rScaleConfig);
-    var cScale = setScale(cScaleConfig)
+    var cScale = setScale(cScaleConfig);
 
     var xAxisConfig = {
         "type": "x",
@@ -3304,7 +3329,7 @@ igviz.drawScatterPlot = function (chartObj) {
         "align": "right",
         "titleDy": 25,
         "titleDx": 0
-    }
+    };
     var yAxisConfig = {
         "type": "y",
         "scale": "y",
@@ -3316,7 +3341,7 @@ igviz.drawScatterPlot = function (chartObj) {
         "align": "right",
         "titleDy": -30,
         "titleDx": 0
-    }
+    };
     var xAxis = setAxis(xAxisConfig);
     var yAxis = setAxis(yAxisConfig);
 
@@ -3424,14 +3449,14 @@ igviz.drawScatterPlot = function (chartObj) {
                 }
             }
         ]
-    }
+    };
     chartObj.toolTipFunction = [];
     chartObj.toolTipFunction[0] = function (event, item) {
         console.log(tool, event, item);
-        xVar = dataTable.metadata.names[chartConfig.xAxis]
-        yVar = dataTable.metadata.names[chartConfig.yAxis]
-        pSize = dataTable.metadata.names[chartConfig.pointSize]
-        pColor = dataTable.metadata.names[chartConfig.pointColor]
+        xVar = dataTable.metadata.names[chartConfig.xAxis];
+        yVar = dataTable.metadata.names[chartConfig.yAxis];
+        pSize = dataTable.metadata.names[chartConfig.pointSize];
+        pColor = dataTable.metadata.names[chartConfig.pointColor];
 
         contentString = '<table><tr><td> X </td><td> (' + xVar + ') </td><td>' + item.datum.data[xVar] + '</td></tr>' + '<tr><td> Y </td><td> (' + yVar + ') </td><td>' + item.datum.data[yVar] + '</td></tr>' + '<tr><td> Size </td><td> (' + pSize + ') </td><td>' + item.datum.data[pSize] + '</td></tr>' + '<tr><td bgcolor="' + item.fill + '">&nbsp; </td><td> (' + pColor + ') </td><td>' + item.datum.data[pColor] + '</td></tr>' +
         '</table>';
@@ -3441,12 +3466,12 @@ igviz.drawScatterPlot = function (chartObj) {
             'left': event.pageX + 10 + 'px',
             'top': event.pageY + 10 + 'px',
             'opacity': 1
-        })
+        });
         tool.selectAll('tr td').style('padding', "3px");
 
-    }
+    };
 
-    chartObj.toolTipFunction[1] = function (event, item) {
+    chartObj.toolTipFunction[1] = function (event) {
 
         tool.html("").style({
             'left': event.pageX + 10 + 'px',
@@ -3454,11 +3479,11 @@ igviz.drawScatterPlot = function (chartObj) {
             'opacity': 0
         })
 
-    }
+    };
 
     chartObj.spec = spec;
     chartObj.toolTip = true;
-}
+};
 
 
 
@@ -3472,7 +3497,6 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
     //Width and height
     var w = chartConfig.width;
     var h = chartConfig.height;
-    var padding = chartConfig.padding;
 
     //configure font sizes
     var MAX_FONT_SIZE = w / 25;
@@ -3495,7 +3519,7 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
     };
 
 
-    chart = igviz.setUp(divId, chartConfig, dataTable);
+    var chart = igviz.setUp(divId, chartConfig, dataTable);
     chart.plot(dataTable.data);
 
     //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
@@ -3535,7 +3559,7 @@ igviz.drawSingleNumberDiagram = function (chartObj) {
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", w)
-        .attr("height", h)
+        .attr("height", h);
 
 
     //Minimum value goes here
@@ -3588,35 +3612,34 @@ function unique(array) {
     return uni;
 }
 
-
-function aggregate(value1, value2, op) {
-    var result = 0;
-    switch ('op') {
-        case 'sum':
-            result = value1 + value2;
-            break;
-        case 'avg':
-            result = value1 + value2;
-            break;
-        case 'min':
-            result = value1 + value2;
-            break;
-        case 'max':
-            result = value1 + value2;
-            break;
-        case 'count':
-            result = value1 + value2;
-            break;
-    }
-}
+//
+//function aggregate(value1, value2, op) {
+//    var result = 0;
+//    switch (op) {
+//        case 'sum':
+//            result = value1 + value2;
+//            break;
+//        case 'avg':
+//            result = value1 + value2;
+//            break;
+//        case 'min':
+//            result = value1 + value2;
+//            break;
+//        case 'max':
+//            result = value1 + value2;
+//            break;
+//        case 'count':
+//            result = value1 + value2;
+//            break;
+//    }
+//}
 
 function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIndex) {
     var resultant = [];
     var AllRows = [];
     var AllCols = [];
-    var a = 0;
-    var b = 0;
-    for (i = 0; i < dataTable.data.length; i++) {
+
+    for (var i = 0; i < dataTable.data.length; i++) {
         AllRows[i] = dataTable.data[i][rowIndex];
 
         AllCols[i] = dataTable.data[i][columnIndex];
@@ -3626,11 +3649,11 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
 
 
     var counter = [];
-    for (i = 0; i < rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         resultant[i] = [];
         counter[i] = [];
         resultant[i][0] = rows[i];
-        for (j = 0; j < meta.length; j++) {
+        for (var j = 0; j < meta.length; j++) {
             switch (aggregate) {
                 case "max":
                     resultant[i][j + 1] = Number.MIN_VALUE;
@@ -3649,6 +3672,8 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
 //        console.log(rows,meta,resultant);
 
 
+    var existing;
+    var existingCounter;
     for (i = 0; i < dataTable.data.length; i++) {
         var row = dataTable.data[i][rowIndex];
         var col = dataTable.data[i][columnIndex];
@@ -3661,7 +3686,7 @@ function tableTransformation(dataTable, rowIndex, columnIndex, aggregate, cellIn
         existing = resultant[rows.indexOf(row)][1 + meta.indexOf(col)];
         existingCounter = counter[rows.indexOf(row)][1 + meta.indexOf(col)];
         //existingCounter++;
-        var resultValue = 0
+        var resultValue = 0;
         switch (aggregate) {
             case "sum":
                 resultValue = existing + value;
@@ -3709,17 +3734,17 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
     var newDataTable = [];
     var counter = [];
 
-    var AllRows = []
-    for (i = 0; i < dataTable.data.length; i++) {
+    var AllRows = [];
+    for (var i = 0; i < dataTable.data.length; i++) {
         AllRows[i] = dataTable.data[i][groupedBy];
     }
 
     var rows = unique(AllRows);
 
-    for (i = 0; i < rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         newDataTable[i] = [];
         counter[i] = 0;
-        for (j = 0; j < dataTable.metadata.names.length; j++) {
+        for (var j = 0; j < dataTable.metadata.names.length; j++) {
             if (groupedBy != j) {
                 switch (aggregate) {
                     case "max":
@@ -3742,17 +3767,17 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
 
 
     for (i = 0; i < dataTable.data.length; i++) {
-        var gvalue = dataTable.data[i][groupedBy];
-        counter[rows.indexOf(gvalue)]++;
-        var existingRow = newDataTable[rows.indexOf(gvalue)];
-        var existingCounter = counter[rows.indexOf(gvalue)];
+        var groupedValue = dataTable.data[i][groupedBy];
+        counter[rows.indexOf(groupedValue)]++;
+        var existingRow = newDataTable[rows.indexOf(groupedValue)];
+        var existingCounter = counter[rows.indexOf(groupedValue)];
 
         for (j = 0; j < existingRow.length; j++) {
             if (j != groupedBy) {
                 var existing = existingRow[j];
                 var value = dataTable.data[i][j];
 
-                var resultValue = 0
+                var resultValue = 0;
                 switch (aggregate) {
                     case "sum":
                         resultValue = existing + value;
@@ -3772,7 +3797,7 @@ function aggregatedTable(dataTable, groupedBy, aggregate) {
                 }
 
                 //console.log(resultValue);
-                newDataTable[rows.indexOf(gvalue)][j] = resultValue;
+                newDataTable[rows.indexOf(groupedValue)][j] = resultValue;
             }
         }
 
@@ -3876,8 +3901,8 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
         .range([15, 20]);
 
     //create the table head
-    thead = table.append("thead");
-    tbody = table.append("tbody")
+    var thead = table.append("thead");
+    var tbody = table.append("tbody")
 
     //Append the header to the table
     thead.append("tr")
@@ -3895,7 +3920,7 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
     var rows = tbody.selectAll("tr")
         .data(tableData)
         .enter()
-        .append("tr")
+        .append("tr");
 
     var cells;
 
@@ -4028,8 +4053,8 @@ igviz.drawTable = function (divId, chartConfig, dataTable) {
 
         var minimum = dataTable.data[0][1];
         var maximum = dataTable.data[0][1];
-        for (j = 0; j < dataTable.data.length; j++) {
-            for (a = 0; a < dataTable.metadata.names.length; a++) {
+        for (var j = 0; j < dataTable.data.length; j++) {
+            for (var a = 0; a < dataTable.metadata.names.length; a++) {
                 if (dataTable.metadata.types[a] == 'N') {
 
                     if (dataTable.data[j][a] > maximum) {
@@ -4092,9 +4117,9 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
     var regionO = chartConfig.region;
 
 
-    //prepare the dataset (all plot methods should use { "data":dataLine, "config":chartConfig } format
+    //prepare the dataSet (all plot methods should use { "data":dataLine, "config":chartConfig } format
     //so you can use util methods
-    var dataset = dataTable.data.map(function (d, i) {
+    var dataSet = dataTable.data.map(function (d, i) {
         return {
             "data": d,
             "config": chartConfig,
@@ -4105,15 +4130,15 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
     var tempArray = [];
     var mainArray = [];
 
-    var locIndex = dataset[0].config.mapLocation;
-    var pColIndex = dataset[0].config.pointColor;
-    var pSizIndex = dataset[0].config.pointSize;
-    tempArray.push(dataset[locIndex].name, dataset[pColIndex].name, dataset[pSizIndex].name);
+    var locIndex = dataSet[0].config.mapLocation;
+    var pColIndex = dataSet[0].config.pointColor;
+    var pSizIndex = dataSet[0].config.pointSize;
+    tempArray.push(dataSet[locIndex].name, dataSet[pColIndex].name, dataSet[pSizIndex].name);
     mainArray.push(tempArray);
 
-    for (var counter = 0; counter < dataset.length; counter++) {
+    for (var counter = 0; counter < dataSet.length; counter++) {
         tempArray = [];
-        tempArray.push(dataset[counter].data[locIndex], dataset[counter].data[pColIndex], dataset[counter].data[pSizIndex]);
+        tempArray.push(dataSet[counter].data[locIndex], dataSet[counter].data[pColIndex], dataSet[counter].data[pSizIndex]);
         mainArray.push(tempArray);
     }
 
@@ -4131,8 +4156,7 @@ igviz.drawMap = function (divId, chartConfig, dataTable) {
         tempArray.push(mainArray[i][0]);
         tempArray.push(str);
         mainStrArray.push(tempArray);
-    }
-    ;
+    };
 
     //hardcoded
     // alert(divId);
@@ -4231,14 +4255,14 @@ function setScale(scaleConfig) {
                 break;
 
             case 'C':
-                scale["type"] = 'ordinal'
+                scale["type"] = 'ordinal';
                 if (scale.name === "c") {
                     scale.range = "category20";
                 }
 
                 break;
             case 'N':
-                scale["type"] = 'linear'
+                scale["type"] = 'linear';
 
                 break;
         }
@@ -4251,7 +4275,7 @@ function setScale(scaleConfig) {
     }
 
     scale.range = scaleConfig.range;
-    scale.domain = {"data": dataFrom, "field": scaleConfig.field}
+    scale.domain = {"data": dataFrom, "field": scaleConfig.field};
 
     //optional attributes
     if (scaleConfig.hasOwnProperty("round")) {
@@ -4291,7 +4315,7 @@ function setScale(scaleConfig) {
 }
 
 function setTitle(str, color, fontSize, orient) {
-    var title = {
+    return {
         "type": "x",
         "scale": "x",
         "title": str,
@@ -4312,8 +4336,7 @@ function setTitle(str, color, fontSize, orient) {
                 }
             }
         }
-    }
-    return title;
+    };
 
 }
 
@@ -4328,7 +4351,6 @@ function setAxis(axisConfig) {
 
         "properties": {
             "ticks": {
-                // "stroke": {"value": "steelblue"}
             },
             "majorTicks": {
                 "strokeWidth": {"value": 2}
@@ -4355,7 +4377,7 @@ function setAxis(axisConfig) {
 
         }
 
-    }
+    };
 
     if (axisConfig.hasOwnProperty("tickSize")) {
         axis["tickSize"] = axisConfig.tickSize;
@@ -4374,12 +4396,12 @@ function setLegends(chartConfig, schema) {
 
 }
 
-function setData(dataTableObj, chartConfig, schema) {
+function setData(dataTableObj, schema) {
     var table = [];
-    for (i = 0; i < dataTableObj.length; i++) {
+    for (var i = 0; i < dataTableObj.length; i++) {
         var ptObj = {};
         var namesArray = schema.names;
-        for (j = 0; j < namesArray.length; j++) {
+        for (var j = 0; j < namesArray.length; j++) {
             if (schema.types[j] == 'T') {
                 ptObj[createAttributeNames(namesArray[j])] = new Date(dataTableObj[i][j]);
             } else if (schema.types[j] == 'U') {
@@ -4427,101 +4449,30 @@ function setGenericAxis(axisConfig, spec) {
     MappingObj["tickWidth"] = "strokeWidth";
 
 
-    console.log("previous Axis", spec)
-    for (var propt in axisConfig) {
+    console.log("previous Axis", spec);
+    for (var prop in axisConfig) {
 
-        if (propt == "tickSize" || propt == "tickPadding")
+        if (prop == "tickSize" || prop == "tickPadding")
             continue;
 
-        if (axisConfig.hasOwnProperty(propt)) {
+        if (axisConfig.hasOwnProperty(prop)) {
 
-            if (propt.indexOf("label") == 0)
-                spec.properties.labels[MappingObj[propt]].value = axisConfig[propt];
-            else if (propt.indexOf("ticks") == 0)
-                spec.properties.ticks[MappingObj[propt]].value = axisConfig[propt];
-            else if (propt.indexOf("title") == 0 && propt != "title")
-                spec.properties.title[MappingObj[propt]].value = axisConfig[propt];
-            else if (propt == 'title')
-                spec.title = axisConfig[propt];
-            else if (propt.indexOf("axis") == 0)
-                spec.properties.axis[MappingObj[propt]].value = axisConfig[propt];
+            if (prop.indexOf("label") == 0)
+                spec.properties.labels[MappingObj[prop]].value = axisConfig[prop];
+            else if (prop.indexOf("ticks") == 0)
+                spec.properties.ticks[MappingObj[prop]].value = axisConfig[prop];
+            else if (prop.indexOf("title") == 0 && prop != "title")
+                spec.properties.title[MappingObj[prop]].value = axisConfig[prop];
+            else if (prop == 'title')
+                spec.title = axisConfig[prop];
+            else if (prop.indexOf("axis") == 0)
+                spec.properties.axis[MappingObj[prop]].value = axisConfig[prop];
             else
-                spec[MappingObj[propt]] = axisConfig[propt];
+                spec[MappingObj[prop]] = axisConfig[prop];
         }
     }
 
     console.log("NEW SPEC", spec);
-}
-
-function createScales(dataset, chartConfig, dataTable) {
-    //Create scale functions
-    var xScale;
-    var yScale;
-    var colorScale;
-    if (dataTable.metadata.types[chartConfig.xAxis] == 'N') {
-        xScale = d3.scale.linear()
-            .domain([0, d3.max(dataset, function (d) {
-                return d.data[d.config.xAxis];
-            })])
-            .range([chartConfig.padding, chartConfig.width - chartConfig.padding]);
-    } else {
-        xScale = d3.scale.ordinal()
-            .domain(dataset.map(function (d) {
-                return d.data[chartConfig.xAxis];
-            }))
-            .rangeRoundBands([chartConfig.padding, chartConfig.width - chartConfig.padding], .1)
-    }
-
-    //TODO hanle case r and color are missing
-
-    if (dataTable.metadata.types[chartConfig.yAxis] == 'N') {
-        yScale = d3.scale.linear()
-            .domain([0, d3.max(dataset, function (d) {
-                return d.data[d.config.yAxis];
-            })])
-            .range([chartConfig.height - chartConfig.padding, chartConfig.padding]);
-        //var yScale = d3.scale.linear()
-        //    .range([height, 0])
-        //    .domain([0, d3.max(dataset, function(d) { return d.data[d.config.yAxis]; })])
-    } else {
-        yScale = d3.scale.ordinal()
-            .rangeRoundBands([0, chartConfig.width], .1)
-            .domain(dataset.map(function (d) {
-                return d.data[chartConfig.yAxis];
-            }))
-    }
-
-
-    //this is used to scale the size of the point, it will value between 0-20
-    var rScale = d3.scale.linear()
-        .domain([0, d3.max(dataset, function (d) {
-            return d.config.pointSize ? d.data[d.config.pointSize] : 20;
-        })])
-        .range([0, 20]);
-
-    //TODO have to handle the case color scale is categorical : Done
-    //http://synthesis.sbecker.net/articles/2012/07/16/learning-d3-part-6-scales-colors
-    // add color to circles see https://www.dashingd3js.com/svg-basic-shapes-and-d3js
-    //add legend http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
-    if (dataTable.metadata.types[chartConfig.pointColor] == 'N') {
-        colorScale = d3.scale.linear()
-            .domain([-1, d3.max(dataset, function (d) {
-                return d.config.pointColor ? d.data[d.config.pointColor] : 20;
-            })])
-            .range([chartConfig.minColor, chartConfig.maxColor]);
-    } else {
-        colorScale = d3.scale.category20c();
-    }
-
-    //TODO add legend
-
-
-    return {
-        "xScale": xScale,
-        "yScale": yScale,
-        "rScale": rScale,
-        "colorScale": colorScale
-    }
 }
 
 
@@ -4575,7 +4526,7 @@ function standardDeviation(values) {
  */
 function pX(x, sigma, u) {
 
-    p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
+    var p = (1 / Math.sqrt(2 * Math.PI * sigma * sigma)) * Math.exp((-(x - u) * (x - u)) / (2 * sigma * sigma));
 
     return p;
 }
@@ -4609,16 +4560,12 @@ function NormalizationCoordinates(xVals) {
  * This function will extract a column from a multi dimensional array
  * @param 2D array
  * @param index of column to be extracted
- * @return array of values
+ * @return Array of values
  */
 
 function parseColumnFrom2DArray(dataset, index) {
 
     var array = [];
-
-    //console.log(dataset.length);
-    //console.log(dataset[0].data);
-    //console.log(dataset[1].data);
 
     for (var i = 0; i < dataset.length; i++) {
         array.push(dataset[i][index])
@@ -4669,7 +4616,7 @@ Chart.prototype.setXAxis = function (xAxisConfig) {
     setGenericAxis(xAxisConfig, xAxisSpec);
 
     return this;
-}
+};
 
 
 Chart.prototype.setYAxis = function (yAxisConfig) {
@@ -4679,28 +4626,28 @@ Chart.prototype.setYAxis = function (yAxisConfig) {
         this.spec.scales[1].zero = yAxisConfig.zero;
     }
     if (yAxisConfig.nice != undefined) {
-        this.spec.scales[1].nice = xAxisConfig.nice;
+        this.spec.scales[1].nice = yAxisConfig.nice;
     }
 
     setGenericAxis(yAxisConfig, yAxisSpec);
 
     return this;
-}
+};
 
 
 Chart.prototype.setPadding = function (paddingConfig) {
 
     if (this.spec.padding == undefined) {
-        this.spec.padding = {}
+        this.spec.padding = {};
         this.spec.padding.top = 0;
         this.spec.padding.bottom = 0;
         this.spec.padding.left = 0;
         this.spec.padding.right = 0;
     }
-    for (var propt in paddingConfig) {
-        if (paddingConfig.hasOwnProperty(propt)) {
+    for (var prop in paddingConfig) {
+        if (paddingConfig.hasOwnProperty(prop)) {
 
-            this.spec.padding[propt] = paddingConfig[propt];
+            this.spec.padding[prop] = paddingConfig[prop];
         }
     }
 
@@ -4708,14 +4655,14 @@ Chart.prototype.setPadding = function (paddingConfig) {
     this.spec.height = this.originalHeight - this.spec.padding.top - this.spec.padding.bottom;
 
     return this;
-}
+};
 
 Chart.prototype.unsetPadding = function () {
     delete this.spec.padding;
     this.spec.width = this.originalWidth;
     this.spec.height = this.originalHeight;
     return this;
-}
+};
 
 Chart.prototype.setDimension = function (dimensionConfig) {
 
@@ -4730,15 +4677,15 @@ Chart.prototype.setDimension = function (dimensionConfig) {
 
     }
 
-}
+};
 
 Chart.prototype.update = function (pointObj) {
 
-    var newTable = setData([pointObj], this.config, this.dataTable.metadata);
+    var newTable = setData([pointObj], this.dataTable.metadata);
 
     if (this.config.update == "slide") {
 
-        var point = this.table.shift();
+         this.table.shift();
         this.dataTable.data.shift();
 
     }
@@ -4749,20 +4696,21 @@ Chart.prototype.update = function (pointObj) {
     this.table.push(newTable[0]);
     this.chart.data(this.data).update({"duration": 500});
 
-}
+};
 
-Chart.prototype.updateList = function (dataList, callback) {
+Chart.prototype.updateList = function (parameters) {
+    var dataList = parameters.dataList;
 
-    for (i = 0; i < dataList.length; i++) {
+    for (var i = 0; i < dataList.length; i++) {
         if (this.config.update == "slide")
             this.dataTable.data.shift();
 
         this.dataTable.data.push(dataList[i]);
     }
 
-    var newTable = setData(dataList, this.config, this.dataTable.metadata);
+    var newTable = setData(dataList, this.dataTable.metadata);
 
-    for (i = 0; i < dataList.length; i++) {
+    for (var i = 0; i < dataList.length; i++) {
 
 
         if (this.config.update == "slide") {
@@ -4775,13 +4723,12 @@ Chart.prototype.updateList = function (dataList, callback) {
     //     console.log(point,this.chart,this.data);
     this.chart.data(this.data).update({"duration": 500});
 
-}
+};
 
 Chart.prototype.resize = function () {
     var ref = this;
-    var newH = document.getElementById(ref.canvas.replace('#', '')).offsetHeight
-    var newW = document.getElementById(ref.canvas.replace('#', '')).offsetWidth
-    console.log("Resized", newH, newW, ref)
+    var newH = document.getElementById(ref.canvas.replace('#', '')).offsetHeight;
+    var newW = document.getElementById(ref.canvas.replace('#', '')).offsetWidth;
 
     var left = 0, top = 0, right = 0, bottom = 0;
 
@@ -4821,7 +4768,7 @@ Chart.prototype.resize = function () {
     console.log(w, h);
     ref.chart.width(w).height(h).renderer('svg').update({props: 'enter'}).update();
 
-}
+};
 
 function sortDataTable(dataTable, xAxis) {
     if (dataTable.metadata.types[xAxis] == 'U' || dataTable.metadata.types[xAxis] == 'T') {
@@ -4859,7 +4806,7 @@ function getIndexOfMaxRange(dataTable, yAxis, aggregate, groupedBy) {
 
     var currentMaxIndex = -1;
     var currentMax = Number.NEGATIVE_INFINITY;
-    for (i = 0; i < yAxis.length; i++) {
+    for (var i = 0; i < yAxis.length; i++) {
 
         var newMax = d3.max(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
         console.log(parseColumnFrom2DArray(newDataTable.data, yAxis[i]));
@@ -4883,25 +4830,19 @@ function getIndexOfMaxRange(dataTable, yAxis, aggregate, groupedBy) {
 
 }
 
-Chart.prototype.plot = function (dataset, callback) {
-    this.dataTable.data = dataset;
-    console.log(this.dataTable)
+Chart.prototype.plot = function (dataSet, callback) {
+    this.dataTable.data = dataSet;
     sortDataTable(this.dataTable, this.config.xAxis);
 
-    var table = setData(dataset, this.config, this.dataTable.metadata);
+    var table = setData(dataSet, this.dataTable.metadata);
     if (this.config.yAxis != undefined && this.config.yAxis.constructor == Array) {
         //var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
-        var name = getIndexOfMaxRange(this.dataTable, this.config.yAxis, this.config.aggregate, this.config.xAxis);
-        console.log("myName", name);
-
-
-        this.spec.scales[1].domain.field = name;
+        this.spec.scales[1].domain.field = getIndexOfMaxRange(this.dataTable, this.config.yAxis, this.config.aggregate, this.config.xAxis);
     }
 
 
-    console.log(this.dataTable)
 
-    var data = {table: table}
+    var data = {table: table};
 
     if (this.config.update == undefined) {
         this.config.update = "slide";
@@ -4913,31 +4854,34 @@ Chart.prototype.plot = function (dataset, callback) {
     console.log(data);
     var delay = {};
 
+    var legendsList;
+    var a;
+    var isFound;
     if (this.legend) {
         legendsList = [];
-        for (i = 0; i < dataset.length; i++) {
-            a = dataset[i][this.legendIndex]
-            isfound = false;
-            for (j = 0; j < legendsList.length; j++) {
+        for (var i = 0; i < dataSet.length; i++) {
+            a = dataSet[i][this.legendIndex];
+            isFound = false;
+            for (var j = 0; j < legendsList.length; j++) {
                 if (a == legendsList[j]) {
-                    isfound = true;
+                    isFound = true;
                     break;
                 }
             }
 
-            if (!isfound) {
+            if (!isFound) {
                 legendsList.push(a);
             }
         }
 
-        delay = {"duration": 600}
+        delay = {"duration": 600};
         this.spec.legends[0].values = legendsList;
     }
 
     var specification = this.spec;
     var isTool = this.toolTip;
-    var toolTipFunction = this.toolTipFunction
-    var ref = this
+    var toolTipFunction = this.toolTipFunction;
+    var ref = this;
 
     vg.parse.spec(specification, function (chart) {
         ref.chart = chart({
@@ -4980,7 +4924,7 @@ Chart.prototype.plot = function (dataset, callback) {
     console.log(this);
 
 
-}
+};
 
 
 
@@ -4993,7 +4937,7 @@ Chart.prototype.plot = function (dataset, callback) {
     //dataTable.addColumn("OrderId","C");
     //dataTable.addColumn("Amount","N");
     //dataTable.addRow(["12SS",1234.56]);
-igviz.DataTable = function (data) {
+igviz.DataTable = function () {
     this.metadata = {};
     this.metadata.names = [];
     this.metadata.types = [];
@@ -5013,7 +4957,7 @@ igviz.DataTable.prototype.addRows = function (rows) {
     for (var i = 0; i < rows.length; i++) {
         this.data.push(rows[i]);
     }
-    ;
+
 };
 
 igviz.DataTable.prototype.getColumnNames = function () {

@@ -3,10 +3,11 @@
 /*************************************************** Arc chart ***************************************************************************************************/
 
 
-
 igviz.drawArc = function (divId, chartConfig, dataTable) {
+
     function radialProgress(parent) {
-        var _duration = 1000,
+        var _data = null,
+            _duration = 1000,
             _selection,
             _margin = {
                 top: 0,
@@ -181,8 +182,8 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
 
 
         function measure() {
-            var _width = _diameter - _margin.right - _margin.left - _margin.top - _margin.bottom;
-            var _height = _width;
+            _width = _diameter - _margin.right - _margin.left - _margin.top - _margin.bottom;
+            _height = _width;
             _fontSize = _width * .2;
             _arc.outerRadius(_width / 2);
             _arc.innerRadius(_width / 2 * .85);
@@ -213,7 +214,6 @@ igviz.drawArc = function (divId, chartConfig, dataTable) {
 
         component.diameter = function (_) {
             if (!arguments.length) return _diameter;
-
             _diameter = _;
             return component;
         };
