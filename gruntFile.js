@@ -24,15 +24,6 @@ module.exports = function (grunt) {
                 dest: 'build/igviz.js'
             }
         },
-        concat: {
-            options: {
-                banner: '/*********IGVIZ.js******************************/'
-            },
-            dist: {
-                src: ['lib/vega.js','build/igviz.js'],
-                dest: 'build/igviz.full.js'
-            }
-        },
 
         uglify: {
             options: {
@@ -41,7 +32,7 @@ module.exports = function (grunt) {
 
             js: {
                 files: {
-                    'build/igviz.full.min.js': ['build/igviz.full.js'],
+                 //   'build/igviz.full.min.js': ['build/igviz.full.js'],
                     'build/igviz.min.js': ['build/igviz.js'],
                     'igviz.min.js': ['build/igviz.js']
                 }

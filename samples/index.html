@@ -18,7 +18,7 @@
 
 
     <!-- Intergration of igviz  -->
-    <script src="../igviz.js"></script>
+    <script src="../build/igviz.min.js"></script>
     <link rel="stylesheet" href="../igviz.css">
 
 
@@ -393,7 +393,7 @@ var dataTable = {
     var scatterChartConfig = {
         "title": "Area By Country",
         "yAxis": 1,
-        "xAxis": 0,
+        "xAxis": 2,
         "pointLabel": 0,
         "width": width,
         "height": height,
@@ -864,6 +864,7 @@ stackedChart=igviz.setUp("#stackedArea",stackedConfig,stackedDataTable.metadata)
 stackedChart.plot(stackedDataTable.data);
 
 scatterChart= igviz.setUp("#scatter",scatterChartConfig,dataTable.metadata);
+scatterChart.setXAxis({'zero':false})
 scatterChart.setDimension({"height":190});
 scatterChart.plot(dataTable.data)
 

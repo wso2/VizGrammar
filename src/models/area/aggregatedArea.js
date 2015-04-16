@@ -106,7 +106,7 @@ igviz.drawAggregatedArea = function (chartObj) {
         ],
         "scales": [
             xScale, yScale, {
-                "name": "color", "type": "ordinal", "range": "category20"
+                "name": "color", "type": "ordinal", "range": "category10"
             }
         ],
         "axes": [

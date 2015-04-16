@@ -88,7 +88,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
         "scales": [
             xScale, yScale,
             {
-                "name": "color", "type": "ordinal", "range": "category20"
+                "name": "color", "type": "ordinal", "range": "category10"
             }
         ],
         "legends": [
@@ -242,7 +242,7 @@ igviz.drawMultiAreaChart = function (chartObj) {
             var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20();
+            var colorScale = d3.scale.category10();
 
             var foundIndex = -1;
             for (var index = 0; index < yStrings.length; index++)

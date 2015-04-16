@@ -184,6 +184,7 @@ function setData(dataTableObj, schema) {
 }
 
 function createAttributeNames(str) {
+    str=str.replace('.','_')
     return str.replace(' ', '_');
 }
 

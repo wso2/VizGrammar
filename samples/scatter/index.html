@@ -316,8 +316,8 @@
 
                     var scatterChartConfig = {
                         "title": "Scatter Chart Sample",
-                        "yAxis": 1,
-                        "xAxis": 0,
+                        "yAxis":1,
+                        "xAxis": 7,
                         "width": width,
                         "height": height,
                         "pointColor": 3,
@@ -332,7 +332,7 @@
                     //igviz.plot("#scatter",scatterChartConfig,dataTable);
 
                     chart=igviz.setUp("#scatter",scatterChartConfig,dataTable);
-
+chart.setXAxis({'zero':false})
                      chart.plot(dataTable.data)
                     window.onresize=function(){chart.resize()};
 

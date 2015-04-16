@@ -83,7 +83,7 @@ igviz.drawLineChart = function (chartObj) {
         "scales": [
             xScale, yScale,
             {
-                "name": "color", "type": "ordinal", "range": "category20"
+                "name": "color", "type": "ordinal", "range": "category10"
             }
         ],
         "axes": [xAxis, yAxis
@@ -193,7 +193,7 @@ igviz.drawLineChart = function (chartObj) {
             var xVar = dataTable.metadata.names[chartConfig.xAxis];
 
 
-            var colorScale = d3.scale.category20();
+            var colorScale = d3.scale.category10();
 
             var foundIndex = -1;
             for (var index = 0; index < yStrings.length; index++)
