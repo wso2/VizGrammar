@@ -13,10 +13,10 @@ function Chart(canvas, config, dataTable) {
 Chart.prototype.setXAxis = function (xAxisConfig) {
 
     var xAxisSpec = this.spec.axes[0];
-    if (xAxisConfig.zero != undefined) {
+    if (xAxisConfig.hasOwnProperty('zero')) {
         this.spec.scales[0].zero = xAxisConfig.zero;
     }
-    if (xAxisConfig.nice != undefined) {
+    if (xAxisConfig.hasOwnProperty('nice')) {
         this.spec.scales[0].nice = xAxisConfig.nice;
     }
 
@@ -29,10 +29,10 @@ Chart.prototype.setXAxis = function (xAxisConfig) {
 Chart.prototype.setYAxis = function (yAxisConfig) {
 
     var yAxisSpec = this.spec.axes[1];
-    if (yAxisConfig.zero != undefined) {
+    if (yAxisConfig.hasOwnProperty('zero')) {
         this.spec.scales[1].zero = yAxisConfig.zero;
     }
-    if (yAxisConfig.nice != undefined) {
+    if (yAxisConfig.hasOwnProperty('nice')) {
         this.spec.scales[1].nice = yAxisConfig.nice;
     }
 
@@ -44,7 +44,7 @@ Chart.prototype.setYAxis = function (yAxisConfig) {
 
 Chart.prototype.setPadding = function (paddingConfig) {
 
-    if (this.spec.padding == undefined) {
+    if (!this.spec.hasOwnProperty('padding')) {
         this.spec.padding = {};
         this.spec.padding.top = 0;
         this.spec.padding.bottom = 0;
@@ -73,12 +73,12 @@ Chart.prototype.unsetPadding = function () {
 
 Chart.prototype.setDimension = function (dimensionConfig) {
 
-    if (dimensionConfig.width != undefined) {
+    if (dimensionConfig.hasOwnProperty('width')) {
         this.spec.width = dimensionConfig.width;
         this.originalWidth = dimensionConfig.width;
     }
 
-    if (dimensionConfig.height != undefined) {
+    if (dimensionConfig.hasOwnProperty('height')) {
         this.spec.height = dimensionConfig.height;
         this.originalHeight = dimensionConfig.height;
 
@@ -150,20 +150,20 @@ Chart.prototype.resize = function () {
     //}
     // else {
     //
-    //    if (ref.spec.padding.left!=undefined){
+    //    if (ref.spec.padding.hasOwnProperty('left')){
     //        left=ref.spec.padding.left;
     //
     //    }
     //
-    //    if (ref.spec.padding.bottom!=undefined){
+    //    if (ref.spec.padding.hasOwnProperty('bottom')){
     //        bottom=ref.spec.padding.bottom;
     //
     //    }
-    //    if (ref.spec.padding.top!=undefined){
+    //    if (ref.spec.padding.hasOwnProperty('top')){
     //        top=ref.spec.padding.top;
     //
     //    }
-    //    if (ref.spec.padding.right!=undefined){
+    //    if (ref.spec.padding.hasOwnProperty('right')){
     //        right=ref.spec.padding.right;
     //
     //    }
@@ -242,7 +242,7 @@ Chart.prototype.plot = function (dataSet, callback) {
     sortDataTable(this.dataTable, this.config.xAxis);
 
     var table = setData(dataSet, this.dataTable.metadata);
-    if (this.config.yAxis != undefined && this.config.yAxis.constructor == Array) {
+    if (this.config.hasOwnProperty('yAxis') && this.config.yAxis.constructor == Array) {
         //var scaleIndex=getIndexOfMaxRange(this.dataTable,this.config.yAxis)
         this.spec.scales[1].domain.field = getIndexOfMaxRange(this.dataTable, this.config.yAxis, this.config.aggregate, this.config.xAxis);
     }
