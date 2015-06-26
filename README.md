@@ -111,6 +111,4 @@ Visit [IGViz Samples Web Site](http://dunithd.github.io/igviz-site/samples/index
 
 You can also follow the samples folder so that you'll get a better idea.
 
-Happy Coding!
-- IGViz Team
 
