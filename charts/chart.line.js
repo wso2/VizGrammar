@@ -28,7 +28,7 @@ function setupLine(dataTable, config) {
                 yScaleName = "y";
 
                 yScale = {
-                    "name": "color", "type": "ordinal", "range": "category10", "domain": {"data": dataName, "field": config.y}
+                    "name": "color", "type": "ordinal", "range": "category10", "domain": config.y
                 };
 
                  scales.push(yScale);
