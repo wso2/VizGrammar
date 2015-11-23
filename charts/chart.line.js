@@ -1,9 +1,7 @@
-var view;
-var dataName;
 
-
-function setupLine(dataTable, config) {
-		  dataName = dataTable[0].name;
+var line = function(dataTable, config) {
+		  this.dataName = dataTable[0].name;
+      this.config = config;
       var marks =[];
 
       var xScale = {
@@ -11,7 +9,7 @@ function setupLine(dataTable, config) {
                         "type": config.xType,
                         "range": "width",
                         "zero": false,
-                        "domain": {"data": dataName, "field": config.x}
+                        "domain": {"data":  this.dataName, "field": config.x}
                       };
 
 
@@ -28,7 +26,7 @@ function setupLine(dataTable, config) {
                 yScaleName = "y";
 
                 yScale = {
-                    "name": "color", "type": "ordinal", "range": "category10", "domain": config.y
+                    "name": "color", "type": "ordinal", "range": config.colorScale, "domain": config.y
                 };
 
                  scales.push(yScale);
@@ -43,21 +41,21 @@ function setupLine(dataTable, config) {
                                 "range": "height",
                                 "nice": true,
                                 "zero": false,
-                                "domain": {"data": dataName, "field": config.y[i]}
+                                "domain": {"data":  this.dataName, "field": config.y[i]}
                               };
               } else {
                     yScale =  {
                             "name": "color", 
                             "type": "ordinal", 
-                            "domain": {"data": dataName, "field": config.y[i]},
-                            "range": "category10"
+                            "domain": {"data":  this.dataName, "field": config.y[i]},
+                            "range": config.colorScale
                           };
               }
               scales.push(yScale);
           }
 
           var axes =  [
-                        {"type": "x", "scale": "x"},
+                        {"type": "x", "scale": "x",  "title": config.x},
                         {"type": "y", "scale": "y"}
                       ];
 
@@ -66,7 +64,7 @@ function setupLine(dataTable, config) {
                                 {
                                   "type": "group",
                                   "from": {
-                                    "data": dataName,
+                                    "data":  this.dataName,
                                     "transform": [{"type": "facet", "groupby": [config.y[config.groupIndex]]}]
                                   },
                                   "marks": [
@@ -89,7 +87,7 @@ function setupLine(dataTable, config) {
                 for (i = 0; i < config.y.length; i++) { 
                     var mark = {
                                     "type": "line",
-                                    "from": {"data": dataName},
+                                    "from": {"data": this.dataName},
                                     "properties": {
                                       "update": {
                                        // "interpolate": {"value": "monotone"},
@@ -113,7 +111,7 @@ function setupLine(dataTable, config) {
           var legends = [
                           {
                           "fill": "color",
-                          "title": dataName,
+                          "title": this.dataName,
                           "offset": 0,
                           "properties": {
                             "symbols": {
@@ -124,28 +122,41 @@ function setupLine(dataTable, config) {
                         }
                         ];
 
-          var spec = {};
-          spec.width = 500;
-          spec.height = 200,
-          spec.axes = axes;
-          spec.data = dataTable;
-          spec.scales = scales;
-          spec.padding = {"top": 30, "left": 30, "bottom": 30, "right": 100};
-          spec.marks = marks;
-          spec.legends = legends;
-
-          return spec;      
+          this.spec = {};
+          this.spec.width = 500;
+          this.spec.height = 200,
+          this.spec.axes = axes;
+          this.spec.data = dataTable;
+          this.spec.scales = scales;
+          this.spec.padding = {"top": 30, "left": 30, "bottom": 100, "right": 100};
+          this.spec.marks = marks;
+          this.spec.legends = legends;    
           };
 
-function drawLine(spec, div) {
- 		vg.parse.spec(spec, function(chart) { 
-        view = chart({el:div}).update(); 
-        });
+line.prototype.draw = function(div) {
+
+    var viewUpdateFunction = (function(chart) {
+       this.view = chart({el:div}).update();
+    }).bind(this);
+
+ 		vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
-function updateLine(data) {
-              view.data(dataName).insert(data);
-              view.update();
+line.prototype.insert = function(data) {
+
+          //Removing events when max value is enabled
+          if ((config.maxLength != undefined || config.maxLength != -1) 
+              && (config.maxLength - 1) <  this.view.data(this.dataName).values().length) {
+                var oldData = this.view.data(this.dataName).values()[0][this.config.x];
+                for (i = 0; i < data.length; i++) {
+                     this.view.data(this.dataName).remove(function(d) { 
+                      return d[this.config.x] == oldData; 
+                    });  
+                }
+            } 
+
+             this.view.data(this.dataName).insert(data);
+             this.view.update();
           }
 
 
