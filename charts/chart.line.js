@@ -33,7 +33,7 @@ var line = function(dataTable, config) {
 
 
                } else {
-                yScaleName ="yy";
+                yScaleName = "y" + i;
                }
                     yScale = {
                                 "name": yScaleName,
@@ -41,7 +41,7 @@ var line = function(dataTable, config) {
                                 "range": "height",
                                 "nice": true,
                                 "zero": false,
-                                "domain": {"data":  this.dataName, "field": config.y[i]}
+                                "domain": {"data":  this.dataName, "field": config.y}
                               };
               } else {
                     yScale =  {
@@ -55,8 +55,8 @@ var line = function(dataTable, config) {
           }
 
           var axes =  [
-                        {"type": "x", "scale": "x",  "title": config.x},
-                        {"type": "y", "scale": "y"}
+                        {"type": "x", "scale": "x","grid": true,  "title": config.x},
+                        {"type": "y", "scale": "y", "grid": true}
                       ];
 
           if (config.groupIndex != -1) {
@@ -146,7 +146,7 @@ line.prototype.insert = function(data) {
 
           //Removing events when max value is enabled
           if ((config.maxLength != undefined || config.maxLength != -1) 
-              && (config.maxLength - 1) <  this.view.data(this.dataName).values().length) {
+              && config.maxLength <  (this.view.data(this.dataName).values().length + data.length)) {
                 var oldData = this.view.data(this.dataName).values()[0][this.config.x];
                 for (i = 0; i < data.length; i++) {
                      this.view.data(this.dataName).remove(function(d) { 
