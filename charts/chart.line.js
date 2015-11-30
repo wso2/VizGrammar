@@ -147,8 +147,8 @@ line.prototype.insert = function(data) {
           //Removing events when max value is enabled
           if ((config.maxLength != undefined || config.maxLength != -1) 
               && config.maxLength <  (this.view.data(this.dataName).values().length + data.length)) {
-                var oldData = this.view.data(this.dataName).values()[0][this.config.x];
                 for (i = 0; i < data.length; i++) {
+                  var oldData = this.view.data(this.dataName).values()[i][this.config.x];
                      this.view.data(this.dataName).remove(function(d) { 
                       return d[this.config.x] == oldData; 
                     });  
