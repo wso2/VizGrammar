@@ -9,3 +9,8 @@ vizg.prototype.draw = function(div) {
 vizg.prototype.insert = function(data) {
 	this.chart.insert(data);
 };
+
+
+vizg.prototype.getSpec = function() {
+	return this.chart.getSpec();
+};

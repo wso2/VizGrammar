@@ -20,7 +20,7 @@ var line = function(dataTable, config) {
                 "name": "y",
                 "type": this.metadata.types[config.y],
                 "range": "height",
-                "zero": false,
+                "zero": config.zero,
                 "domain": {"data":  this.dataName, "field": this.metadata.names[config.y]}
                 };
       
@@ -37,8 +37,8 @@ var line = function(dataTable, config) {
       } 
 
       var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": this.metadata.names[config.x]},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": this.metadata.names[config.y]}
+                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
+                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
       if (config.color != -1) {
@@ -70,7 +70,7 @@ var line = function(dataTable, config) {
                                 "from": {"data": this.dataName},
                                 "properties": {
                                   "update": {
-                                   // "interpolate": {"value": "monotone"},
+
                                     "x": {"scale": "x", "field": this.metadata.names[config.x]},
                                     "y": {"scale": "y", "field": this.metadata.names[config.y]},
                                     "stroke": { "value": "steelblue"},
@@ -140,6 +140,10 @@ line.prototype.insert = function(data) {
 
      this.view.data(this.dataName).insert(data);
      this.view.update();
+};
+
+line.prototype.getSpec = function() {
+  return this.spec;
 };
 
 

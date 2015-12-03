@@ -1,7 +1,12 @@
 function checkConfig(config, metadata){
 
-	config.x = metadata.names.indexOf(config.x);
-    config.y = metadata.names.indexOf(config.y);
+	if (config.xTitle == null) {
+		config.xTitle = config.x;
+	}
+
+	if (config.yTitle == null) {
+		config.yTitle = config.y;
+	}
 
 	if (config.colorScale == null) {
 		config.colorScale = "category10";
@@ -24,6 +29,9 @@ function checkConfig(config, metadata){
 	if (config.maxLength == null) {
 		config.maxLength = -1;
 	}
+
+	config.x = metadata.names.indexOf(config.x);
+    config.y = metadata.names.indexOf(config.y);
 
     return config;
 }
