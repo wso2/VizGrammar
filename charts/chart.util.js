@@ -1,5 +1,9 @@
 function checkConfig(config, metadata){
 
+	if (config.title == null) {
+		config.title = "table";
+	}
+
 	if (config.xTitle == null) {
 		config.xTitle = config.x;
 	}

@@ -1,6 +1,5 @@
 
 var line = function(dataTable, config) {
-      config.title = "table";
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
@@ -46,6 +45,12 @@ var line = function(dataTable, config) {
 
       if (config.color != -1) {
 
+      var legendTitle = "Legend";
+
+      if (config.title != "table") {
+          legendTitle = config.title;
+      }
+
       var legends = [
                       {
                       "fill": "color",
@@ -82,24 +87,22 @@ line.prototype.draw = function(div) {
 };
 
 line.prototype.insert = function(data) {
+    //Removing events when max value is enabled
+    if (this.config.maxLength != -1 
+          && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
+        for (i = 0; i < data.length; i++) {
+          var oldData = this.view.data(this.config.title).values()[i][this.metadata.names[this.config.x]];
 
-      //Removing events when max value is enabled
-      if (config.maxLength != -1 
-          && config.maxLength <  (this.view.data(config.title).values().length + data.length)) {
+          var removeFunction = (function(d) { 
+              return d[this.metadata.names[this.config.x]] == oldData; 
+            }).bind(this);
 
-            for (i = 0; i < data.length; i++) {
-              var oldData = this.view.data(config.title).values()[i][this.metadata.names[config.x]];
+          
+             this.view.data(this.config.title).remove(removeFunction);  
+        }
+    } 
 
-              var removeFunction = (function(d) { 
-                  return d[this.metadata.names[config.x]] == oldData; 
-                }).bind(this);
-
-              
-                 this.view.data(config.title).remove(removeFunction);  
-            }
-        } 
-
-     this.view.data(config.title).insert(data);
+     this.view.data(this.config.title).insert(data);
      this.view.update();
 };
 
