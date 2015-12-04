@@ -1,19 +1,20 @@
 
 var line = function(dataTable, config) {
-		  this.dataName = dataTable[0].name;
-      this.config = config;
+      config.title = "table";
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
 
-      var config = checkConfig(config, this.metadata);
+      config = checkConfig(config, this.metadata);
+      this.config = config;
+      dataTable[0].name= config.title;
 
       var xScale = {
                     "name": "x",
                     "type": this.metadata.types[config.x],
                     "range": "width",
                     "zero": config.zero,
-                    "domain": {"data":  this.dataName, "field": this.metadata.names[config.x]}
+                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
                     };
 
       var yScale = {
@@ -21,7 +22,7 @@ var line = function(dataTable, config) {
                 "type": this.metadata.types[config.y],
                 "range": "height",
                 "zero": config.zero,
-                "domain": {"data":  this.dataName, "field": this.metadata.names[config.y]}
+                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
                 };
       
       var scales =  [xScale, yScale];
@@ -30,7 +31,7 @@ var line = function(dataTable, config) {
           var colorScale = {
                     "name": "color", 
                     "type": "ordinal", 
-                    "domain": {"data":  this.dataName, "field": this.metadata.names[config.color]},
+                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
                     "range": config.colorScale
                       };
           scales.push(colorScale);
@@ -41,56 +42,14 @@ var line = function(dataTable, config) {
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
+      marks.push(getLineMark(config, this.metadata));
+
       if (config.color != -1) {
-              marks =  [
-                            {
-                              "type": "group",
-                              "from": {
-                                "data":  this.dataName,
-                                "transform": [{"type": "facet", "groupby": [this.metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "line",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": this.metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": this.metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": this.metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2}
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          ];
-        } else {
-                var mark = {
-                                "type": "line",
-                                "from": {"data": this.dataName},
-                                "properties": {
-                                  "update": {
-
-                                    "x": {"scale": "x", "field": this.metadata.names[config.x]},
-                                    "y": {"scale": "y", "field": this.metadata.names[config.y]},
-                                    "stroke": { "value": "steelblue"},
-                                    "strokeWidth": {"value": 2}
-                                  },
-                                  "hover": {
-                                    "fillOpacity": {"value": 0.5}
-                                  }
-                                }
-                            }
-
-                 marks.push(mark);
-        }
-
-        if (config.color != -1) {
 
       var legends = [
                       {
                       "fill": "color",
-                      "title": this.dataName,
+                      "title": "Legend",
                       "offset": 0,
                       "properties": {
                         "symbols": {
@@ -103,16 +62,14 @@ var line = function(dataTable, config) {
 
                     this.spec.legends = legends;
           }
-
       
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
       this.spec.data = dataTable;
       this.spec.scales = scales;
-      this.spec.padding = {"top": 30, "left": 50, "bottom": 100, "right": 100};
+      this.spec.padding = config.padding;
       this.spec.marks = marks;
-          
 };
 
 line.prototype.draw = function(div) {
@@ -128,17 +85,21 @@ line.prototype.insert = function(data) {
 
       //Removing events when max value is enabled
       if (config.maxLength != -1 
-          && config.maxLength <  (this.view.data(this.dataName).values().length + data.length)) {
+          && config.maxLength <  (this.view.data(config.title).values().length + data.length)) {
 
             for (i = 0; i < data.length; i++) {
-              var oldData = this.view.data(this.dataName).values()[i][this.config.x];
-                 this.view.data(this.dataName).remove(function(d) { 
-                  return d[this.config.x] == oldData; 
-                });  
+              var oldData = this.view.data(config.title).values()[i][this.metadata.names[config.x]];
+
+              var removeFunction = (function(d) { 
+                  return d[this.metadata.names[config.x]] == oldData; 
+                }).bind(this);
+
+              
+                 this.view.data(config.title).remove(removeFunction);  
             }
         } 
 
-     this.view.data(this.dataName).insert(data);
+     this.view.data(config.title).insert(data);
      this.view.update();
 };
 
@@ -147,4 +108,52 @@ line.prototype.getSpec = function() {
 };
 
 
+function getLineMark(config, metadata){
+        if (config.color != -1) {
+              var mark =  {
+                              "type": "group",
+                              "from": {
+                                "data":  config.title,
+                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+                              },
+                              "marks": [
+                                {
+                                  "type": "line",
+                                  "properties": {
+                                    "update": {
+                                      "x": {"scale": "x", "field": metadata.names[config.x]},
+                                      "y": {"scale": "y", "field": metadata.names[config.y]},
+                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
+                                      "strokeWidth": {"value": 2},
+                                      "strokeOpacity": {"value": 1}
+                                    },
+                                    "hover": {
+                                      "strokeOpacity": {"value": 0.5}
+                                    }
+                                  }
+                                }
+                              ]
+                            };
+        } else {
+                var mark = {
+                                "type": "line",
+                                "from": {"data": config.title},
+                                "properties": {
+                                  "update": {
+
+                                    "x": {"scale": "x", "field": metadata.names[config.x]},
+                                    "y": {"scale": "y", "field": metadata.names[config.y]},
+                                    "stroke": { "value": "steelblue"},
+                                    "strokeWidth": {"value": 2},
+                                    "strokeOpacity": {"value": 1}
+                                  },
+                                  "hover": {
+                                    "strokeOpacity": {"value": 0.5}
+                                  }
+                                }
+                            };
+        }
+
+        return mark;
+}
 
