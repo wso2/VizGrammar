@@ -1,79 +1,184 @@
-<!DOCTYPE html>
 <html>
-<head>
-    <title>IGViz.js - Line Chart Sample</title>
+  <head>
+    <title>VizGrammar.js - Line Chart Sample</title>
     <link rel="stylesheet" href="../bootstrap.min.css">
-    <script src="../d3.min.js"></script>
-    <script src="../vega.js"></script>
-
-    <!-- Intergration of igviz  -->
-    <script src="../../igviz.js"></script>
+    <script src="../../lib/d3.min.js"></script>
+    <script src="../../lib/vega.js"></script>
+    <script src="../../charts/chart.core.js"></script>
+    <script src="../../charts/chart.line.js"></script>
+    <script src="../../charts/chart.util.js"></script>
     <link rel="stylesheet" href="../../igviz.css">
-
-
-    <meta charset="utf-8">
-
     <style type="text/css">
         body {
             padding-top: 40px;
         }
-
     </style>
-</head>
-
-<body>
-
-
-<div class="container">
-
-
-    <a href="../" style="text-decoration: none">
+  </head>
+  
+  <div class="container">
+  <body>
+        <a href="../" style="text-decoration: none">
         <div class="jumbotron">
-            <h1>IGViz.js
+            <h2>VizGrammar.js
                 <small> Drawing a chart has never been this easy!</small>
-            </h1>
+            </h2>
             <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
         </div>
     </a>
 
-    <div class="row">
+       <div class="row">
 
         <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Line Chart Sample
+                        Group Multi Line Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="staticLine"></div>
+                    <div id="dChart"></div>
                 </div>
 
             </div>
         </div>
 
-        <div class="col-md-6" class="tile">
+                <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Real-time Line Chart Sample
+                       Single Line Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="dynamicLine"></div>
+                    <div id="dChart3"></div>
                 </div>
+
             </div>
         </div>
 
+        <script>
+
+         var data =  [
+            { 
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+              },
+              "data": [
+                [1, 10, 1, "Piston"]]
+            }
+          ];
+
+          var config = {
+            x : "rpm",
+            charts : [
+            {type: "line",  y : "torque", color: "EngineType"}
+            ],
+            maxLength: 10,
+            width: 400,
+            height: 200
+          }
+
+          var lineChart = new vizg(data, config); 
+
+          var spec = lineChart.getSpec();
+
+          lineChart.draw("#dChart");
+
+          setTimeout(function() {
+            lineChart.insert([[2, 120, 1, "Piston"]]);
+            lineChart.insert([[1, 30, 2, "rotary"]]);
+            lineChart.insert([[2, 40, 2, "rotary"]]);
+  
+          },
+          200
+        );
+
+        setTimeout(function() {
+            lineChart.insert([[3, 33, 1, "Piston"]]);
+            lineChart.insert([[3, 50, 2, "rotary"]]);
+            lineChart.insert([[4, 90, 2, "rotary"]]);
+            lineChart.insert([[4, 30, 1, "Piston"]]);
+          },
+          500
+        );
+
+        setTimeout(function() {
+            lineChart.insert([[5, 70, 2, "rotary"]]);
+            lineChart.insert([[5, 35, 1, "Piston"]]);
+            lineChart.insert([[6, 80, 2, "rotary"]]);
+            lineChart.insert([[6, 40, 1, "Piston"]]);            
+          },
+          1000
+        );
+
+        setTimeout(function() {           
+            lineChart.insert([[7, 90, 2, "rotary"]]);
+            lineChart.insert([[7, 45, 1, "Piston"]]);
+          },
+          1500
+        );
 
 
+        var data2 =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [1, 10, 12]
+                            ]
+            }
+          ];
 
 
+          var config3 = {
+            type: "line",
+            x : "rpm",
+            y : "torque",
+            charts : [{type: "line",  y : "torque"}],
+            maxLength: 6,
+            width: 400,
+            height: 200
+          }
 
-    </div>
+          var lineChart3 = new vizg(data2, config3);
+          lineChart3.draw("#dChart3");
 
 
-    <div class="row">
+        setTimeout(function() {
+            lineChart3.insert([[2, 19, 13]]);
+          },
+          500
+        );
+
+          setTimeout(function() {
+            lineChart3.insert([[3, 120, 14]]);
+          },
+          1000
+        );
+
+
+        setTimeout(function() {
+            lineChart3.insert([[4, 60, 21]]);
+            lineChart3.insert([[5, 40, 70]]);
+            lineChart3.insert([[6, 45, 70]]);
+          },
+          1500
+        );
+
+        setTimeout(function() {
+
+            lineChart3.insert([[7, 56, 70]]);
+            lineChart3.insert([[8, 87, 70]]);
+          },
+          2000
+        );
+        </script>
+      </div>
+
+          <div class="row">
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -84,19 +189,14 @@
                 <div class="panel-body">
                     <div id="data set">
 <pre>
-    {
-                "metadata" : {
-                    "names" : ["Year","Sales","Expenses"],
-                    "types" : ["C","N","N"]
-                },
-                "data" : [
-                    [2004,  1000,      400],
-                    [2005,  1170,      460],
-                    [2006,  660,       1120],
-                    [2007,  1030,      540]
-                ]
-    };
-
+{
+  "metadata" : {
+      "names" : ["rpm","torque","horsepower", "EngineType"],
+      "types" : ["linear","linear", "ordinal","ordinal"]
+  },
+  "data": [
+    [1, 10, 1, "Piston"]]
+};
 </pre>
 
 
@@ -108,7 +208,7 @@
 
 
         <div class="col-md-6" >
-            <div class="panel panel-default" style="height: 588px">
+            <div class="panel panel-default" >
                 <div class="panel-heading">
                     <h3 class="panel-title">
                         Configurations
@@ -117,7 +217,15 @@
                 <div class="panel-body">
                     <div id="config">
 
-
+                      <pre>
+{
+  x : "rpm",
+  charts : [{type: "line",  y : "torque", color: "EngineType"}],
+  maxLength: 10,
+  width: 400,
+  height: 200
+}
+                      </pre>
 
                         <table class="table table-bordered">
                             <thead>
@@ -128,30 +236,20 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr class="danger">
+                            <tr class="info">
                                 <td>title</td>
                                 <td>String</td>
                                 <td>Title of the table</td>
                             </tr>
                             <tr class="danger">
-                                <td>yAxis</td>
-                                <td>[0-(dataset.length-1)]</td>
-                                <td>An array of indices of dataset  for Y-axis</td>
-
+                                <td>x</td>
+                                <td>String</td>
+                                <td>cAttribute name for X-axis</td>
                             </tr>
-
                             <tr class="danger">
-                                <td>xAxis</td>
-                                <td>0-(dataset.length-1)</td>
-                                <td>column index of the dataset for X-axis</td>
-
-                            </tr>
-
-
-                            <tr class="danger">
-                                <td>width</td>
-                                <td>px</td>
-                                <td>width of the chart</td>
+                                <td>maxLength</td>
+                                <td>int</td>
+                                <td>Maximum length of chart datatable</td>
 
                             </tr>
 
@@ -163,18 +261,40 @@
                             </tr>
 
                             <tr class="danger">
-                                <td>chartType</td>
-                                <td>line</td>
-                                <td>Type of the chart</td>
+                                <td>charts</td>
+                                <td>object</td>
+                                <td>Collection of charts</td>
 
                             </tr>
+                            </tbody>
+                        </table>
 
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="danger">
+                                <td>type</td>
+                                <td>String</td>
+                                <td>Title of the table</td>
+                            </tr>
+                            <tr class="danger">
+                                <td>y</td>
+                                <td>String</td>
+                                <td>Attribute name for Y-axis</td>
 
+                            </tr>
                             <tr class="info">
-                                <td>interpolationMode</td>
-                                <td>basis,step-after,step-before,linear,cardinal</td>
-                                <td>method of interpolation </td>
+                                <td>color</td>
+                                <td>String</td>
+                                <td>Attribute name for color dimension</td>
                             </tr>
+
                             </tbody>
                         </table>
 
@@ -184,149 +304,5 @@
         </div>
 
 </div>
-
-        <!-- /.row -->
-
-        <div class="row">
-            <h3>Sample code for above charts</h3>
-                <pre>
-
-/******************************************************* Installation of the library ******************************************************/
-
-             &lt;link rel="stylesheet" href="igviz.css"&gt
-             &lt;script src="d3.min.js"&gt &lt;/script&gt
-             &lt;script src="vega.js"&gt &lt;/script&gt
-             &lt;script src="igviz.js"&gt &lt;/script&gt
-
-
-/********************************************************** Invoking the Library **********************************************************/
-             &lt;script&gt
-
-                //dataset used to plot charts
-                 var dataTable = {
-                    "metadata" : {
-                        "names" : ["Year","Sales","Expenses"],
-                        "types" : ["T","N","N"]
-                    },
-                    "data" : [
-                        ["2004",1000,400],
-                        ["2005",1170, 460],
-                        ["2006",660, 1120],
-                        ["2007",1030,540]
-                    ]
-                };
-
-                var width = document.getElementById("line").offsetWidth ; //canvas width
-                var height = 270;   //canvas height
-
-                var lineChartConfig = {
-                       "xAxis": 0,
-                       "yAxis": [1,2],
-                       "width": width,
-                       "height": height,
-                       "textAngle" : -90,
-                       "chartType": "line"
-                   }
-
-
-
-                //draw a line chart on div #line
-                staticChart=igviz.setUp("#staticLine", lineChartConfig, dataTable);
-                staticChart.setXAxis({zero:false});
-                staticChart.plot(dataTable.data);
-
-
-                //draw a dynamic line chart on div #bar
-                chart=igviz.setUp("#dynamicLine", lineChartConfig, dataTable);
-                chart.setXAxis({zero:false});
-                chart.plot(dataTable.data);
-                var indexX=6
-                setInterval(function(){
-
-                    number=Math.floor(Math.random()*1000)
-                    number2=Math.floor(Math.random()*100)
-                    console.log(number2,number*number2)
-                    chart.update([indexX,number,number2]);
-                    indexX++;
-                },2000)
-
-
-                //resizeHandler
-                window.onresize=function(){chart.resize()};
-
-            &lt;/script&gt
-                </pre>
-        </div>
-
-    </div>
-    <!-- /.container -->
-
-
-</body>
-<script>
-
-
-    //dataset used to plot charts
-
-              var dataTable = {
-                    "metadata" : {
-                        "names" : ["Time","Sales","Expenses"],
-                        "types" : ["N","N","N"]
-                    },
-                    "data" : [
-                        [0,1000,400],
-                        [1,1170, 460],
-                        [2,660, 1120],
-                        [3,1030,540],
-                        [4,660, 1120],
-                        [5,1030,540],
-
-                        [6,1000,400]
-
-
-                    ]
-                };
-
-
-
-                var width = document.getElementById("staticLine").offsetWidth ; //canvas width
-                var height = 270;   //canvas height
-
-                var lineChartConfig = {
-                       "xAxis": 0,
-                       "yAxis": [1,2],
-                       "padding": 60,
-                       "width": width,
-                       "height": height,
-                       "chartType": "line"
-                   }
-
-
-    staticChart=igviz.setUp("#staticLine", lineChartConfig, dataTable);
-
-
-    staticChart.setXAxis({zero:false});
-    staticChart.plot(dataTable.data);
-
-
-    //draw a bar chart on div #bar
-                chart=igviz.setUp("#dynamicLine", lineChartConfig, dataTable);
-
-
-                chart.setXAxis({zero:false});
-                chart.plot(dataTable.data);
-
-                var indexX=6
-                setInterval(function(){
-
-                    number=Math.floor(Math.random()*1000)
-                    number2=Math.floor(Math.random()*500)
-                    console.log(number2,number*number2)
-                    chart.update([indexX,number,number2]);
-                    indexX++;
-                },2000)
-                window.onresize=function(){chart.resize()};
-
-</script>
-
+  </body>
 </html>
