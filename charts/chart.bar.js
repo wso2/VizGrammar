@@ -40,8 +40,6 @@ var bar = function(dataTable, config) {
 };
 
 bar.prototype.draw = function(div) {
-
-    var my = JSON.stringify(this.spec);
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).update();
     }).bind(this);
