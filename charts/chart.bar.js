@@ -86,23 +86,37 @@ bar.prototype.draw = function(div) {
 };
 
 bar.prototype.insert = function(data) {
-    //Removing events when max value is enabled
-    if (this.config.maxLength != -1 
-          && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
-        for (i = 0; i < data.length; i++) {
-          var oldData = this.view.data(this.config.title).values()[i][this.metadata.names[this.config.x]];
 
-          var removeFunction = (function(d) { 
-              return d[this.metadata.names[this.config.x]] == oldData; 
-            }).bind(this);
+  var shouldInsert = true;
+  var xAxis = this.metadata.names[this.config.x];
+  var yAxis = this.metadata.names[this.config.y];
 
-          
-             this.view.data(this.config.title).remove(removeFunction);  
-        }
-    } 
+  //Check for updates
+  for (i = 0; i < data.length; i++) { 
 
-     this.view.data(this.config.title).insert(data);
-     this.view.update();
+      this.view.data(this.config.title).update(function(d) { return d[xAxis] == data[i][xAxis]; }, 
+      yAxis,
+      function(d) { 
+        shouldInsert = false;
+        return data[i][yAxis];
+      });
+  }
+
+  if (shouldInsert) {
+      //Removing events when max value is enabled
+      if (this.config.maxLength != -1 
+            && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
+          for (i = 0; i < data.length; i++) {
+            var oldData = this.view.data(this.config.title).values()[i][xAxis];
+            this.view.data(this.config.title).remove(function(d) { 
+                return d[xAxis] == oldData; 
+              });  
+          }
+      } 
+       this.view.data(this.config.title).insert(data);     
+    }
+
+    this.view.update({duration: 200});
 };
 
 bar.prototype.getSpec = function() {
@@ -120,7 +134,7 @@ function getBarMark(config, metadata){
                               },
                               "marks": [
                                 {
-                                  "type": "line",
+                                  "type": "rect",
                                   "properties": {
                                     "update": {
                                       "x": {"scale": "x", "field": metadata.names[config.x]},
