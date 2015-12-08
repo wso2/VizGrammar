@@ -23,48 +23,12 @@ var bar = function(dataTable, config) {
                 };
       
       var scales =  [xScale, yScale];
-
-      if (config.color != -1) {
-          var colorScale = {
-                    "name": "color", 
-                    "type": "ordinal", 
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
-                    "range": config.colorScale
-                      };
-          scales.push(colorScale);
-      } 
-
       var axes =  [
                     {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
       marks.push(getBarMark(config, this.metadata));
-
-      if (config.color != -1) {
-
-      var legendTitle = "Legend";
-
-      if (config.title != "table") {
-          legendTitle = config.title;
-      }
-
-      var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 0,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
-
-                    this.spec.legends = legends;
-          }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -125,52 +89,27 @@ bar.prototype.getSpec = function() {
 
 
 function getBarMark(config, metadata){
-        if (config.color != -1) {
-              var mark =  {
-                              "type": "group",
-                              "from": {
-                                "data":  config.title,
-                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "rect",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2},
-                                      "strokeOpacity": {"value": 1}
-                                    },
-                                    "hover": {
-                                      "strokeOpacity": {"value": 0.5}
-                                    }
-                                  }
-                                }
-                              ]
-                            };
-        } else {
-                var mark = {
-                                "type": "rect",
-                                "from": {"data": config.title},
-                                "properties": {
-                                  "update": {
 
-                                    "x": {"scale": "x", "field": metadata.names[config.x]},
-                                    "width": {"scale": "x", "band": true, "offset": -1},
-                                    "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "y2": {"scale": "y", "value": 0},
-                                    "fill": {"value": "steelblue"},
-                                     "fillOpacity": {"value": 1}
-                                  },
-                                  "hover": {
-                                    "fillOpacity": {"value": 0.5}
-                                  }
-                                }
-                            };
-        }
+  var mark = {
+                  "type": "rect",
+                  "from": {"data": config.title},
+                  "properties": {
+                    "update": {
 
-        return mark;
+                      "x": {"scale": "x", "field": metadata.names[config.x]},
+                      "width": {"scale": "x", "band": true, "offset": -1},
+                      "y": {"scale": "y", "field": metadata.names[config.y]},
+                      "y2": {"scale": "y", "value": 0},
+                      "fill": {"value": "steelblue"},
+                       "fillOpacity": {"value": 1}
+                    },
+                    "hover": {
+                      "fillOpacity": {"value": 0.5}
+                    }
+                  }
+              };
+      
+
+  return mark;
 }
 
