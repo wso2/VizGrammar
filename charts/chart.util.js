@@ -45,7 +45,7 @@ function checkConfig(config, metadata){
 }
 
 function buildTable(datatable) {
-	var chartDatatable = {}
+	var chartDatatable = {};
 	chartDatatable.metadata = datatable[0].metadata;
 	chartDatatable.values = buildData(datatable[0].data, datatable[0].metadata);
 	return chartDatatable;

@@ -55,7 +55,6 @@ bar.prototype.insert = function(data) {
 
   //Check for updates
   for (i = 0; i < data.length; i++) { 
-
       this.view.data(this.config.title).update(function(d) { return d[xAxis] == data[i][xAxis]; }, 
       yAxis,
       function(d) { 
@@ -66,14 +65,16 @@ bar.prototype.insert = function(data) {
 
   if (shouldInsert) {
       //Removing events when max value is enabled
-      if (this.config.maxLength != -1 
-            && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
-          for (i = 0; i < data.length; i++) {
-            var oldData = this.view.data(this.config.title).values()[i][xAxis];
-            this.view.data(this.config.title).remove(function(d) { 
-                return d[xAxis] == oldData; 
-              });  
-          }
+      if (this.config.maxLength != -1 && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
+        var oldData;
+        var removeFunction = function(d) { 
+              return d[xAxis] == oldData; 
+            };
+
+        for (i = 0; i < data.length; i++) {
+          oldData = this.view.data(this.config.title).values()[i][xAxis];
+          this.view.data(this.config.title).remove(removeFunction);  
+        }
       } 
        this.view.data(this.config.title).insert(data);     
     }
