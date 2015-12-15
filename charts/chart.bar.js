@@ -10,7 +10,7 @@ var bar = function(dataTable, config) {
 
       var xScale = {
                     "name": "x",
-                    "type": this.metadata.types[config.x],
+                    "type": "ordinal",
                     "range": "width",
                     "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
                     };
