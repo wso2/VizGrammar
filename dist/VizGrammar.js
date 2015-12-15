@@ -39,17 +39,7 @@ var area = function(dataTable, config) {
                 "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
                 };
       
-      var scales =  [xScale, yScale];
-
-      if (config.color != -1) {
-          var colorScale = {
-                    "name": "color", 
-                    "type": "ordinal", 
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
-                    "range": config.colorScale
-                      };
-          scales.push(colorScale);
-      } 
+      var scales =  [xScale, yScale]; 
 
       var axes =  [
                     {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
@@ -57,31 +47,6 @@ var area = function(dataTable, config) {
                   ];
 
       marks.push(getAreaMark(config, this.metadata));
-
-      if (config.color != -1) {
-
-      var legendTitle = "Legend";
-
-      if (config.title != "table") {
-          legendTitle = config.title;
-      }
-
-      var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 0,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
-
-                    this.spec.legends = legends;
-          }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -124,52 +89,24 @@ area.prototype.getSpec = function() {
 
 
 function getAreaMark(config, metadata){
-        var mark;
-        if (config.color != -1) {
-              mark =  {
-                              "type": "group",
-                              "from": {
-                                "data":  config.title,
-                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "area",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2},
-                                      "strokeOpacity": {"value": 1}
-                                    },
-                                    "hover": {
-                                      "strokeOpacity": {"value": 0.5}
-                                    }
-                                  }
-                                }
-                              ]
-                            };
-        } else {
-                mark = {
-                                "type": "area",
-                                "from": {"data": config.title},
-                                "properties": {
-                                  "update": {
+        var mark = {
+                        "type": "area",
+                        "from": {"data": config.title},
+                        "properties": {
+                          "update": {
 
-                                    "x": {"scale": "x", "field": metadata.names[config.x]},
-                                    "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "y2": {"scale": "y", "value": 0},
-                                    "fill": { "value": "steelblue"},
-                                    "strokeWidth": {"value": 2},
-                                    "fillOpacity": {"value": 1}
-                                  },
-                                  "hover": {
-                                    "fillOpacity": {"value": 0.5}
-                                  }
-                                }
-                            };
-        }
+                            "x": {"scale": "x", "field": metadata.names[config.x]},
+                            "y": {"scale": "y", "field": metadata.names[config.y]},
+                            "y2": {"scale": "y", "value": 0},
+                            "fill": { "value": "steelblue"},
+                            "strokeWidth": {"value": 2},
+                            "fillOpacity": {"value": 1}
+                          },
+                          "hover": {
+                            "fillOpacity": {"value": 0.5}
+                          }
+                        }
+                    };
 
         return mark;
 }
@@ -473,6 +410,37 @@ function getLineMark(config, metadata){
 
         return mark;
 }
+
+;
+var number = function(dataTable, config) {
+      this.metadata = dataTable[0].metadata;
+      this.data = dataTable[0].values
+      var marks =[];
+      this.spec = {};
+
+      config = checkConfig(config, this.metadata);
+      this.config = config;
+      dataTable[0].name= config.title;
+
+};
+
+number.prototype.draw = function(div) {
+  div = div.replace("#","");
+  var contentId = div+"Content";
+  var divContent =    "<table align='center' width=100px><tr>" 
+                      +"<td><p align='left'>"+config.title+"</p></td>"
+                      +"<td align='center'><p  style='font-size:400%;' id='"+contentId+"'>"+this.data[data.length-1][this.metadata.names[this.config.x]]+"</p></td>";
+                      +"</tr></table>" 
+
+   document.getElementById(div).innerHTML = divContent;
+   this.view = contentId;
+};
+
+number.prototype.insert = function(data) {
+    document.getElementById(this.view).innerHTML = data[data.length-1][this.metadata.names[this.config.x]];
+};
+
+
 
 ;function checkConfig(config, metadata){
 
