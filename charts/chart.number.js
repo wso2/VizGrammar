@@ -14,10 +14,9 @@ var number = function(dataTable, config) {
 number.prototype.draw = function(div) {
   div = div.replace("#","");
   var contentId = div+"Content";
-  var divContent =    "<table align='center' width=100px><tr>" 
-                      +"<td><p align='left'>"+config.title+"</p></td>"
-                      +"<td align='center'><p  style='font-size:400%;' id='"+contentId+"'>"+this.data[data.length-1][this.metadata.names[this.config.x]]+"</p></td>";
-                      +"</tr></table>" 
+  var divContent = "<p style='padding: 0px 0px 0px 20px;'>"+config.title+"</p>"
+                  +"<p style='font-size:60;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
+                  +this.data[data.length-1][this.metadata.names[this.config.x]]+"</p>";
 
    document.getElementById(div).innerHTML = divContent;
    this.view = contentId;

@@ -427,10 +427,9 @@ var number = function(dataTable, config) {
 number.prototype.draw = function(div) {
   div = div.replace("#","");
   var contentId = div+"Content";
-  var divContent =    "<table align='center' width=100px><tr>" 
-                      +"<td><p align='left'>"+config.title+"</p></td>"
-                      +"<td align='center'><p  style='font-size:400%;' id='"+contentId+"'>"+this.data[data.length-1][this.metadata.names[this.config.x]]+"</p></td>";
-                      +"</tr></table>" 
+  var divContent = "<p style='padding: 0px 0px 0px 20px;'>"+config.title+"</p>"
+                  +"<p style='font-size:60;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
+                  +this.data[data.length-1][this.metadata.names[this.config.x]]+"</p>";
 
    document.getElementById(div).innerHTML = divContent;
    this.view = contentId;
@@ -458,7 +457,7 @@ table.prototype.draw = function(div) {
   var table = d3.select(div).append("table").attr( "border", "2px");
 
       // set up the table header
-      table.append('thead')
+      table.append('thead').attr("align", "center")
           .append('tr')
           .selectAll('th')
               .data(this.metadata.names)
@@ -468,6 +467,13 @@ table.prototype.draw = function(div) {
 
       table.append('tbody');
       setupData(this.data, this.metadata.names[this.config["x"]]);
+
+      table.selectAll("thead th")
+      .text(function(column) {
+          return column.charAt(0).toUpperCase() + column.substr(1);
+      });
+  
+      
       };
 
 table.prototype.insert = function(data) {
@@ -492,6 +498,7 @@ function setupData(data, xAxis) {
     entertd.append('div')
     entertd.append('span')
     var td = rows.selectAll('td')
+    .style({"padding": "0px 0px 0px 10px"})
         .data(function(d) { return d3.map(d).entries() })
         .attr('class', function (d) { return d.key })
     

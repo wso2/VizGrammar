@@ -14,7 +14,7 @@ table.prototype.draw = function(div) {
   var table = d3.select(div).append("table").attr( "border", "2px");
 
       // set up the table header
-      table.append('thead')
+      table.append('thead').attr("align", "center")
           .append('tr')
           .selectAll('th')
               .data(this.metadata.names)
@@ -24,6 +24,13 @@ table.prototype.draw = function(div) {
 
       table.append('tbody');
       setupData(this.data, this.metadata.names[this.config["x"]]);
+
+      table.selectAll("thead th")
+      .text(function(column) {
+          return column.charAt(0).toUpperCase() + column.substr(1);
+      });
+  
+      
       };
 
 table.prototype.insert = function(data) {
@@ -48,6 +55,7 @@ function setupData(data, xAxis) {
     entertd.append('div')
     entertd.append('span')
     var td = rows.selectAll('td')
+    .style({"padding": "0px 0px 0px 10px"})
         .data(function(d) { return d3.map(d).entries() })
         .attr('class', function (d) { return d.key })
     
