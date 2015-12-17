@@ -22,6 +22,7 @@ table.prototype.draw = function(div) {
               .append('th')
               .text(function (d) { return d })
 
+
       table.append('tbody');
       setupData(this.data, this.metadata.names[this.config["x"]]);
 
@@ -50,12 +51,10 @@ function setupData(data, xAxis) {
                 .data(function(d) { return d3.map(d).values() })
             .enter()
                 .append('td')
-                .attr("width", "100px")
-    
-    entertd.append('div')
+              
     entertd.append('span')
     var td = rows.selectAll('td')
-    .style({"padding": "0px 0px 0px 10px"})
+    .style({"padding": "0px 10px 0px 10px"})
         .data(function(d) { return d3.map(d).entries() })
         .attr('class', function (d) { return d.key })
     
@@ -64,4 +63,14 @@ function setupData(data, xAxis) {
         .text(function(d) {
             return d.value
         })
+
+    //Remove data items when it hits maxLength 
+    if (this.config.maxLength != -1 && d3.select('tbody').selectAll('tr').data().length > this.config.maxLength) {
+          var allowedDataset = d3.select('tbody').selectAll('tr').data().slice(d3.select('tbody').selectAll('tr').data().length- this.config.maxLength,this.config.maxLength);
+          d3.select('tbody').selectAll('tr').data(allowedDataset, 
+            function(d) { 
+              return(d); 
+            })  
+          .remove();
+    }
 }
