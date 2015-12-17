@@ -473,7 +473,7 @@ table.prototype.draw = function(div) {
 
 
       table.append('tbody');
-      setupData(this.data, this.config.columns[this.config["x"]]);
+      setupData(this.data, this.config);
 
       table.selectAll("thead th")
       .text(function(column) {
@@ -484,19 +484,19 @@ table.prototype.draw = function(div) {
       };
 
 table.prototype.insert = function(data) {
-    setupData(data, this.metadata.names[this.config["x"]]);
+    setupData(data, this.config);
 };
 
 
-function setupData(dataset, xAxis) {
+function setupData(dataset, config) {
     var data = [];
     
     //Select specified columns from dataset
     for (var i = 0; i < dataset.length; i++) {
         var row = {};
 
-        for (var x = 0; x < this.config.columns.length; x++) {
-            row[this.config.columns[x]] = dataset[i][this.config.columns[x]];
+        for (var x = 0; x < config.columns.length; x++) {
+            row[config.columns[x]] = dataset[i][config.columns[x]];
         }
         data.push(row);
     }
@@ -504,7 +504,7 @@ function setupData(dataset, xAxis) {
    //Select Rows by x Axis
     var rows = d3.select('tbody')
         .selectAll('tr')
-        .data(data, function(d) { return d[xAxis]})
+        .data(data, function(d) { return d[config.key]})
 
     var entertd = rows.enter()
         .append('tr')
