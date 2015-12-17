@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/vega.js"></script>
-     <script src="../../../dist/VizGrammar.min.js"></script>
+     <script src="../../../dist/VizGrammar.js"></script>
     <style type="text/css">
         body {
             padding-top: 40px;
@@ -82,6 +82,7 @@
     charts : [{type: "table"}],
     maxLength: 6,
     width: 400,
+    columns:["EngineType",  "torque", "rpm"],
     height: 200
 }
                       </pre>
@@ -177,6 +178,7 @@
             x : "rpm",
             charts : [{type: "table",  y : "torque"}],
             maxLength: 7,
+            columns:["EngineType",  "torque", "rpm"],
             width: 400,
             height: 200
           }
