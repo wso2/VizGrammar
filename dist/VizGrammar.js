@@ -526,8 +526,8 @@ function setupData(dataset, config) {
         })
 
     //Remove data items when it hits maxLength 
-    if (this.config.maxLength != -1 && d3.select('tbody').selectAll('tr').data().length > this.config.maxLength) {
-          var allowedDataset = d3.select('tbody').selectAll('tr').data().slice(d3.select('tbody').selectAll('tr').data().length- this.config.maxLength,this.config.maxLength);
+    if (config.maxLength != -1 && d3.select('tbody').selectAll('tr').data().length > config.maxLength) {
+          var allowedDataset = d3.select('tbody').selectAll('tr').data().slice(d3.select('tbody').selectAll('tr').data().length- config.maxLength, config.maxLength);
           d3.select('tbody').selectAll('tr').data(allowedDataset, 
             function(d) { 
               return(d); 
