@@ -1,0 +1,35 @@
+{
+  "name": "VizGrammar",
+  "version": "2.0.0",
+  "description": "Visualization library for Javascript that is based on d3",
+   "keywords": [
+    "vizg",
+    "vizGrammar",
+    "wso2",
+    "visualization",
+    "interaction",
+    "grammar",
+    "data",
+    "d3"
+  ],
+  "author": {
+    "name": "WSO2",
+    "url": "http://wso2.com/"
+  },
+  "contributors": [
+    {
+      "name": "Tharik Kanaka",
+      "url": "http://github.com/keizer619"
+    }
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/wso2/VizGrammar/"
+  },
+"devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-concat": "~0.5.1"
+  }
+}
