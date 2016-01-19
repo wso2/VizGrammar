@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License./
@@ -47,6 +47,9 @@ var area = function(dataTable, config) {
                   ];
 
       marks.push(getAreaMark(config, this.metadata));
+      config.fillOpacity  = 0;
+      config.markSize = 20;
+      marks.push(getSymbolMark(config, this.metadata));
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -98,7 +101,7 @@ function getAreaMark(config, metadata){
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "y2": {"scale": "y", "value": 0},
-                            "fill": { "value": "steelblue"},
+                            "fill": { "value": config.markColor},
                             "strokeWidth": {"value": 2},
                             "fillOpacity": {"value": 1}
                           },
@@ -295,6 +298,8 @@ var line = function(dataTable, config) {
                   ];
 
       marks.push(getLineMark(config, this.metadata));
+      config.markSize = 20;
+      marks.push(getSymbolMark(config, this.metadata));
 
       if (config.color != -1) {
 
@@ -360,7 +365,6 @@ line.prototype.getSpec = function() {
   return this.spec;
 };
 
-
 function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
@@ -397,7 +401,7 @@ function getLineMark(config, metadata){
 
                                     "x": {"scale": "x", "field": metadata.names[config.x]},
                                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "stroke": { "value": "steelblue"},
+                                    "stroke": { "value": config.markColor},
                                     "strokeWidth": {"value": 2},
                                     "strokeOpacity": {"value": 1}
                                   },
@@ -570,6 +574,18 @@ function setupData(dataset, config) {
 		config.maxLength = -1;
 	}
 
+	if (config.markColor == null) {
+		config.markColor = "steelblue";
+	}
+
+	if (config.markSize == null) {
+		config.markSize = 2;
+	}
+
+	if (config.fillOpacity == null) {
+		config.fillOpacity = 1;
+	}
+
 	if (config.padding == null) {
 		config.padding = {"top": 30, "left": 50, "bottom": 100, "right": 100};
 	}
@@ -598,6 +614,38 @@ function buildData(data, metadata) {
 		chartData.push(row);
 	}
 	return chartData;
+}
+
+/*
+	General function used to draw circle symbols graphs
+*/
+function getSymbolMark(config, metadata) {
+
+  var fill;
+  if (config.color != -1) { 
+      fill =  {"scale": "color", "field": metadata.names[config.color]};
+  } else {
+      fill = {"value":config.markColor};
+  }
+
+var  mark = {
+      "type": "symbol",
+      "from": {"data": config.title},
+      "properties": {
+        "update": {
+          "x": {"scale": "x", "field": metadata.names[config.x]},
+          "y": {"scale": "y", "field": metadata.names[config.y]},
+          "fill": fill,
+          "size": {"value": config.markSize},
+          "fillOpacity": {"value": config.fillOpacity}
+        },
+        "hover": {
+          "fillOpacity": {"value": 0.5}
+        }
+      }
+    }
+
+    return mark;
 }
 
 

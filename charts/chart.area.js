@@ -32,6 +32,9 @@ var area = function(dataTable, config) {
                   ];
 
       marks.push(getAreaMark(config, this.metadata));
+      config.fillOpacity  = 0;
+      config.markSize = 20;
+      marks.push(getSymbolMark(config, this.metadata));
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -83,7 +86,7 @@ function getAreaMark(config, metadata){
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "y2": {"scale": "y", "value": 0},
-                            "fill": { "value": "steelblue"},
+                            "fill": { "value": config.markColor},
                             "strokeWidth": {"value": 2},
                             "fillOpacity": {"value": 1}
                           },

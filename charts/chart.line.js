@@ -42,6 +42,8 @@ var line = function(dataTable, config) {
                   ];
 
       marks.push(getLineMark(config, this.metadata));
+      config.markSize = 20;
+      marks.push(getSymbolMark(config, this.metadata));
 
       if (config.color != -1) {
 
@@ -107,7 +109,6 @@ line.prototype.getSpec = function() {
   return this.spec;
 };
 
-
 function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
@@ -144,7 +145,7 @@ function getLineMark(config, metadata){
 
                                     "x": {"scale": "x", "field": metadata.names[config.x]},
                                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "stroke": { "value": "steelblue"},
+                                    "stroke": { "value": config.markColor},
                                     "strokeWidth": {"value": 2},
                                     "strokeOpacity": {"value": 1}
                                   },
