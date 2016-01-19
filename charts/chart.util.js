@@ -34,6 +34,18 @@ function checkConfig(config, metadata){
 		config.maxLength = -1;
 	}
 
+	if (config.markColor == null) {
+		config.markColor = "steelblue";
+	}
+
+	if (config.markSize == null) {
+		config.markSize = 2;
+	}
+
+	if (config.fillOpacity == null) {
+		config.fillOpacity = 1;
+	}
+
 	if (config.padding == null) {
 		config.padding = {"top": 30, "left": 50, "bottom": 100, "right": 100};
 	}
@@ -62,6 +74,38 @@ function buildData(data, metadata) {
 		chartData.push(row);
 	}
 	return chartData;
+}
+
+/*
+	General function used to draw circle symbols graphs
+*/
+function getSymbolMark(config, metadata) {
+
+  var fill;
+  if (config.color != -1) { 
+      fill =  {"scale": "color", "field": metadata.names[config.color]};
+  } else {
+      fill = {"value":config.markColor};
+  }
+
+var  mark = {
+      "type": "symbol",
+      "from": {"data": config.title},
+      "properties": {
+        "update": {
+          "x": {"scale": "x", "field": metadata.names[config.x]},
+          "y": {"scale": "y", "field": metadata.names[config.y]},
+          "fill": fill,
+          "size": {"value": config.markSize},
+          "fillOpacity": {"value": config.fillOpacity}
+        },
+        "hover": {
+          "fillOpacity": {"value": 0.5}
+        }
+      }
+    }
+
+    return mark;
 }
 
 
