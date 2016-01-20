@@ -470,7 +470,7 @@ table.prototype.draw = function(div) {
       table.append('thead').attr("align", "center")
           .append('tr')
           .selectAll('th')
-              .data(this.config.columns)
+              .data(this.config.columnTitles)
           .enter()
               .append('th')
               .text(function (d) { return d })
