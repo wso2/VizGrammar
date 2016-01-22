@@ -30,6 +30,12 @@ function checkConfig(config, metadata){
 		config.color = metadata.names.indexOf(config.color);
 	}
 
+    if (config.size == null) {
+        config.size = -1;
+    } else {
+        config.size = metadata.names.indexOf(config.size);
+    }
+
 	if (config.maxLength == null) {
 		config.maxLength = -1;
 	}
