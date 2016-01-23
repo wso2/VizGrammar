@@ -1,28 +1,35 @@
 {
-  "name": "igviz",
-  "version": "1.0.0",
-  "description": "Interactive Generic Visualization Library",
-  "main": "igviz.js",
-  "scripts": {
-    "postinstall": "grunt",
-    "test": "grunt"
+  "name": "VizGrammar",
+  "version": "2.0.0",
+  "description": "Visualization library for Javascript that is based on d3",
+   "keywords": [
+    "vizg",
+    "vizGrammar",
+    "wso2",
+    "visualization",
+    "interaction",
+    "grammar",
+    "data",
+    "d3"
+  ],
+  "author": {
+    "name": "WSO2",
+    "url": "http://wso2.com/"
   },
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-watch": "~0.3.1",
-    "grunt-contrib-uglify": "~0.2.0",
-    "grunt-contrib-concat": "~0.2.0"
-  },
+  "contributors": [
+    {
+      "name": "Tharik Kanaka",
+      "url": "http://github.com/keizer619"
+    }
+  ],
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TharinduMunasinge/igviz.git"
+    "url": "http://github.com/wso2/VizGrammar/"
   },
-  "author": "Tharindu Munasinghe <munasinghetharindu@gmail.com>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/TharinduMunasinge/igviz/issues"
-  },
-  "homepage": "https://github.com/TharinduMunasinge/igviz"
-
-
+"devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-concat": "~0.5.1"
+  }
 }
