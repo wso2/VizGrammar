@@ -55,14 +55,14 @@
 
         <script>
 
-       var data =  [
+        var data =  [
           { 
             "metadata" : {
                 "names" : ["rpm","torque","horsepower", "EngineType"],
                 "types" : ["linear","linear", "ordinal","ordinal"]
             },
             "data": [
-              [1, 10, 1, "Piston"]]
+              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
           }
         ];
 
@@ -77,25 +77,11 @@
         }
 
         var lineChart = new vizg(data, config); 
-
         var spec = lineChart.getSpec();
 
         lineChart.draw("#dChart");
 
-        var data2 =  [
-            {
-              "metadata" : {
-                  "names" : ["rpm","torque","horsepower", "EngineType"],
-                  "types" : ["linear","linear", "ordinal","ordinal"]
-                },
-              "data": [
-                [0, 10, 12]
-                            ]
-            }
-          ];
-
-
-          var config3 = {
+        var configSingle = {
             type: "line",
             x : "rpm",
             y : "torque",
@@ -103,21 +89,21 @@
             maxLength: 6,
             width: 400,
             height: 200
-          }
+        };
 
-          var lineChart3 = new vizg(data2, config3);
-          lineChart3.draw("#dChart3");
+        var lineChartSingle = new vizg(data, configSingle);
+        lineChartSingle.draw("#dChart3");
 
-          var iterations = 1000;
+        var iterations = 1000;
           (function insertLoop (i) {          
               setTimeout(function () {   
                 var x = iterations-i + 1;
-                lineChart3.insert([[x, Math.random() * 100, 13]]);
-                lineChart.insert([[x, Math.random() * 100, 2, "rotary"]]);
+                lineChartSingle.insert([[x, Math.random() * 100, 13, "Rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 2, "Rotary"]]);
                 lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
                   if (--i) insertLoop(i);
                }, 500)
-            })(iterations);
+        })(iterations);
         </script>
       </div>
 
@@ -189,7 +175,7 @@
                                 <td>String</td>
                                 <td>cAttribute name for X-axis</td>
                             </tr>
-                            <tr class="danger">
+                            <tr class="info">
                                 <td>maxLength</td>
                                 <td>int</td>
                                 <td>Maximum length of chart datatable</td>
