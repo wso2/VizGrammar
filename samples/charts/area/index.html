@@ -80,7 +80,7 @@
 {
     x : "rpm",
     charts : [{type: "area",  y : "torque"}],
-    maxLength: 6,
+    maxLength: 10,
     width: 400,
     height: 200
 }
@@ -177,7 +177,7 @@
             x : "rpm",
             y : "torque",
             charts : [{type: "area",  y : "torque"}],
-            maxLength: 8,
+            maxLength: 10,
             width: 400,
             height: 200
           }
@@ -186,36 +186,15 @@
           lineChart3.draw("#dChart");
 
 
-        setTimeout(function() {
-            lineChart3.insert([[1, 19, 13]]);
-          },
-          500
-        );
-
-          setTimeout(function() {
-            lineChart3.insert([[2, 120, 14]]);
-          },
-          1000
-        );
-
-
-        setTimeout(function() {
-            lineChart3.insert([[3, 60, 21]]);
-            lineChart3.insert([[4, 40, 70]]);
-            lineChart3.insert([[5, 45, 70]]);
-          },
-          1500
-        );
-
-        setTimeout(function() {
-
-            lineChart3.insert([[6, 56, 70]]);
-            lineChart3.insert([[7, 87, 70]]);
-            lineChart3.insert([[8, 95, 70]]);
-            lineChart3.insert([[9, 105, 70]]);
-          },
-          2000
-        );
+           var iterations = 1000;
+          (function insertLoop (i) {      
+                  
+               setTimeout(function () {   
+                lineChart3.insert([[iterations-i, Math.random() * 100, 13]]);
+                x = x + 2;             
+                  if (--i) insertLoop(i);
+               }, 500)
+            })(iterations);
         </script>
       </div>
   </body>
