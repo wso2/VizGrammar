@@ -1,0 +1,237 @@
+<html>
+  <head>
+    <title>VizGrammar.js - Line Chart Sample</title>
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <script src="../../js/d3.min.js"></script>
+    <script src="../../js/vega.js"></script>
+    <script src="../../../dist/VizGrammar.min.js"></script>
+    <style type="text/css">
+        body {
+            padding-top: 40px;
+        }
+    </style>
+  </head>
+  
+  <div class="container">
+  <body>
+        <a href="../../" style="text-decoration: none">
+        <div class="jumbotron">
+            <h2>VizGrammar.js
+                <small> Drawing a chart has never been this easy!</small>
+            </h2>
+            <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
+        </div>
+    </a>
+
+       <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Multi Line Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChart"></div>
+                </div>
+
+            </div>
+        </div>
+
+                <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                       Single Line Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChart3"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+
+        var data =  [
+          { 
+            "metadata" : {
+                "names" : ["rpm","torque","horsepower", "EngineType"],
+                "types" : ["linear","linear", "ordinal","ordinal"]
+            },
+            "data": [
+              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
+          }
+        ];
+
+        var config = {
+          x : "rpm",
+          charts : [
+          {type: "line",  y : "torque", color: "EngineType"}
+          ],
+          maxLength: 10,
+          width: 400,
+          height: 200
+        }
+
+        var lineChart = new vizg(data, config); 
+        var spec = lineChart.getSpec();
+
+        lineChart.draw("#dChart");
+
+        var configSingle = {
+            type: "line",
+            x : "rpm",
+            y : "torque",
+            charts : [{type: "line",  y : "torque"}],
+            maxLength: 6,
+            width: 400,
+            height: 200
+        };
+
+        var lineChartSingle = new vizg(data, configSingle);
+        lineChartSingle.draw("#dChart3");
+
+        var iterations = 1000;
+          (function insertLoop (i) {          
+              setTimeout(function () {   
+                var x = iterations-i + 1;
+                lineChartSingle.insert([[x, Math.random() * 100, 13, "Rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 2, "Rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+        </script>
+      </div>
+
+          <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Data Collection
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="data set">
+<pre>
+{
+  "metadata" : {
+      "names" : ["rpm","torque","horsepower", "EngineType"],
+      "types" : ["linear","linear", "ordinal","ordinal"]
+  },
+  "data": [
+    [1, 10, 1, "Piston"]]
+};
+</pre>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-6" >
+            <div class="panel panel-default" >
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Configurations
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="config">
+
+                      <pre>
+{
+  x : "rpm",
+  charts : [{type: "line",  y : "torque", color: "EngineType"}],
+  maxLength: 10,
+  width: 400,
+  height: 200
+}
+                      </pre>
+
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="info">
+                                <td>title</td>
+                                <td>String</td>
+                                <td>Title of the table</td>
+                            </tr>
+                            <tr class="danger">
+                                <td>x</td>
+                                <td>String</td>
+                                <td>cAttribute name for X-axis</td>
+                            </tr>
+                            <tr class="info">
+                                <td>maxLength</td>
+                                <td>int</td>
+                                <td>Maximum length of chart datatable</td>
+
+                            </tr>
+
+                            <tr class="danger">
+                                <td>height</td>
+                                <td>px</td>
+                                <td>height of the chart</td>
+
+                            </tr>
+
+                            <tr class="danger">
+                                <td>charts</td>
+                                <td>object</td>
+                                <td>Collection of charts</td>
+
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="danger">
+                                <td>type</td>
+                                <td>String</td>
+                                <td>Title of the table</td>
+                            </tr>
+                            <tr class="danger">
+                                <td>y</td>
+                                <td>String</td>
+                                <td>Attribute name for Y-axis</td>
+
+                            </tr>
+                            <tr class="info">
+                                <td>color</td>
+                                <td>String</td>
+                                <td>Attribute name for color dimension</td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</div>
+  </body>
+</html>

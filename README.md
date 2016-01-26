@@ -1,5 +1,5 @@
 ##Overview
-Interactive Generic Visualization library(IGViz) is a wrapper around powerful d3.js library. It makes charting easy by adding required boilerplate code so that developers/designers can get started in few minutes.
+VizGrammar is a wrapper around powerful d3.js and vega.js library. It makes charting easy by adding required boilerplate code so that developers/designers can get started in few minutes.
 
 A gadget can be drawn in a given location by simply calling 
 ```javascript
@@ -111,6 +111,4 @@ Visit [IGViz Samples Web Site](http://dunithd.github.io/igviz-site/samples/index
 
 You can also follow the samples folder so that you'll get a better idea.
 
-Happy Coding!
-- IGViz Team
 

@@ -1,0 +1,218 @@
+<html>
+<head>
+    <title>VizGrammar.js - Scatter Plot Chart Sample</title>
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <script src="../../js/d3.min.js"></script>
+    <script src="../../js/vega.js"></script>
+    <script src="../../../dist/VizGrammar.min.js"></script>
+    <style type="text/css">
+        body {
+            padding-top: 40px;
+        }
+    </style>
+</head>
+
+<div class="container">
+<body>
+<a href="../../" style="text-decoration: none">
+    <div class="jumbotron">
+        <h2>VizGrammar.js
+            <small> Drawing a chart has never been this easy!</small>
+        </h2>
+        <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
+    </div>
+</a>
+
+<div class="row">
+
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Scatter Plot Chart Sample
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="dChart"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Data Collection
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="data set">
+<pre>
+{
+  "metadata" : {
+    "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+    "types" : ["linear","linear", "linear","linear", "ordinal"]
+  },
+  "data": [
+    [1,41600,3.5,79.91,0.8,0.03,"Piston"],
+    [2,37800,3.5,79.65,1.3,0.06,"Piston"]
+};
+</pre>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Configurations
+            </h3>
+        </div>
+        <div class="panel-body">
+                      <pre>
+{
+        type: "scatter",
+        charts : [
+            {type: "scatter",
+             x : "rpm",  
+             y : "torque",
+             color: "horsepower", 
+             size : "weight", 
+             maxLength: 30, 
+             maxColor:"#ffff00", 
+             minColor:"#ff00ff"}], 
+             
+        width: 400,
+        height: 200
+}
+                      </pre>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="info">
+                    <td>title</td>
+                    <td>String</td>
+                    <td>Title of the table</td>
+                </tr>
+                <tr class="danger">
+                    <td>x</td>
+                    <td>String</td>
+                    <td>cAttribute name for X-axis</td>
+                </tr>
+                <tr class="danger">
+                    <td>maxLength</td>
+                    <td>int</td>
+                    <td>Maximum length of chart datatable</td>
+
+                </tr>
+
+                <tr class="danger">
+                    <td>height</td>
+                    <td>px</td>
+                    <td>height of the chart</td>
+
+                </tr>
+
+                <tr class="danger">
+                    <td>charts</td>
+                    <td>object</td>
+                    <td>Collection of charts</td>
+
+                </tr>
+                </tbody>
+            </table>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="danger">
+                    <td>type</td>
+                    <td>String</td>
+                    <td>Title of the table</td>
+                </tr>
+                <tr class="danger">
+                    <td>y</td>
+                    <td>String</td>
+                    <td>Attribute name for Y-axis</td>
+
+                </tr>
+
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    var data =  [
+        {
+            "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+                "types" : ["linear","linear", "linear","linear", "ordinal"]
+            },
+            "data": [
+
+
+                ]
+        }
+    ];
+
+
+    var config = {
+        type: "scatter",
+        charts : [
+            {type: "scatter",
+             x : "rpm",  
+             y : "torque",
+             color: "horsepower", 
+             size : "weight", 
+             maxLength: 30, 
+             maxColor:"#ffff00", 
+             minColor:"#ff00ff"}], 
+
+        width: 400,
+        height: 200
+    }
+
+    var scatterChart = new vizg(data, config);
+    scatterChart.draw("#dChart");
+
+    var iterations = 1000;
+    (function insertLoop (i) {      
+              
+       setTimeout(function () {    
+             scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
+
+
+</script>
+</div>
+</body>
+</html>
