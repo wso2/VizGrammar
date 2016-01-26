@@ -1,6 +1,2 @@
 .idea/
 node_modules/
-
-
-dist/VizGrammar.js
-dist/VizGrammar.min.js

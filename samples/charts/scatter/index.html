@@ -14,7 +14,7 @@
 
 <div class="container">
 <body>
-<a href="../" style="text-decoration: none">
+<a href="../../" style="text-decoration: none">
     <div class="jumbotron">
         <h2>VizGrammar.js
             <small> Drawing a chart has never been this easy!</small>
@@ -51,15 +51,12 @@
 <pre>
 {
   "metadata" : {
-      "names" : ["Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
-      "types" : ["linear","linear", "linear","linear","linear","linear","linear"]
+    "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+    "types" : ["linear","linear", "linear","linear", "ordinal"]
   },
   "data": [
-    [83871,41600,3.5,79.91,0.8,0.03,4.2],
-    [30528,37800,3.5,79.65,1.3,0.06,7.2],
-    [110879,13800,4.2,73.84,2.6,-0.8,9.6],
-    [56594,18000,2.3,75.99,2.39,-0.09,17.7],
-    [78867,27100,1.9,77.38,1.15,-0.13,8.5]]
+    [1,41600,3.5,79.91,0.8,0.03,"Piston"],
+    [2,37800,3.5,79.65,1.3,0.06,"Piston"]
 };
 </pre>
 
@@ -82,15 +79,19 @@
         <div class="panel-body">
                       <pre>
 {
-    type: "scatter",
-        x : "Unemployment",
-        charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
-        size : "GDP",
-        maxLength: 6,
+        type: "scatter",
+        charts : [
+            {type: "scatter",
+             x : "rpm",  
+             y : "torque",
+             color: "horsepower", 
+             size : "weight", 
+             maxLength: 30, 
+             maxColor:"#ffff00", 
+             minColor:"#ff00ff"}], 
+             
         width: 400,
-        height: 200,
-        "maxColor":"#ffff00",
-        "minColor":"#ff00ff"
+        height: 200
 }
                       </pre>
 
@@ -171,12 +172,10 @@
     var data =  [
         {
             "metadata" : {
-                "names" : ["Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
-                "types" : ["linear","linear", "linear","linear","linear","linear","linear"]
+                  "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+                "types" : ["linear","linear", "linear","linear", "ordinal"]
             },
             "data": [
-
-                [43871,41600,3.5,79.91,0.8,0.03,4.2]
 
 
                 ]
@@ -186,67 +185,33 @@
 
     var config = {
         type: "scatter",
-        x : "Unemployment",
-        charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
-        size : "GDP",
-        maxLength: 6,
+        charts : [
+            {type: "scatter",
+             x : "rpm",  
+             y : "torque",
+             color: "horsepower", 
+             size : "weight", 
+             maxLength: 30, 
+             maxColor:"#ffff00", 
+             minColor:"#ff00ff"}], 
+
         width: 400,
-        height: 200,
-        "maxColor":"#ffff00",
-        "minColor":"#ff00ff"
+        height: 200
     }
 
-    var lineChart3 = new vizg(data, config);
-    lineChart3.draw("#dChart");
+    var scatterChart = new vizg(data, config);
+    scatterChart.draw("#dChart");
+
+    var iterations = 1000;
+    (function insertLoop (i) {      
+              
+       setTimeout(function () {    
+             scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
 
-    setTimeout(function() {
-
-     lineChart3.insert([
-         [30528,37800,3.5,79.65,1.3,0.06,7.2]
-         ]);
-     },
-     500
-     );
-
-
-    setTimeout(function() {
-     lineChart3.insert([
-         [45228,20400,5,73.58,2,-0.65,12.5]
-     ]);
-     },
-     1000
-     );
-
-
-     setTimeout(function() {
-     lineChart3.insert([[338145,86000,8.5,79.41,2,0.07,7.2]]);
-     },
-     1500
-     );
-
-
-     setTimeout(function() {
-
-     lineChart3.insert([
-
-         [357022,38100,2.5,80.19,1.5,-0.2,6],
-         [131957,26300,3.3,80.05,4.3,0.06,17.4],
-         [93028,19600,3.9,75.02,1.75,-0.18,10.9]
-     ]);
-
-
-     },
-     2000
-     );
-
-
-     setTimeout(function() {
-        lineChart3.insert([[338145,96000,8.5,79.41,2,0.07,7.2]]);
-
-     },
-     2500
-     );
 </script>
 </div>
 </body>

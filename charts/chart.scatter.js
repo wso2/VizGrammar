@@ -11,15 +11,17 @@ var scatter = function(dataTable, config) {
 
     var xScale = {
         "name": "x",
-        "type": "linear",
+        "type": this.metadata.types[config.x],
         "range": "width",
+        "zero": config.zero,
         "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
     };
 
     var yScale = {
         "name": "y",
-        "type": "linear",
+        "type": this.metadata.types[config.y],
         "range": "height",
+        "zero": config.zero,
         "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
     };
 

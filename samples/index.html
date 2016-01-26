@@ -1,0 +1,224 @@
+<html>
+  <head>
+    <title>VizGrammar.js</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/d3.min.js"></script>
+    <script src="js/vega.js"></script>
+    <script src="../dist/VizGrammar.min.js"></script>
+    <style type="text/css">
+        body {
+            padding-top: 40px;
+        }
+    </style>
+  </head>
+  
+  <div class="container">
+  <body>
+        <a style="text-decoration: none">
+        <div class="jumbotron">
+            <h2>VizGrammar.js
+                <small> Drawing a chart has never been this easy!</small>
+            </h2>
+            <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
+        </div>
+    </a>
+
+
+
+
+       <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Multi Line Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartLine"></div>
+                </div>
+
+            </div>
+        </div>
+
+                <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                       Single Line Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartLineSingle"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+
+        var data =  [
+          { 
+            "metadata" : {
+                "names" : ["rpm","torque","horsepower", "EngineType"],
+                "types" : ["linear","linear", "ordinal","ordinal"]
+            },
+            "data": [
+              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
+          }
+        ];
+
+        var config = {
+          x : "rpm",
+          charts : [
+          {type: "line",  y : "torque", color: "EngineType"}
+          ],
+          maxLength: 20,
+          width: 400,
+          height: 200
+        }
+
+        var lineChart = new vizg(data, config); 
+        var spec = lineChart.getSpec();
+
+        lineChart.draw("#dChartLine");
+
+        var configSingle = {
+            type: "line",
+            x : "rpm",
+            charts : [{type: "line",  y : "torque"}],
+            maxLength: 10,
+            width: 400,
+            height: 200
+        };
+
+        var lineChartSingle = new vizg(data, configSingle);
+        lineChartSingle.draw("#dChartLineSingle");
+
+        var iterations = 1000;
+          (function insertLoop (i) {          
+              setTimeout(function () {   
+                var x = iterations-i + 1;
+                lineChartSingle.insert([[x, Math.random() * 100, 13, "Rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 2, "Rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+        </script>
+      </div>
+
+             <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Area Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartArea"></div>
+                </div>
+
+            </div>
+                    <script>
+
+        var data =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [0, 10, 12]
+                            ]
+            }
+          ];
+
+
+        var config = {
+            charts : [{type: "area",  x : "rpm", y : "torque"}],
+            maxLength: 10,
+            width: 400,
+            height: 200
+          }
+
+        var areaChart = new vizg(data, config);
+        areaChart.draw("#dChartArea");
+
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+               setTimeout(function () {   
+                areaChart.insert([[iterations-i + 1, Math.random() * 100, 13, "Rotary"]]);            
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+        </script>
+        </div>
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Scatter Plot Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartScatter"></div>
+                </div>
+
+            </div>
+        </div>
+        <script>
+
+            var data =  [
+                {
+                    "metadata" : {
+                          "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+                        "types" : ["linear","linear", "linear","linear", "ordinal"]
+                    },
+                    "data": [
+
+
+                        ]
+                }
+            ];
+
+
+            var config = {
+                type: "scatter",
+                charts : [
+                    {type: "scatter",
+                     x : "rpm",  
+                     y : "torque",
+                     color: "horsepower", 
+                     size : "weight", 
+                     maxLength: 30, 
+                     maxColor:"#ffff00", 
+                     minColor:"#ff00ff"}], 
+                     
+                width: 400,
+                height: 200
+            }
+
+            var scatterChart = new vizg(data, config);
+            scatterChart.draw("#dChartScatter");
+
+            var iterations = 1000;
+            (function insertLoop (i) {      
+                      
+               setTimeout(function () {    
+                     scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+                      if (--i) insertLoop(i);
+                   }, 500)
+            })(iterations);
+
+
+        </script>
+        </div>
+
+  </body>
+</html>
