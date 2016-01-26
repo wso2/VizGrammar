@@ -1,0 +1,253 @@
+<html>
+<head>
+    <title>VizGrammar.js - Scatter Plot Chart Sample</title>
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <script src="../../js/d3.min.js"></script>
+    <script src="../../js/vega.js"></script>
+    <script src="../../../dist/VizGrammar.min.js"></script>
+    <style type="text/css">
+        body {
+            padding-top: 40px;
+        }
+    </style>
+</head>
+
+<div class="container">
+<body>
+<a href="../" style="text-decoration: none">
+    <div class="jumbotron">
+        <h2>VizGrammar.js
+            <small> Drawing a chart has never been this easy!</small>
+        </h2>
+        <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
+    </div>
+</a>
+
+<div class="row">
+
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Scatter Plot Chart Sample
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="dChart"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Data Collection
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="data set">
+<pre>
+{
+  "metadata" : {
+      "names" : ["Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
+      "types" : ["linear","linear", "linear","linear","linear","linear","linear"]
+  },
+  "data": [
+    [83871,41600,3.5,79.91,0.8,0.03,4.2],
+    [30528,37800,3.5,79.65,1.3,0.06,7.2],
+    [110879,13800,4.2,73.84,2.6,-0.8,9.6],
+    [56594,18000,2.3,75.99,2.39,-0.09,17.7],
+    [78867,27100,1.9,77.38,1.15,-0.13,8.5]]
+};
+</pre>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Configurations
+            </h3>
+        </div>
+        <div class="panel-body">
+                      <pre>
+{
+    type: "scatter",
+        x : "Unemployment",
+        charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
+        size : "GDP",
+        maxLength: 6,
+        width: 400,
+        height: 200,
+        "maxColor":"#ffff00",
+        "minColor":"#ff00ff"
+}
+                      </pre>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="info">
+                    <td>title</td>
+                    <td>String</td>
+                    <td>Title of the table</td>
+                </tr>
+                <tr class="danger">
+                    <td>x</td>
+                    <td>String</td>
+                    <td>cAttribute name for X-axis</td>
+                </tr>
+                <tr class="danger">
+                    <td>maxLength</td>
+                    <td>int</td>
+                    <td>Maximum length of chart datatable</td>
+
+                </tr>
+
+                <tr class="danger">
+                    <td>height</td>
+                    <td>px</td>
+                    <td>height of the chart</td>
+
+                </tr>
+
+                <tr class="danger">
+                    <td>charts</td>
+                    <td>object</td>
+                    <td>Collection of charts</td>
+
+                </tr>
+                </tbody>
+            </table>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="danger">
+                    <td>type</td>
+                    <td>String</td>
+                    <td>Title of the table</td>
+                </tr>
+                <tr class="danger">
+                    <td>y</td>
+                    <td>String</td>
+                    <td>Attribute name for Y-axis</td>
+
+                </tr>
+
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    var data =  [
+        {
+            "metadata" : {
+                "names" : ["Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
+                "types" : ["linear","linear", "linear","linear","linear","linear","linear"]
+            },
+            "data": [
+
+                [43871,41600,3.5,79.91,0.8,0.03,4.2]
+
+
+                ]
+        }
+    ];
+
+
+    var config = {
+        type: "scatter",
+        x : "Unemployment",
+        charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
+        size : "GDP",
+        maxLength: 6,
+        width: 400,
+        height: 200,
+        "maxColor":"#ffff00",
+        "minColor":"#ff00ff"
+    }
+
+    var lineChart3 = new vizg(data, config);
+    lineChart3.draw("#dChart");
+
+
+    setTimeout(function() {
+
+     lineChart3.insert([
+         [30528,37800,3.5,79.65,1.3,0.06,7.2]
+         ]);
+     },
+     500
+     );
+
+
+    setTimeout(function() {
+     lineChart3.insert([
+         [45228,20400,5,73.58,2,-0.65,12.5]
+     ]);
+     },
+     1000
+     );
+
+
+     setTimeout(function() {
+     lineChart3.insert([[338145,86000,8.5,79.41,2,0.07,7.2]]);
+     },
+     1500
+     );
+
+
+     setTimeout(function() {
+
+     lineChart3.insert([
+
+         [357022,38100,2.5,80.19,1.5,-0.2,6],
+         [131957,26300,3.3,80.05,4.3,0.06,17.4],
+         [93028,19600,3.9,75.02,1.75,-0.18,10.9]
+     ]);
+
+
+     },
+     2000
+     );
+
+
+     setTimeout(function() {
+        lineChart3.insert([[338145,96000,8.5,79.41,2,0.07,7.2]]);
+
+     },
+     2500
+     );
+</script>
+</div>
+</body>
+</html>
