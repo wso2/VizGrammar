@@ -174,46 +174,50 @@
         </div>
         <script>
 
-    var data =  [
-        {
-            "metadata" : {
-                "names" : ["Area","GDP","Inflation","Life.expect","Military","Pop.growth","Unemployment"],
-                "types" : ["linear","linear", "linear","linear","linear","linear","linear"]
-            },
-            "data": [
+            var data =  [
+                {
+                    "metadata" : {
+                          "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+                        "types" : ["linear","linear", "linear","linear", "ordinal"]
+                    },
+                    "data": [
 
 
-                ]
-        }
-    ];
+                        ]
+                }
+            ];
 
 
-    var config = {
-        type: "scatter",
-        x : "Unemployment",
-        charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
-        size : "GDP",
-        maxLength: 10,
-        width: 400,
-        height: 200,
-        "maxColor":"#ffff00",
-        "minColor":"#ff00ff"
-    }
+            var config = {
+                type: "scatter",
+                charts : [
+                    {type: "scatter",
+                     x : "rpm",  
+                     y : "torque",
+                     color: "horsepower", 
+                     size : "weight", 
+                     maxLength: 30, 
+                     maxColor:"#ffff00", 
+                     minColor:"#ff00ff"}], 
+                     
+                width: 400,
+                height: 200
+            }
 
-    var scatterChart = new vizg(data, config);
-    scatterChart.draw("#dChartScatter");
+            var scatterChart = new vizg(data, config);
+            scatterChart.draw("#dChartScatter");
 
-    var iterations = 1000;
-    (function insertLoop (i) {      
-              
-       setTimeout(function () {    
-             scatterChart.insert([[Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100, iterations-i + 1]]);             
-              if (--i) insertLoop(i);
-           }, 500)
-    })(iterations);
+            var iterations = 1000;
+            (function insertLoop (i) {      
+                      
+               setTimeout(function () {    
+                     scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+                      if (--i) insertLoop(i);
+                   }, 500)
+            })(iterations);
 
 
-</script>
+        </script>
         </div>
 
   </body>
