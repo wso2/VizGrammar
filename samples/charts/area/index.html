@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>VizGrammar.js - Bar Chart Sample</title>
+    <title>VizGrammar.js - Area Chart Sample</title>
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/vega.js"></script>
@@ -182,19 +182,17 @@
             height: 200
           }
 
-          var lineChart3 = new vizg(data, config);
-          lineChart3.draw("#dChart");
+        var lineChart = new vizg(data, config);
+        lineChart.draw("#dChart");
 
-
-           var iterations = 1000;
-          (function insertLoop (i) {      
+        var iterations = 1000;
+        (function insertLoop (i) {      
                   
                setTimeout(function () {   
-                lineChart3.insert([[iterations-i, Math.random() * 100, 13]]);
-                x = x + 2;             
+                lineChart.insert([[iterations-i + 1, Math.random() * 100, 13]]);            
                   if (--i) insertLoop(i);
                }, 500)
-            })(iterations);
+        })(iterations);
         </script>
       </div>
   </body>

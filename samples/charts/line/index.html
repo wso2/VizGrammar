@@ -55,67 +55,32 @@
 
         <script>
 
-         var data =  [
-            { 
-              "metadata" : {
-                  "names" : ["rpm","torque","horsepower", "EngineType"],
-                  "types" : ["linear","linear", "ordinal","ordinal"]
-              },
-              "data": [
-                [1, 10, 1, "Piston"]]
-            }
-          ];
-
-          var config = {
-            x : "rpm",
-            charts : [
-            {type: "line",  y : "torque", color: "EngineType"}
-            ],
-            maxLength: 10,
-            width: 400,
-            height: 200
+       var data =  [
+          { 
+            "metadata" : {
+                "names" : ["rpm","torque","horsepower", "EngineType"],
+                "types" : ["linear","linear", "ordinal","ordinal"]
+            },
+            "data": [
+              [1, 10, 1, "Piston"]]
           }
+        ];
 
-          var lineChart = new vizg(data, config); 
+        var config = {
+          x : "rpm",
+          charts : [
+          {type: "line",  y : "torque", color: "EngineType"}
+          ],
+          maxLength: 10,
+          width: 400,
+          height: 200
+        }
 
-          var spec = lineChart.getSpec();
+        var lineChart = new vizg(data, config); 
 
-          lineChart.draw("#dChart");
+        var spec = lineChart.getSpec();
 
-          setTimeout(function() {
-            lineChart.insert([[2, 120, 1, "Piston"]]);
-            lineChart.insert([[1, 30, 2, "rotary"]]);
-            lineChart.insert([[2, 40, 2, "rotary"]]);
-  
-          },
-          200
-        );
-
-        setTimeout(function() {
-            lineChart.insert([[3, 33, 1, "Piston"]]);
-            lineChart.insert([[3, 50, 2, "rotary"]]);
-            lineChart.insert([[4, 90, 2, "rotary"]]);
-            lineChart.insert([[4, 30, 1, "Piston"]]);
-          },
-          500
-        );
-
-        setTimeout(function() {
-            lineChart.insert([[5, 70, 2, "rotary"]]);
-            lineChart.insert([[5, 35, 1, "Piston"]]);
-            lineChart.insert([[6, 80, 2, "rotary"]]);
-            lineChart.insert([[6, 40, 1, "Piston"]]);            
-          },
-          1000
-        );
-
-        setTimeout(function() {           
-            lineChart.insert([[7, 90, 2, "rotary"]]);
-            lineChart.insert([[7, 45, 1, "Piston"]]);
-          },
-          1500
-        );
-
+        lineChart.draw("#dChart");
 
         var data2 =  [
             {
@@ -124,7 +89,7 @@
                   "types" : ["linear","linear", "ordinal","ordinal"]
                 },
               "data": [
-                [1, 10, 12]
+                [0, 10, 12]
                             ]
             }
           ];
@@ -143,35 +108,16 @@
           var lineChart3 = new vizg(data2, config3);
           lineChart3.draw("#dChart3");
 
-
-        setTimeout(function() {
-            lineChart3.insert([[2, 19, 13]]);
-          },
-          500
-        );
-
-          setTimeout(function() {
-            lineChart3.insert([[3, 120, 14]]);
-          },
-          1000
-        );
-
-
-        setTimeout(function() {
-            lineChart3.insert([[4, 60, 21]]);
-            lineChart3.insert([[5, 40, 70]]);
-            lineChart3.insert([[6, 45, 70]]);
-          },
-          1500
-        );
-
-        setTimeout(function() {
-
-            lineChart3.insert([[7, 56, 70]]);
-            lineChart3.insert([[8, 87, 70]]);
-          },
-          2000
-        );
+          var iterations = 1000;
+          (function insertLoop (i) {          
+              setTimeout(function () {   
+                var x = iterations-i + 1;
+                lineChart3.insert([[x, Math.random() * 100, 13]]);
+                lineChart.insert([[x, Math.random() * 100, 2, "rotary"]]);
+                lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+            })(iterations);
         </script>
       </div>
 
