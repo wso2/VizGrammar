@@ -176,8 +176,6 @@
             },
             "data": [
 
-                [43871,41600,3.5,79.91,0.8,0.03,4.2]
-
 
                 ]
         }
@@ -189,64 +187,26 @@
         x : "Unemployment",
         charts : [{type: "scatter",  y : "Area",color: "Inflation"}],
         size : "GDP",
-        maxLength: 6,
+        maxLength: 30,
         width: 400,
         height: 200,
         "maxColor":"#ffff00",
         "minColor":"#ff00ff"
     }
 
-    var lineChart3 = new vizg(data, config);
-    lineChart3.draw("#dChart");
+    var scatterChart = new vizg(data, config);
+    scatterChart.draw("#dChart");
+
+    var iterations = 1000;
+    (function insertLoop (i) {      
+              
+       setTimeout(function () {    
+             scatterChart.insert([[Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100,Math.random() * 100, iterations-i + 1]]);             
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
 
-    setTimeout(function() {
-
-     lineChart3.insert([
-         [30528,37800,3.5,79.65,1.3,0.06,7.2]
-         ]);
-     },
-     500
-     );
-
-
-    setTimeout(function() {
-     lineChart3.insert([
-         [45228,20400,5,73.58,2,-0.65,12.5]
-     ]);
-     },
-     1000
-     );
-
-
-     setTimeout(function() {
-     lineChart3.insert([[338145,86000,8.5,79.41,2,0.07,7.2]]);
-     },
-     1500
-     );
-
-
-     setTimeout(function() {
-
-     lineChart3.insert([
-
-         [357022,38100,2.5,80.19,1.5,-0.2,6],
-         [131957,26300,3.3,80.05,4.3,0.06,17.4],
-         [93028,19600,3.9,75.02,1.75,-0.18,10.9]
-     ]);
-
-
-     },
-     2000
-     );
-
-
-     setTimeout(function() {
-        lineChart3.insert([[338145,96000,8.5,79.41,2,0.07,7.2]]);
-
-     },
-     2500
-     );
 </script>
 </div>
 </body>
