@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>VizGrammar.js - Bar Chart Sample</title>
+    <title>VizGrammar.js - Number Chart Sample</title>
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/vega.js"></script>
@@ -14,7 +14,7 @@
   
   <div class="container">
   <body>
-        <a href="../" style="text-decoration: none">
+        <a href="../../" style="text-decoration: none">
         <div class="jumbotron">
             <h2>VizGrammar.js
                 <small> Drawing a chart has never been this easy!</small>
@@ -55,7 +55,7 @@
       "types" : ["linear","linear", "ordinal","ordinal"]
   },
   "data": [
-    [1, 10, 1, "Piston"]]
+    [0, 10, 1, "Piston"]]
 };
 </pre>
 
@@ -80,7 +80,6 @@
 {
     x : "rpm",
     charts : [{type: "number"}],
-    maxLength: 6,
     width: 400,
     height: 200
 }
@@ -105,13 +104,6 @@
                                 <td>String</td>
                                 <td>cAttribute name for X-axis</td>
                             </tr>
-                            <tr class="danger">
-                                <td>maxLength</td>
-                                <td>int</td>
-                                <td>Maximum length of chart datatable</td>
-
-                            </tr>
-
                             <tr class="danger">
                                 <td>height</td>
                                 <td>px</td>
@@ -142,14 +134,6 @@
                                 <td>String</td>
                                 <td>Title of the table</td>
                             </tr>
-                            <tr class="danger">
-                                <td>y</td>
-                                <td>String</td>
-                                <td>Attribute name for Y-axis</td>
-
-                            </tr>
-
-
                             </tbody>
                         </table>
                     
@@ -174,55 +158,23 @@
 
 
           var config = {
-            title: "RPM",
-            x : "rpm",
-            charts : [{type: "number",  y : "torque"}],
+            charts : [{x : "torque", type: "number"}],
             maxLength: 6,
             width: 400,
             height: 200
           }
 
-          var lineChart3 = new vizg(data, config);
-          lineChart3.draw("#dChart");
+          var lineChart = new vizg(data, config);
+          lineChart.draw("#dChart");
 
 
-        setTimeout(function() {
-            lineChart3.insert([[2, 19, 13, "Piston"]]);
-          },
-          500
-        );
-
-          setTimeout(function() {
-            lineChart3.insert([[3, 120, 14, "Piston"]]);
-          },
-          1000
-        );
-
-
-        setTimeout(function() {
-            lineChart3.insert([[4, 60, 21, "Piston"]]);
-            lineChart3.insert([[5, 40, 70, "Piston"]]);
-            lineChart3.insert([[6, 45, 70, "Piston"]]);
-          },
-          1500
-        );
-
-        setTimeout(function() {
-
-            lineChart3.insert([[7, 70, 70, "Piston"]]);
-            lineChart3.insert([[8, 80, 70, "Piston"]]);
-
-          },
-          2000
-        );
-
-        setTimeout(function() {
-            lineChart3.insert([[6, 20, 20, "Piston"]]);
-            lineChart3.insert([[8, 20, 20, "Piston"]]);
-
-          },
-          2500
-        );
+        var iterations = 1000;
+        (function insertLoop (i) {      
+               setTimeout(function () {   
+                lineChart.insert([[iterations-i + 1, Math.round(Math.random() * 100), 13]]);            
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
         </script>
       </div>
   </body>

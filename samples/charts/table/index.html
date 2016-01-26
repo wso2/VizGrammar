@@ -14,7 +14,7 @@
   
   <div class="container">
   <body>
-        <a href="../" style="text-decoration: none">
+        <a href="../../" style="text-decoration: none">
         <div class="jumbotron">
             <h2>VizGrammar.js
                 <small> Drawing a chart has never been this easy!</small>
@@ -176,9 +176,12 @@
 
           var config = {
             key : "rpm",
-            charts : [{type: "table",  y : "torque"}],
-            maxLength: 7,
-            columns:["EngineType",  "torque", "rpm"],
+            charts : [{ type: "table", 
+                        y : "torque", 
+                        columns:["EngineType",  "torque", "rpm"],  
+                        columnTitles:["Engine Type",  "Engine Torque", "Engine RPM"], 
+                        maxLength: 7}
+                      ],
             width: 400,
             height: 200
           }

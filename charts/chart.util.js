@@ -30,6 +30,24 @@ function checkConfig(config, metadata){
 		config.color = metadata.names.indexOf(config.color);
 	}
 
+    if (config.mapType == null) {
+        config.mapType = -1;
+    }
+
+    if (config.minColor == null) {
+        config.minColor = -1;
+    }
+
+    if (config.maxColor == null) {
+        config.maxColor = -1;
+    }
+
+    if (config.size == null) {
+        config.size = -1;
+    } else {
+        config.size = metadata.names.indexOf(config.size);
+    }
+
 	if (config.maxLength == null) {
 		config.maxLength = -1;
 	}
@@ -47,7 +65,7 @@ function checkConfig(config, metadata){
 	}
 
 	if (config.padding == null) {
-		config.padding = {"top": 30, "left": 50, "bottom": 100, "right": 100};
+        config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
 	}
 
 	config.x = metadata.names.indexOf(config.x);
