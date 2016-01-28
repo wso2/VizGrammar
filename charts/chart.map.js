@@ -331,18 +331,19 @@ function loadGeoMapCodes(url){
     return geoMapCodes;
 }
 
-function getMapCode(name, region, worldMapCodes) {
-    if (region == "usa") {
-        $.each(usaMapCodes, function (i, location) {
-            if (usaMapCodes[name] != null && usaMapCodes[name] != "") {
-                name = "US"+usaMapCodes[name];
-            }
-        });
-
-    } else {
-        $.each(worldMapCodes, function (i, location) {
+function getMapCode(name, region, geoInfo) {
+    if (region == "world" || region == "europe") {
+        $.each(geoInfo, function (i, location) {
             if (name.toUpperCase() == location["name"].toUpperCase()) {
                 name = location["alpha-3"];
+                return false;
+            }
+        });
+    } else {
+        $.each(geoInfo, function(key,value){
+            if(name.toUpperCase() == key.toUpperCase()){
+                name = "US"+value;
+                return false;
             }
         });
     }
