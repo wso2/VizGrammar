@@ -23,7 +23,7 @@ table.prototype.draw = function(div) {
               .text(function (d) { return d })
 
 
-      table.append('tbody').attr("id", "tableChart-"+config.title);
+      table.append('tbody').attr("id", "tableChart-"+this.config.title);
       setupData(this.data, this.config);
 
       table.selectAll("thead th")
