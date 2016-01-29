@@ -1152,7 +1152,7 @@ function setupData(dataset, config) {
     }
 
    //Select Rows by x Axis
-    var rows = d3.select('tbody').attr("id", "tableChart-"+config.title)
+    var rows = d3.select('#tableChart-'+config.title)
         .selectAll('tr')
         .data(data, function(d) { return d[config.key]})
 
