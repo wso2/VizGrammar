@@ -23,7 +23,7 @@ table.prototype.draw = function(div) {
               .text(function (d) { return d })
 
 
-      table.append('tbody');
+      table.append('tbody').attr("id", "tableChart-"+config.title);
       setupData(this.data, this.config);
 
       table.selectAll("thead th")
@@ -53,7 +53,7 @@ function setupData(dataset, config) {
     }
 
    //Select Rows by x Axis
-    var rows = d3.select('tbody')
+    var rows = d3.select('tbody').attr("id", "tableChart-"+config.title)
         .selectAll('tr')
         .data(data, function(d) { return d[config.key]})
 

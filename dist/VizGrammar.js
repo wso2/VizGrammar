@@ -785,7 +785,7 @@ number.prototype.draw = function(div) {
   }
 
   var divContent = "<p style='padding: 0px 0px 0px 20px;'>"+this.config.title+"</p><br/>"
-                  +"<p align='center' style='font-size:60;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
+                  +"<p align='center' style='font-size:60px;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
                   +textContent+"</p>";
 
    document.getElementById(div).innerHTML = divContent;
@@ -1122,7 +1122,7 @@ table.prototype.draw = function(div) {
               .text(function (d) { return d })
 
 
-      table.append('tbody');
+      table.append('tbody').attr("id", "tableChart-"+config.title);
       setupData(this.data, this.config);
 
       table.selectAll("thead th")
@@ -1152,7 +1152,7 @@ function setupData(dataset, config) {
     }
 
    //Select Rows by x Axis
-    var rows = d3.select('tbody')
+    var rows = d3.select('tbody').attr("id", "tableChart-"+config.title)
         .selectAll('tr')
         .data(data, function(d) { return d[config.key]})
 
