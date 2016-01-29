@@ -13,8 +13,7 @@ var map = function(dataTable, config) {
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
 
-    $.each(dataTable[0].values, function( i, val ) {
-
+    for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
             if(key == dataTable[0].metadata.names[config.x]){
                 if (dataTable[0].values[i].hasOwnProperty(key)) {
@@ -23,7 +22,8 @@ var map = function(dataTable, config) {
                 }
             }
         }
-    });
+
+    }
 
     dataTable[0].name = config.title;
     dataTable[0].transform = [
@@ -79,8 +79,7 @@ map.prototype.insert = function(data) {
     var mapType = this.config.mapType;
     var geoInfoJson = this.config.geoInfoJson;
 
-    $.each(data, function( i, val ) {
-
+    for (i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if(key == xAxis){
                 if (data[i].hasOwnProperty(key)) {
@@ -89,7 +88,7 @@ map.prototype.insert = function(data) {
                 }
             }
         }
-    });
+    }
 
     for (i = 0; i < data.length; i++) {
         var isValueMatched = false;
@@ -322,29 +321,40 @@ function loadGeoMapCodes(url){
 
     var geoMapCodes;
     var fileName = url;
-    $.ajaxSetup({async: false});
-    $.getJSON(fileName, function(json) {
-        geoMapCodes = json;
-    });
-    $.ajaxSetup({async: true});
+    // $.ajaxSetup({async: false});
+    // $.getJSON(fileName, function(json) {
+    //     geoMapCodes = json;
+    // });
+    // $.ajaxSetup({async: true});
+
+
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', url, false); // Replace 'my_data' with the path to your file
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+            geoMapCodes = JSON.parse(xobj.responseText);
+          }
+    };
+    xobj.send(null); 
 
     return geoMapCodes;
 }
 
 function getMapCode(name, region, worldMapCodes) {
     if (region == "usa") {
-        $.each(usaMapCodes, function (i, location) {
-            if (usaMapCodes[name] != null && usaMapCodes[name] != "") {
-                name = "US"+usaMapCodes[name];
+        for (i = 0; i < usaMapCodes.length; i++) {
+            if (usaMapCodes[i][name] != null && usaMapCodes[i][name] != "") {
+                name = "US"+usaMapCodes[i][name];
             }
-        });
-
+        }
     } else {
-        $.each(worldMapCodes, function (i, location) {
-            if (name.toUpperCase() == location["name"].toUpperCase()) {
-                name = location["alpha-3"];
+        for (i = 0; i < worldMapCodes.length; i++) {
+            if (name.toUpperCase() == worldMapCodes[i]["name"].toUpperCase()) {
+                name = worldMapCodes[i]["alpha-3"];
             }
-        });
+        }
     }
     return name;
 };
