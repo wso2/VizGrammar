@@ -3,8 +3,10 @@
     <title>VizGrammar.js</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <script src="js/d3.min.js"></script>
+    <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
-    <script src="../dist/VizGrammar.min.js"></script>
+
+    <script src="../dist/VizGrammar.js"></script>
     <style type="text/css">
         body {
             padding-top: 40px;
@@ -223,6 +225,158 @@
         </div>
       </a>
         </div>
+
+
+    <div class="row">
+        <a href="charts/number">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Number Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartNumberTorque"></div>
+                </div>
+            </div>
+        </div>
+      </a>
+
+      <a href="charts/number">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Number Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartNumberHorsepower"></div>
+                </div>
+            </div>
+        </div>
+      </a>
+
+
+      <script>
+                  var data =  [
+                      {
+                        "metadata" : {
+                            "names" : ["rpm","torque","horsepower", "EngineType"],
+                            "types" : ["ordinal","linear", "ordinal","ordinal"]
+                          },
+                        "data": [
+                          [1, 10, 12, "Piston"]
+                                      ]
+                      }
+                    ];
+
+
+                    var config = {
+                      title : "Torque of engine",
+                      charts : [{x : "torque", type: "number"}],
+                      maxLength: 6,
+                      width: 400,
+                      height: 200
+                    }
+
+                    var numberChart = new vizg(data, config);
+                    numberChart.draw("#dChartNumberTorque");
+
+                    var config2 = {
+                      title : "Horse power of engine",
+                      charts : [{x : "horsepower", type: "number"}],
+                      maxLength: 6,
+                      width: 400,
+                      height: 200
+                    }
+
+                    var numberChartTorque = new vizg(data, config);
+                    numberChartTorque.draw("#dChartNumberTorque");
+
+                    var numberChartHorsepower = new vizg(data, config2);
+                    numberChartHorsepower.draw("#dChartNumberHorsepower");
+
+
+
+                  var iterations = 1000;
+                  (function insertLoop (i) {      
+                         setTimeout(function () {   
+                          var dataRow = [iterations-i + 1, Math.round(Math.random() * 100), Math.round(Math.random() * 100)];
+
+                          numberChartTorque.insert([dataRow]); 
+                          numberChartHorsepower.insert([dataRow]);             
+                            if (--i) insertLoop(i);
+                         }, 500)
+                  })(iterations);
+                  </script>
+      </div>
+
+
+<div class="row">
+<a href="charts/map">
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                World Map Chart Sample
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="dChartMap"></div>
+        </div>
+
+    </div>
+<script>
+
+    var data =  [
+        {
+            "metadata" : {
+                "names" : ["Country","Inflation"],
+                "types" : ["ordinal", "linear"]
+            },
+            "data": [
+
+                ["Afghanistan",4.23]
+            ]
+        }
+    ];
+
+
+    var config = {
+        type: "map",
+        x : "Country",
+        charts : [{type: "map",  y : "Inflation", mapType : "world"}],
+        width: 400,
+        height: 200
+    };
+
+    var worlHelperInfoJsonUrl = "jsonMapFiles/countryInfo.json";
+    var usaHelperInfoJsonUrl = "jsonMapFiles/usaInfo.json";
+    var worldGeoCodesUrl = "jsonMapFiles/world.json";
+    var usaGeoCodesUrl = "jsonMapFiles/usa.json";
+
+    config.helperUrl = worlHelperInfoJsonUrl;
+    config.geoCodesUrl = worldGeoCodesUrl;
+    var mapChart = new vizg(data, config);
+    mapChart.draw("#dChartMap");
+    var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
+
+    var iterations = 1000;
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            mapChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
+
+
+</script>
+</div>
+</a>
+</div>
+
 
 
   </body>

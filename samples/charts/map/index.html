@@ -207,36 +207,19 @@
 
     config.helperUrl = worlHelperInfoJsonUrl;
     config.geoCodesUrl = worldGeoCodesUrl;
-    var lineChart3 = new vizg(data, config);
-    lineChart3.draw("#dChart");
+    var mapChart = new vizg(data, config);
+    mapChart.draw("#dChart");
 
 
-    setTimeout(function() {
+    var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
 
-                lineChart3.insert([
-                    ["EGY",1.23]
-                ]);
-            },
-            500
-    );
-
-
-    setTimeout(function() {
-                lineChart3.insert([
-                    ["AFG",2.23]
-                ]);
-            },
-            1000
-    );
-
-
-    setTimeout(function() {
-                lineChart3.insert([
-                    ["United States",8.23]
-                ]);
-            },
-            1500
-    );
+    var iterations = 1000;
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            mapChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
 
 </script>
