@@ -18,7 +18,9 @@ var map = function(dataTable, config) {
         for (var key in dataTable[0].values[i]) {
             if(key == dataTable[0].metadata.names[config.x]){
                 if (dataTable[0].values[i].hasOwnProperty(key)) {
+                    dataTable[0].values[i].unitName = dataTable[0].values[i][key];
                     dataTable[0].values[i][key] = getMapCode(dataTable[0].values[i][key], config.mapType,geoInfoJson);
+                    console.log(dataTable[0].values[i]);
                     break;
                 }
             }
@@ -68,6 +70,19 @@ map.prototype.draw = function(div) {
         this.view = chart({el:div}).update();
     }).bind(this);
 
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
     vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
@@ -84,7 +99,9 @@ map.prototype.insert = function(data) {
         for (var key in data[i]) {
             if(key == xAxis){
                 if (data[i].hasOwnProperty(key)) {
+                    data[i].unitName = data[i][key];
                     data[i][key] = getMapCode(data[i][key], mapType,geoInfoJson);
+                    console.log(data[i]);
                     break;
                 }
             }
@@ -120,6 +137,24 @@ map.prototype.insert = function(data) {
 
 function getTopoJson(config, metadata){
 
+    var width = config.width;
+    var height = config.height;
+    var scale;
+    var mapType = config.charts[0].mapType;
+
+    if(mapType == "usa"){
+        width = config.width + 300;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else if(mapType == "europe"){
+        width = ((config.width/2)+ 50)/2;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else{
+        scale = (config.width/640)*100;
+        width = config.width/2;
+        height = config.height/2;
+    }
     var mapUrl = config.geoCodesUrl;
 
     var json = {
@@ -131,8 +166,8 @@ function getTopoJson(config, metadata){
             {
                 "type": "geopath",
                 "value": "data",
-                "scale": (config.width/640)*100,
-                "translate": [config.width/2,config.height/2],
+                "scale": scale,
+                "translate": [width,height],
                 "projection": "equirectangular"
             },
             {
@@ -179,31 +214,6 @@ function getMapMark(config, metadata){
             }
         },
         {
-            "name": "debugIsDragging",
-            "type": "text",
-            "properties": {
-                "enter": {
-                    "x": {"value": 250},
-                    "y": {"value": 0},
-                    "fill": {"value": "black"}
-                },
-                "update": {"text": {"signal": "isClicked.boolVal"}}
-            }
-        },
-        {
-            "name": "zoomIn",
-            "type": "path",
-            "transform": [
-                {
-                    "type": "geopath",
-                    "value": "zipped.v",
-                    "scale": 100,
-                    "translate": [200,100],
-                    "projection": "equirectangular"
-                }
-            ]
-        },
-        {
             "type": "group",
             "from": {"data": config.title,
                 "transform": [
@@ -230,7 +240,7 @@ function getMapMark(config, metadata){
                         "update": {
                             "x": {"value": 6},
                             "y": {"value": 14},
-                            "text": {"template": "\u007b{tooltipSignal.datum."+metadata.names[config.x]+"}} \u007b{tooltipSignal.datum.v}}"},
+                            "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
                             "fill": {"value": "black"},
                             "fontWeight": {"value": "bold"}
                         }
@@ -259,22 +269,6 @@ function getMapSignals(){
                 {
                     "type": "@map:mouseout",
                     "expr": "{x: 0, y: 0, datum: {} }"
-                }
-            ]
-        },
-        {
-            "name": "isClicked",
-            "init": false,
-            "streams": [
-                {
-                    "type": "@map:mousedown",
-                    "expr": "{x: eventX(), y: eventY(), datum: eventItem().datum.zipped, boolVal:true}"
-
-                },
-                {
-                    "type": "@map:mouseup",
-                    "expr": "{x: 0, y: 0, datum: {}, boolVal:false}"
-
                 }
             ]
         }
