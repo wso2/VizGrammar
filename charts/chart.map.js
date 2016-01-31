@@ -70,19 +70,6 @@ map.prototype.draw = function(div) {
         this.view = chart({el:div}).update();
     }).bind(this);
 
-    if(this.config.maxLength != -1){
-        var dataset = this.spec.data[0].values;
-        var maxValue = this.config.maxLength;
-        if(dataset.length >= this.config.maxLength){
-            var allowedDataSet = [];
-            var startingPoint = dataset.length - maxValue;
-            for(var i = startingPoint; i < dataset.length;i++){
-                allowedDataSet.push(dataset[i]);
-            }
-            this.spec.data[0].values = allowedDataSet;
-        }
-    }
-
     vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
