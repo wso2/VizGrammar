@@ -2,7 +2,6 @@
 <head>
     <title>VizGrammar.js - Map Chart Sample</title>
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
-    <script src="../../js/jquery-1.10.2.js"></script>
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
@@ -225,34 +224,15 @@
     var worldChart = new vizg(data, configWorld);
     worldChart.draw("#dChart");
 
+    var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
 
-    setTimeout(function() {
-
-                worldChart.insert([
-                    ["EGY",1.23]
-                ]);
-            },
-            500
-    );
-
-
-    setTimeout(function() {
-                worldChart.insert([
-                    ["AFG",2.23]
-                ]);
-            },
-            1000
-    );
-
-
-    setTimeout(function() {
-                worldChart.insert([
-                    ["United States",8.23]
-                ]);
-            },
-            1500
-    );
-
+    var iterations = 1000;
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            worldChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
     var usaData =  [
         {
@@ -267,7 +247,6 @@
         }
     ];
 
-
     var configUsa = {
         type: "map",
         x : "County",
@@ -281,14 +260,13 @@
     var usaChart = new vizg(usaData, configUsa);
     usaChart.draw("#dChart3");
 
-    setTimeout(function() {
-
-                usaChart.insert([
-                    ["California",1.23]
-                ]);
-            },
-            500
-    );
+    var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            usaChart.insert([[USStates[i%USStates.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
     var europeData =  [
         {
@@ -316,14 +294,13 @@
     var europeChart = new vizg(europeData, configEurope);
     europeChart.draw("#dChart4");
 
-    setTimeout(function() {
-
-                europeChart.insert([
-                    ["Russian Federation",1.23]
-                ]);
-            },
-            500
-    );
+    var euroCountries = ["RUS","France", "Germany", "Spain","Norway","Sweden","Poland","Italy","Turkey","Portugal","Denmark"];
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            europeChart.insert([[euroCountries[i%euroCountries.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
 </script>
 </div>
