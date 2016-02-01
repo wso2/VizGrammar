@@ -13,19 +13,17 @@ var map = function(dataTable, config) {
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
 
-    $.each(dataTable[0].values, function( i, val ) {
-
+    for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
             if(key == dataTable[0].metadata.names[config.x]){
                 if (dataTable[0].values[i].hasOwnProperty(key)) {
                     dataTable[0].values[i].unitName = dataTable[0].values[i][key];
                     dataTable[0].values[i][key] = getMapCode(dataTable[0].values[i][key], config.mapType,geoInfoJson);
-                    console.log(dataTable[0].values[i]);
                     break;
                 }
             }
         }
-    });
+    };
 
     dataTable[0].name = config.title;
     dataTable[0].transform = [
@@ -81,19 +79,17 @@ map.prototype.insert = function(data) {
     var mapType = this.config.mapType;
     var geoInfoJson = this.config.geoInfoJson;
 
-    $.each(data, function( i, val ) {
-
+   for (i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if(key == xAxis){
                 if (data[i].hasOwnProperty(key)) {
                     data[i].unitName = data[i][key];
                     data[i][key] = getMapCode(data[i][key], mapType,geoInfoJson);
-                    console.log(data[i]);
                     break;
                 }
             }
         }
-    });
+    };
 
     for (i = 0; i < data.length; i++) {
         var isValueMatched = false;
@@ -300,33 +296,37 @@ function getMapLegends(config, metadata){
 }
 
 function loadGeoMapCodes(url){
-
     var geoMapCodes;
-    var fileName = url;
-    $.ajaxSetup({async: false});
-    $.getJSON(fileName, function(json) {
-        geoMapCodes = json;
-    });
-    $.ajaxSetup({async: true});
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', url, false);
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            geoMapCodes = JSON.parse(xobj.responseText);
+          }
+    };
+    xobj.send(null); 
 
     return geoMapCodes;
 }
 
 function getMapCode(name, region, geoInfo) {
     if (region == "world" || region == "europe") {
-        $.each(geoInfo, function (i, location) {
-            if (name.toUpperCase() == location["name"].toUpperCase()) {
-                name = location["alpha-3"];
-                return false;
+        for (i = 0; i < geoInfo.length; i++) {
+            if (name.toUpperCase() == geoInfo[i]["name"].toUpperCase()) {
+                name = geoInfo[i]["alpha-3"];
             }
-        });
+        };
     } else {
-        $.each(geoInfo, function(key,value){
-            if(name.toUpperCase() == key.toUpperCase()){
-                name = "US"+value;
-                return false;
-            }
-        });
+        var i = 0;
+        for (var property in geoInfo) {
+            if (geoInfo.hasOwnProperty(property)) {
+                if(name.toUpperCase() == property.toUpperCase()){
+                    name = "US"+geoInfo[property];
+                }
+        }
+        i++;
+        };
     }
     return name;
 };
