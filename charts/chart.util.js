@@ -120,9 +120,6 @@ var  mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
-        },
-        "hover": {
-          "fillOpacity": {"value": 0.5}
         }
       }
     }

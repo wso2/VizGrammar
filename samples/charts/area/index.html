@@ -187,7 +187,7 @@
         (function insertLoop (i) {      
                   
                setTimeout(function () {   
-                lineChart.insert([[iterations-i + 1, Math.random() * 100, 13]]);            
+                lineChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13]]);            
                   if (--i) insertLoop(i);
                }, 500)
         })(iterations);
