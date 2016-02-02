@@ -1,7 +1,7 @@
 var scatter = function(dataTable, config) {
 
     this.metadata = dataTable[0].metadata;
-    var marks ;
+    var marks = [];
     var signals ;
     this.spec = {};
 
@@ -46,8 +46,9 @@ var scatter = function(dataTable, config) {
         {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
     ];
 
-    marks = getScatterMark(config, this.metadata);
-    signals = getScatterSignals(config,this.metadata);
+    marks.push(getScatterMark(config, this.metadata));
+    marks.push(getScatterToolTipMark(config, this.metadata));
+    signals = getSignals(config,this.metadata);
 
 
     this.spec.width = config.width;
@@ -196,7 +197,7 @@ scatter.prototype.getSpec = function() {
 
 function getScatterMark(config, metadata){
 
-    var marks = [{
+    var mark = {
 
             "type": "symbol",
             "from": {"data": config.title},
@@ -205,95 +206,37 @@ function getScatterMark(config, metadata){
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]}
-                    // "stroke": {"value": "transparent"}
+                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                    "size": {"value": 300},
-                    "stroke": {"value": "white"}
+                    "fillOpacity": {"value": 0.5}
                 }
             }
 
-        },
-        {
-            "type": "group",
-            "from": {"data": "table",
-                "transform": [
-                    {
-                        "type": "filter",
-                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
-                    }
-                ]},
-            "properties": {
-                "update": {
-                    "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": -5},
-                    "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": 20},
-                    "width": {"value": 150},
-                    "height": {"value": 50},
-                    "fill": {"value": "#ffa"},
-                    "background-color": {"value": 0.85},
-                    "stroke": {"value": "#aaa"},
-                    "strokeWidth": {"value": 0.5}
-                }
-            },
-
-            "marks": [
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 14},
-                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 29},
-                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 44},
-                            "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                }
-            ]
         }
-    ];
+    ;
 
 
-    return marks;
+    return mark;
 }
 
-function getScatterSignals(config, metadata){
+function getScatterToolTipMark(config, metadata) {
+    config.toolTip.height = 50;
+    config.toolTip.y = -50;
 
-    var signals = [{
-
-            "name": "hover",
-            "init": {},
-            "streams": [
-                {"type": "symbol:mouseover", "expr": "datum"},
-                {"type": "symbol:mouseout", "expr": "{}"}
-            ]
-    }];
-
-    return signals;
-
+    var mark = getToolTipMark(config, metadata);
+    var sizeText = {
+        "type": "text",
+        "properties": {
+            "update": {
+                "x": {"value": 6},
+                "y": {"value": 44},
+                "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
+                "fill": {"value": "black"}
+            }
+        }
+    };
+    mark.marks.push(sizeText);
+    return mark;
 }

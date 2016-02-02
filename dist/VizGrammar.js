@@ -48,8 +48,10 @@ var area = function(dataTable, config) {
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
-      config.markSize = 20;
+      config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      signals = getSignals(config,this.metadata);
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -58,6 +60,7 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 area.prototype.draw = function(div) {
@@ -158,6 +161,9 @@ var bar = function(dataTable, config) {
                   ];
 
       marks.push(getBarMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      config.hoverType = "rect";
+      signals = getSignals(config,this.metadata);
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -166,6 +172,7 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 bar.prototype.draw = function(div) {
@@ -365,6 +372,8 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      signals = getSignals(config,this.metadata);
 
       if (config.color != -1) {
 
@@ -398,6 +407,7 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 line.prototype.draw = function(div) {
@@ -507,6 +517,8 @@ function getLineMark(config, metadata){
     config = checkConfig(config, this.metadata);
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
+    config.toolTip.height = 20;
+    config.toolTip.width = 100;
 
     for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
@@ -704,11 +716,9 @@ function getMapMark(config, metadata){
                 "update": {
                     "x": {"signal": "tooltipSignal.x", "offset": -5},
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
-                    "width": {"value": 100},
-                    "height": {"value": 30},
-                    "fill": {"value": "#ffa"},
-                    "background-color": {"value": 0.85},
-                    "stroke": {"value": "#aaa"}
+                    "width": {"value": config.toolTip.width},
+                    "height": {"value": config.toolTip.height},
+                    "fill": {"value": config.toolTip.color}
                 }
             },
             "marks": [
@@ -719,8 +729,7 @@ function getMapMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 14},
                             "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
+                            "fill": {"value": "black"}
                         }
                     }
                 }
@@ -863,7 +872,7 @@ number.prototype.insert = function(data) {
 ;var scatter = function(dataTable, config) {
 
     this.metadata = dataTable[0].metadata;
-    var marks ;
+    var marks = [];
     var signals ;
     this.spec = {};
 
@@ -908,8 +917,9 @@ number.prototype.insert = function(data) {
         {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
     ];
 
-    marks = getScatterMark(config, this.metadata);
-    signals = getScatterSignals(config,this.metadata);
+    marks.push(getScatterMark(config, this.metadata));
+    marks.push(getScatterToolTipMark(config, this.metadata));
+    signals = getSignals(config,this.metadata);
 
 
     this.spec.width = config.width;
@@ -1058,7 +1068,7 @@ scatter.prototype.getSpec = function() {
 
 function getScatterMark(config, metadata){
 
-    var marks = [{
+    var mark = {
 
             "type": "symbol",
             "from": {"data": config.title},
@@ -1067,97 +1077,39 @@ function getScatterMark(config, metadata){
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]}
-                    // "stroke": {"value": "transparent"}
+                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                    "size": {"value": 300},
-                    "stroke": {"value": "white"}
+                    "fillOpacity": {"value": 0.5}
                 }
             }
 
-        },
-        {
-            "type": "group",
-            "from": {"data": "table",
-                "transform": [
-                    {
-                        "type": "filter",
-                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
-                    }
-                ]},
-            "properties": {
-                "update": {
-                    "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": -5},
-                    "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": 20},
-                    "width": {"value": 150},
-                    "height": {"value": 50},
-                    "fill": {"value": "#ffa"},
-                    "background-color": {"value": 0.85},
-                    "stroke": {"value": "#aaa"},
-                    "strokeWidth": {"value": 0.5}
-                }
-            },
-
-            "marks": [
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 14},
-                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 29},
-                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 44},
-                            "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
-                        }
-                    }
-                }
-            ]
         }
-    ];
+    ;
 
 
-    return marks;
+    return mark;
 }
 
-function getScatterSignals(config, metadata){
+function getScatterToolTipMark(config, metadata) {
+    config.toolTip.height = 50;
+    config.toolTip.y = -50;
 
-    var signals = [{
-
-            "name": "hover",
-            "init": {},
-            "streams": [
-                {"type": "symbol:mouseover", "expr": "datum"},
-                {"type": "symbol:mouseout", "expr": "{}"}
-            ]
-    }];
-
-    return signals;
-
+    var mark = getToolTipMark(config, metadata);
+    var sizeText = {
+        "type": "text",
+        "properties": {
+            "update": {
+                "x": {"value": 6},
+                "y": {"value": 44},
+                "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
+                "fill": {"value": "black"}
+            }
+        }
+    };
+    mark.marks.push(sizeText);
+    return mark;
 }
 ;
 var table = function(dataTable, config) {
@@ -1312,8 +1264,16 @@ function setupData(dataset, config) {
 		config.fillOpacity = 1;
 	}
 
+	if (config.toolTip == null) {
+		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
+	}
+
 	if (config.padding == null) {
-        config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
+        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
+	}
+
+	if (config.hoverType == null) {
+		config.hoverType = "symbol";
 	}
 
 	config.x = metadata.names.indexOf(config.x);
@@ -1364,14 +1324,77 @@ var  mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
-        },
-        "hover": {
-          "fillOpacity": {"value": 0.5}
         }
       }
     }
 
     return mark;
+}
+
+
+function getToolTipMark(config , metadata) {
+	    var mark =    {
+            "type": "group",
+            "from": {"data": "table",
+                "transform": [
+                    {
+                        "type": "filter",
+                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
+                    }
+                ]},
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": config.toolTip.x},
+                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": config.toolTip.y},
+                            "width": {"value": config.toolTip.width},
+                            "height": {"value": config.toolTip.height},
+                            "fill": {"value": config.toolTip.color}
+                }
+            },
+
+            "marks": [
+                {
+                    "type": "text",
+                    "properties": {
+                        "update": {
+                            "x": {"value": 6},
+                            "y": {"value": 14},
+                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
+                            "fill": {"value": "black"}
+                        }
+                    }
+                },
+                {
+                    "type": "text",
+                    "properties": {
+                        "update": {
+                            "x": {"value": 6},
+                            "y": {"value": 29},
+                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
+                            "fill": {"value": "black"}
+                        }
+                    }
+                }
+            ]
+        }
+
+    return mark;
+}
+
+function getSignals(config, metadata){
+
+    var signals = [{
+
+            "name": "hover",
+            "init": {},
+            "streams": [
+                {"type": config.hoverType+":mouseover", "expr": "datum"},
+                {"type": config.hoverType+":mouseout", "expr": "{}"}
+            ]
+    }];
+
+    return signals;
+
 }
 
 

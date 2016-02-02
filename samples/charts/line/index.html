@@ -98,11 +98,11 @@
           (function insertLoop (i) {          
               setTimeout(function () {   
                 var x = iterations-i + 1;
-                lineChartSingle.insert([[x, Math.random() * 100, 13, "Rotary"]]);
-                lineChart.insert([[x, Math.random() * 100, 2, "Rotary"]]);
-                lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
+                lineChartSingle.insert([[x, Number((Math.random() * 100).toFixed(2)), 13, "Rotary"]]);
+                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 2, "Rotary"]]);
+                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 1, "Piston"]]);          
                   if (--i) insertLoop(i);
-               }, 500)
+               }, 1000)
         })(iterations);
         </script>
       </div>

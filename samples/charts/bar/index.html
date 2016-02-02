@@ -168,7 +168,6 @@
                   "types" : ["ordinal","linear", "ordinal","ordinal"]
                 },
               "data": [
-                [1, 10, 12, "Piston"]
                             ]
             }
           ];
@@ -186,44 +185,14 @@
           var lineChart3 = new vizg(data, config);
           lineChart3.draw("#dChart");
 
-
-        setTimeout(function() {
-            lineChart3.insert([[2, 19, 13, "Piston"]]);
-          },
-          500
-        );
-
-          setTimeout(function() {
-            lineChart3.insert([[3, 120, 14, "Piston"]]);
-          },
-          1000
-        );
-
-
-        setTimeout(function() {
-            lineChart3.insert([[4, 60, 21, "Piston"]]);
-            lineChart3.insert([[5, 40, 70, "Piston"]]);
-            lineChart3.insert([[6, 45, 70, "Piston"]]);
-          },
-          1500
-        );
-
-        setTimeout(function() {
-
-            lineChart3.insert([[7, 70, 70, "Piston"]]);
-            lineChart3.insert([[8, 80, 70, "Piston"]]);
-
-          },
-          2000
-        );
-
-        setTimeout(function() {
-            lineChart3.insert([[6, 20, 20, "Piston"]]);
-            lineChart3.insert([[8, 20, 20, "Piston"]]);
-
-          },
-          2500
-        );
+        var iterations = 1000;
+          (function insertLoop (i) {          
+              setTimeout(function () {   
+                var x = iterations-i + 1;
+                lineChart3.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(2)), 20, "Piston"]]);      
+                  if (--i) insertLoop(i);
+               }, 1000)
+        })(iterations);
         </script>
       </div>
   </body>
