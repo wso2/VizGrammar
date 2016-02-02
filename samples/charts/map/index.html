@@ -2,7 +2,6 @@
 <head>
     <title>VizGrammar.js - Map Chart Sample</title>
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
-    <script src="../../js/jquery-1.10.2.js"></script>
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
@@ -50,6 +49,20 @@
         </div>
         <div class="panel-body">
             <div id="dChart3"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="col-md-6" class="tile">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Europe Map Chart Sample
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div id="dChart4"></div>
         </div>
 
     </div>
@@ -192,7 +205,7 @@
     ];
 
 
-    var config = {
+    var configWorld = {
         type: "map",
         x : "Country",
         charts : [{type: "map",  y : "Inflation", mapType : "world"}],
@@ -204,23 +217,90 @@
     var usaHelperInfoJsonUrl = "../../jsonMapFiles/usaInfo.json";
     var worldGeoCodesUrl = "../../jsonMapFiles/world.json";
     var usaGeoCodesUrl = "../../jsonMapFiles/usa.json";
+    var europeGeoCodesUrl = "../../jsonMapFiles/europe.json";
 
-    config.helperUrl = worlHelperInfoJsonUrl;
-    config.geoCodesUrl = worldGeoCodesUrl;
-    var mapChart = new vizg(data, config);
-    mapChart.draw("#dChart");
-
+    configWorld.helperUrl = worlHelperInfoJsonUrl;
+    configWorld.geoCodesUrl = worldGeoCodesUrl;
+    var worldChart = new vizg(data, configWorld);
+    worldChart.draw("#dChart");
 
     var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
 
     var iterations = 1000;
     (function insertLoop (i) {      
            setTimeout(function () {   
-            mapChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+            worldChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
               if (--i) insertLoop(i);
            }, 500)
     })(iterations);
 
+    var usaData =  [
+        {
+            "metadata" : {
+                "names" : ["County","Inflation"],
+                "types" : ["ordinal", "linear"]
+            },
+            "data": [
+
+                ["Alabama",4.23]
+            ]
+        }
+    ];
+
+    var configUsa = {
+        type: "map",
+        x : "County",
+        charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
+        width: 400,
+        height: 200
+    };
+
+    configUsa.helperUrl = usaHelperInfoJsonUrl;
+    configUsa.geoCodesUrl = usaGeoCodesUrl;
+    var usaChart = new vizg(usaData, configUsa);
+    usaChart.draw("#dChart3");
+
+    var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            usaChart.insert([[USStates[i%USStates.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
+
+    var europeData =  [
+        {
+            "metadata" : {
+                "names" : ["Country","Inflation"],
+                "types" : ["ordinal", "linear"]
+            },
+            "data": [
+
+                ["Albania",4.23]
+            ]
+        }
+    ];
+
+    var configEurope = {
+        type: "map",
+        x : "Country",
+        charts : [{type: "map",  y : "Inflation", mapType : "europe"}],
+        width: 400,
+        height: 200
+    };
+
+    configEurope.helperUrl = worlHelperInfoJsonUrl;
+    configEurope.geoCodesUrl = europeGeoCodesUrl;
+    var europeChart = new vizg(europeData, configEurope);
+    europeChart.draw("#dChart4");
+
+    var euroCountries = ["RUS","France", "Germany", "Spain","Norway","Sweden","Poland","Italy","Turkey","Portugal","Denmark"];
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            europeChart.insert([[euroCountries[i%euroCountries.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 
 </script>
 </div>

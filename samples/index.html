@@ -5,8 +5,7 @@
     <script src="js/d3.min.js"></script>
     <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
-
-    <script src="../dist/VizGrammar.js"></script>
+    <script src="../dist/VizGrammar.min.js"></script>
     <style type="text/css">
         body {
             padding-top: 40px;
@@ -314,20 +313,36 @@
       </div>
 
 
-<div class="row">
-<a href="charts/map">
-<div class="col-md-6" class="tile">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">
-                World Map Chart Sample
-            </h3>
+    <div class="row">
+        <a href="charts/map">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        World Map Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartMapWorld"></div>
+                </div>
+            </div>
         </div>
-        <div class="panel-body">
-            <div id="dChartMap"></div>
-        </div>
+      </a>
 
-    </div>
+      <a href="charts/map">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        US Map Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartMapUS"></div>
+                </div>
+            </div>
+        </div>
+      </a>
 <script>
 
     var data =  [
@@ -344,7 +359,7 @@
     ];
 
 
-    var config = {
+    var configWorld = {
         type: "map",
         x : "Country",
         charts : [{type: "map",  y : "Inflation", mapType : "world"}],
@@ -356,28 +371,59 @@
     var usaHelperInfoJsonUrl = "jsonMapFiles/usaInfo.json";
     var worldGeoCodesUrl = "jsonMapFiles/world.json";
     var usaGeoCodesUrl = "jsonMapFiles/usa.json";
+    var europeGeoCodesUrl = "jsonMapFiles/europe.json";
 
-    config.helperUrl = worlHelperInfoJsonUrl;
-    config.geoCodesUrl = worldGeoCodesUrl;
-    var mapChart = new vizg(data, config);
-    mapChart.draw("#dChartMap");
+    configWorld.helperUrl = worlHelperInfoJsonUrl;
+    configWorld.geoCodesUrl = worldGeoCodesUrl;
+    var worldChart = new vizg(data, configWorld);
+    worldChart.draw("#dChartMapWorld");
+
     var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
 
     var iterations = 1000;
     (function insertLoop (i) {      
            setTimeout(function () {   
-            mapChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+            worldChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
               if (--i) insertLoop(i);
            }, 500)
     })(iterations);
 
+    var usaData =  [
+        {
+            "metadata" : {
+                "names" : ["County","Inflation"],
+                "types" : ["ordinal", "linear"]
+            },
+            "data": [
 
+                ["Alabama",4.23]
+            ]
+        }
+    ];
+
+    var configUsa = {
+        type: "map",
+        x : "County",
+        charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
+        width: 400,
+        height: 200
+    };
+
+    configUsa.helperUrl = usaHelperInfoJsonUrl;
+    configUsa.geoCodesUrl = usaGeoCodesUrl;
+    var usaChart = new vizg(usaData, configUsa);
+    usaChart.draw("#dChartMapUS");
+
+    var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
+    (function insertLoop (i) {      
+           setTimeout(function () {   
+            usaChart.insert([[USStates[i%USStates.length], Math.round(Math.random() * 100), 13]]);            
+              if (--i) insertLoop(i);
+           }, 500)
+    })(iterations);
 </script>
-</div>
-</a>
-</div>
 
-
+      </div>
 
   </body>
 </html>
