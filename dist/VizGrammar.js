@@ -365,6 +365,8 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      signals = getSignals(config,this.metadata);
 
       if (config.color != -1) {
 
@@ -398,6 +400,7 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 line.prototype.draw = function(div) {
@@ -910,7 +913,7 @@ number.prototype.insert = function(data) {
 
     marks.push(getScatterMark(config, this.metadata));
     marks.push(getScatterToolTipMark(config, this.metadata));
-    signals = getScatterSignals(config,this.metadata);
+    signals = getSignals(config,this.metadata);
 
 
     this.spec.width = config.width;
@@ -1081,22 +1084,6 @@ function getScatterMark(config, metadata){
 
 
     return mark;
-}
-
-function getScatterSignals(config, metadata){
-
-    var signals = [{
-
-            "name": "hover",
-            "init": {},
-            "streams": [
-                {"type": "symbol:mouseover", "expr": "datum"},
-                {"type": "symbol:mouseout", "expr": "{}"}
-            ]
-    }];
-
-    return signals;
-
 }
 
 function getScatterToolTipMark(config, metadata) {
@@ -1276,7 +1263,7 @@ function setupData(dataset, config) {
 	}
 
 	if (config.padding == null) {
-        config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
+        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
 	}
 
 	config.x = metadata.names.indexOf(config.x);
@@ -1385,6 +1372,22 @@ function getToolTipMark(config , metadata) {
         }
 
     return mark;
+}
+
+function getSignals(config, metadata){
+
+    var signals = [{
+
+            "name": "hover",
+            "init": {},
+            "streams": [
+                {"type": "symbol:mouseover", "expr": "datum"},
+                {"type": "symbol:mouseout", "expr": "{}"}
+            ]
+    }];
+
+    return signals;
+
 }
 
 

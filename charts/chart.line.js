@@ -44,6 +44,8 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      signals = getSignals(config,this.metadata);
 
       if (config.color != -1) {
 
@@ -77,6 +79,7 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 line.prototype.draw = function(div) {

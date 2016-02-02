@@ -69,7 +69,7 @@ function checkConfig(config, metadata){
 	}
 
 	if (config.padding == null) {
-        config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
+        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
 	}
 
 	config.x = metadata.names.indexOf(config.x);
@@ -178,6 +178,22 @@ function getToolTipMark(config , metadata) {
         }
 
     return mark;
+}
+
+function getSignals(config, metadata){
+
+    var signals = [{
+
+            "name": "hover",
+            "init": {},
+            "streams": [
+                {"type": "symbol:mouseover", "expr": "datum"},
+                {"type": "symbol:mouseout", "expr": "{}"}
+            ]
+    }];
+
+    return signals;
+
 }
 
 

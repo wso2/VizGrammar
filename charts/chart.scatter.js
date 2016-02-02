@@ -48,7 +48,7 @@ var scatter = function(dataTable, config) {
 
     marks.push(getScatterMark(config, this.metadata));
     marks.push(getScatterToolTipMark(config, this.metadata));
-    signals = getScatterSignals(config,this.metadata);
+    signals = getSignals(config,this.metadata);
 
 
     this.spec.width = config.width;
@@ -219,22 +219,6 @@ function getScatterMark(config, metadata){
 
 
     return mark;
-}
-
-function getScatterSignals(config, metadata){
-
-    var signals = [{
-
-            "name": "hover",
-            "init": {},
-            "streams": [
-                {"type": "symbol:mouseover", "expr": "datum"},
-                {"type": "symbol:mouseout", "expr": "{}"}
-            ]
-    }];
-
-    return signals;
-
 }
 
 function getScatterToolTipMark(config, metadata) {
