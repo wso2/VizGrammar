@@ -66,6 +66,19 @@ area.prototype.draw = function(div) {
        this.view = chart({el:div}).update();
     }).bind(this);
 
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
  		vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
@@ -160,42 +173,96 @@ bar.prototype.draw = function(div) {
        this.view = chart({el:div}).update();
     }).bind(this);
 
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
  		vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
 bar.prototype.insert = function(data) {
 
-  var shouldInsert = true;
-  var xAxis = this.metadata.names[this.config.x];
-  var yAxis = this.metadata.names[this.config.y];
+    var xAxis = this.metadata.names[this.config.x];
+    var yAxis = this.metadata.names[this.config.y];
+    var size = this.metadata.names[this.config.size];
+    var color = this.metadata.names[this.config.color];
 
-  //Check for updates
-  for (i = 0; i < data.length; i++) { 
-      this.view.data(this.config.title).update(function(d) { return d[xAxis] == data[i][xAxis]; }, 
-      yAxis,
-      function(d) { 
-        shouldInsert = false;
-        return data[i][yAxis];
-      });
-  }
+    if (this.config.maxLength != -1 && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
 
-  if (shouldInsert) {
-      //Removing events when max value is enabled
-      if (this.config.maxLength != -1 && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
-        var oldData;
-        var removeFunction = function(d) { 
-              return d[xAxis] == oldData; 
-            };
+        var allDataSet = this.view.data(this.config.title).values().concat(data);
+        var allowedRemovableDataSet = [];
+        for (i = 0; i < allDataSet.length - this.config.maxLength; i++) {
+            allowedRemovableDataSet.push(this.view.data(this.config.title).values()[i][xAxis]);
+        }
 
         for (i = 0; i < data.length; i++) {
-          oldData = this.view.data(this.config.title).values()[i][xAxis];
-          this.view.data(this.config.title).remove(removeFunction);  
-        }
-      } 
-       this.view.data(this.config.title).insert(data);     
-    }
+            var isValueMatched = false;
+            this.view.data(this.config.title).update(function(d) {
+                    return d[xAxis] == data[i][xAxis]; },
+                yAxis,
+                function(d) {
+                    isValueMatched = true;
+                    return data[i][yAxis];
+                });
 
+            if(isValueMatched){
+                var isIndexRemoved = false;
+
+                var index = allowedRemovableDataSet.indexOf(data[i][xAxis]);
+                if (index > -1) {
+                    // updated value matched in allowed removable values
+                    isIndexRemoved = true;
+                    allowedRemovableDataSet.splice(index, 1);
+                }
+
+                if(!isIndexRemoved){
+                    // updated value NOT matched in allowed removable values
+                    allowedRemovableDataSet.splice((allowedRemovableDataSet.length - 1), 1);
+                }
+
+            } else {
+                //insert the new data
+                this.view.data(this.config.title).insert([data[i]]);
+                this.view.update();
+            }
+        }
+
+        var oldData;
+        var removeFunction = function(d) {
+            return d[xAxis] == oldData;
+        };
+
+        for (i = 0; i < allowedRemovableDataSet.length; i++) {
+            oldData = allowedRemovableDataSet[i];
+            this.view.data(this.config.title).remove(removeFunction);
+        }
+    } else{
+        for (i = 0; i < data.length; i++) {
+            var isValueMatched = false;
+            this.view.data(this.config.title).update(function(d) {
+                    return d[xAxis] == data[i][xAxis]; },
+                yAxis,
+                function(d) {
+                    isValueMatched = true;
+                    return data[i][yAxis];
+                });
+
+            if(!isValueMatched){
+                this.view.data(this.config.title).insert([data[i]]);
+            }
+        }
+    }
     this.view.update({duration: 200});
+
 };
 
 bar.prototype.getSpec = function() {
@@ -339,6 +406,19 @@ line.prototype.draw = function(div) {
        this.view = chart({el:div}).update();
     }).bind(this);
 
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
  		vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
@@ -428,17 +508,17 @@ function getLineMark(config, metadata){
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
 
-    $.each(dataTable[0].values, function( i, val ) {
-
+    for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
             if(key == dataTable[0].metadata.names[config.x]){
                 if (dataTable[0].values[i].hasOwnProperty(key)) {
+                    dataTable[0].values[i].unitName = dataTable[0].values[i][key];
                     dataTable[0].values[i][key] = getMapCode(dataTable[0].values[i][key], config.mapType,geoInfoJson);
                     break;
                 }
             }
         }
-    });
+    };
 
     dataTable[0].name = config.title;
     dataTable[0].transform = [
@@ -494,17 +574,17 @@ map.prototype.insert = function(data) {
     var mapType = this.config.mapType;
     var geoInfoJson = this.config.geoInfoJson;
 
-    $.each(data, function( i, val ) {
-
+   for (i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if(key == xAxis){
                 if (data[i].hasOwnProperty(key)) {
+                    data[i].unitName = data[i][key];
                     data[i][key] = getMapCode(data[i][key], mapType,geoInfoJson);
                     break;
                 }
             }
         }
-    });
+    };
 
     for (i = 0; i < data.length; i++) {
         var isValueMatched = false;
@@ -535,6 +615,24 @@ map.prototype.insert = function(data) {
 
 function getTopoJson(config, metadata){
 
+    var width = config.width;
+    var height = config.height;
+    var scale;
+    var mapType = config.charts[0].mapType;
+
+    if(mapType == "usa"){
+        width = config.width + 300;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else if(mapType == "europe"){
+        width = ((config.width/2)+ 50)/2;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else{
+        scale = (config.width/640)*100;
+        width = config.width/2;
+        height = config.height/2;
+    }
     var mapUrl = config.geoCodesUrl;
 
     var json = {
@@ -546,8 +644,8 @@ function getTopoJson(config, metadata){
             {
                 "type": "geopath",
                 "value": "data",
-                "scale": (config.width/640)*100,
-                "translate": [config.width/2,config.height/2],
+                "scale": scale,
+                "translate": [width,height],
                 "projection": "equirectangular"
             },
             {
@@ -594,31 +692,6 @@ function getMapMark(config, metadata){
             }
         },
         {
-            "name": "debugIsDragging",
-            "type": "text",
-            "properties": {
-                "enter": {
-                    "x": {"value": 250},
-                    "y": {"value": 0},
-                    "fill": {"value": "black"}
-                },
-                "update": {"text": {"signal": "isClicked.boolVal"}}
-            }
-        },
-        {
-            "name": "zoomIn",
-            "type": "path",
-            "transform": [
-                {
-                    "type": "geopath",
-                    "value": "zipped.v",
-                    "scale": 100,
-                    "translate": [200,100],
-                    "projection": "equirectangular"
-                }
-            ]
-        },
-        {
             "type": "group",
             "from": {"data": config.title,
                 "transform": [
@@ -645,7 +718,7 @@ function getMapMark(config, metadata){
                         "update": {
                             "x": {"value": 6},
                             "y": {"value": 14},
-                            "text": {"template": "\u007b{tooltipSignal.datum."+metadata.names[config.x]+"}} \u007b{tooltipSignal.datum.v}}"},
+                            "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
                             "fill": {"value": "black"},
                             "fontWeight": {"value": "bold"}
                         }
@@ -674,22 +747,6 @@ function getMapSignals(){
                 {
                     "type": "@map:mouseout",
                     "expr": "{x: 0, y: 0, datum: {} }"
-                }
-            ]
-        },
-        {
-            "name": "isClicked",
-            "init": false,
-            "streams": [
-                {
-                    "type": "@map:mousedown",
-                    "expr": "{x: eventX(), y: eventY(), datum: eventItem().datum.zipped, boolVal:true}"
-
-                },
-                {
-                    "type": "@map:mouseup",
-                    "expr": "{x: 0, y: 0, datum: {}, boolVal:false}"
-
                 }
             ]
         }
@@ -734,32 +791,37 @@ function getMapLegends(config, metadata){
 }
 
 function loadGeoMapCodes(url){
-
     var geoMapCodes;
-    var fileName = url;
-    $.ajaxSetup({async: false});
-    $.getJSON(fileName, function(json) {
-        geoMapCodes = json;
-    });
-    $.ajaxSetup({async: true});
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', url, false);
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            geoMapCodes = JSON.parse(xobj.responseText);
+          }
+    };
+    xobj.send(null); 
 
     return geoMapCodes;
 }
 
-function getMapCode(name, region, worldMapCodes) {
-    if (region == "usa") {
-        $.each(usaMapCodes, function (i, location) {
-            if (usaMapCodes[name] != null && usaMapCodes[name] != "") {
-                name = "US"+usaMapCodes[name];
+function getMapCode(name, region, geoInfo) {
+    if (region == "world" || region == "europe") {
+        for (i = 0; i < geoInfo.length; i++) {
+            if (name.toUpperCase() == geoInfo[i]["name"].toUpperCase()) {
+                name = geoInfo[i]["alpha-3"];
             }
-        });
-
+        };
     } else {
-        $.each(worldMapCodes, function (i, location) {
-            if (name.toUpperCase() == location["name"].toUpperCase()) {
-                name = location["alpha-3"];
-            }
-        });
+        var i = 0;
+        for (var property in geoInfo) {
+            if (geoInfo.hasOwnProperty(property)) {
+                if(name.toUpperCase() == property.toUpperCase()){
+                    name = "US"+geoInfo[property];
+                }
+        }
+        i++;
+        };
     }
     return name;
 };;
@@ -785,7 +847,7 @@ number.prototype.draw = function(div) {
   }
 
   var divContent = "<p style='padding: 0px 0px 0px 20px;'>"+this.config.title+"</p><br/>"
-                  +"<p align='center' style='font-size:60;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
+                  +"<p align='center' style='font-size:60px;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
                   +textContent+"</p>";
 
    document.getElementById(div).innerHTML = divContent;
@@ -1122,7 +1184,7 @@ table.prototype.draw = function(div) {
               .text(function (d) { return d })
 
 
-      table.append('tbody');
+      table.append('tbody').attr("id", "tableChart-"+this.config.title);
       setupData(this.data, this.config);
 
       table.selectAll("thead th")
@@ -1152,7 +1214,7 @@ function setupData(dataset, config) {
     }
 
    //Select Rows by x Axis
-    var rows = d3.select('tbody')
+    var rows = d3.select('#tableChart-'+config.title)
         .selectAll('tr')
         .data(data, function(d) { return d[config.key]})
 

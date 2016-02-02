@@ -13,17 +13,17 @@ var map = function(dataTable, config) {
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
 
-    $.each(dataTable[0].values, function( i, val ) {
-
+    for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
             if(key == dataTable[0].metadata.names[config.x]){
                 if (dataTable[0].values[i].hasOwnProperty(key)) {
+                    dataTable[0].values[i].unitName = dataTable[0].values[i][key];
                     dataTable[0].values[i][key] = getMapCode(dataTable[0].values[i][key], config.mapType,geoInfoJson);
                     break;
                 }
             }
         }
-    });
+    };
 
     dataTable[0].name = config.title;
     dataTable[0].transform = [
@@ -79,17 +79,17 @@ map.prototype.insert = function(data) {
     var mapType = this.config.mapType;
     var geoInfoJson = this.config.geoInfoJson;
 
-    $.each(data, function( i, val ) {
-
+   for (i = 0; i < data.length; i++) {
         for (var key in data[i]) {
             if(key == xAxis){
                 if (data[i].hasOwnProperty(key)) {
+                    data[i].unitName = data[i][key];
                     data[i][key] = getMapCode(data[i][key], mapType,geoInfoJson);
                     break;
                 }
             }
         }
-    });
+    };
 
     for (i = 0; i < data.length; i++) {
         var isValueMatched = false;
@@ -120,6 +120,24 @@ map.prototype.insert = function(data) {
 
 function getTopoJson(config, metadata){
 
+    var width = config.width;
+    var height = config.height;
+    var scale;
+    var mapType = config.charts[0].mapType;
+
+    if(mapType == "usa"){
+        width = config.width + 300;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else if(mapType == "europe"){
+        width = ((config.width/2)+ 50)/2;
+        height = config.height + 100;
+        scale = config.height + 50;
+    }else{
+        scale = (config.width/640)*100;
+        width = config.width/2;
+        height = config.height/2;
+    }
     var mapUrl = config.geoCodesUrl;
 
     var json = {
@@ -131,8 +149,8 @@ function getTopoJson(config, metadata){
             {
                 "type": "geopath",
                 "value": "data",
-                "scale": (config.width/640)*100,
-                "translate": [config.width/2,config.height/2],
+                "scale": scale,
+                "translate": [width,height],
                 "projection": "equirectangular"
             },
             {
@@ -179,31 +197,6 @@ function getMapMark(config, metadata){
             }
         },
         {
-            "name": "debugIsDragging",
-            "type": "text",
-            "properties": {
-                "enter": {
-                    "x": {"value": 250},
-                    "y": {"value": 0},
-                    "fill": {"value": "black"}
-                },
-                "update": {"text": {"signal": "isClicked.boolVal"}}
-            }
-        },
-        {
-            "name": "zoomIn",
-            "type": "path",
-            "transform": [
-                {
-                    "type": "geopath",
-                    "value": "zipped.v",
-                    "scale": 100,
-                    "translate": [200,100],
-                    "projection": "equirectangular"
-                }
-            ]
-        },
-        {
             "type": "group",
             "from": {"data": config.title,
                 "transform": [
@@ -230,7 +223,7 @@ function getMapMark(config, metadata){
                         "update": {
                             "x": {"value": 6},
                             "y": {"value": 14},
-                            "text": {"template": "\u007b{tooltipSignal.datum."+metadata.names[config.x]+"}} \u007b{tooltipSignal.datum.v}}"},
+                            "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
                             "fill": {"value": "black"},
                             "fontWeight": {"value": "bold"}
                         }
@@ -259,22 +252,6 @@ function getMapSignals(){
                 {
                     "type": "@map:mouseout",
                     "expr": "{x: 0, y: 0, datum: {} }"
-                }
-            ]
-        },
-        {
-            "name": "isClicked",
-            "init": false,
-            "streams": [
-                {
-                    "type": "@map:mousedown",
-                    "expr": "{x: eventX(), y: eventY(), datum: eventItem().datum.zipped, boolVal:true}"
-
-                },
-                {
-                    "type": "@map:mouseup",
-                    "expr": "{x: 0, y: 0, datum: {}, boolVal:false}"
-
                 }
             ]
         }
@@ -319,32 +296,37 @@ function getMapLegends(config, metadata){
 }
 
 function loadGeoMapCodes(url){
-
     var geoMapCodes;
-    var fileName = url;
-    $.ajaxSetup({async: false});
-    $.getJSON(fileName, function(json) {
-        geoMapCodes = json;
-    });
-    $.ajaxSetup({async: true});
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', url, false);
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            geoMapCodes = JSON.parse(xobj.responseText);
+          }
+    };
+    xobj.send(null); 
 
     return geoMapCodes;
 }
 
-function getMapCode(name, region, worldMapCodes) {
-    if (region == "usa") {
-        $.each(usaMapCodes, function (i, location) {
-            if (usaMapCodes[name] != null && usaMapCodes[name] != "") {
-                name = "US"+usaMapCodes[name];
+function getMapCode(name, region, geoInfo) {
+    if (region == "world" || region == "europe") {
+        for (i = 0; i < geoInfo.length; i++) {
+            if (name.toUpperCase() == geoInfo[i]["name"].toUpperCase()) {
+                name = geoInfo[i]["alpha-3"];
             }
-        });
-
+        };
     } else {
-        $.each(worldMapCodes, function (i, location) {
-            if (name.toUpperCase() == location["name"].toUpperCase()) {
-                name = location["alpha-3"];
-            }
-        });
+        var i = 0;
+        for (var property in geoInfo) {
+            if (geoInfo.hasOwnProperty(property)) {
+                if(name.toUpperCase() == property.toUpperCase()){
+                    name = "US"+geoInfo[property];
+                }
+        }
+        i++;
+        };
     }
     return name;
 };

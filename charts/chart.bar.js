@@ -44,42 +44,96 @@ bar.prototype.draw = function(div) {
        this.view = chart({el:div}).update();
     }).bind(this);
 
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
  		vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
 bar.prototype.insert = function(data) {
 
-  var shouldInsert = true;
-  var xAxis = this.metadata.names[this.config.x];
-  var yAxis = this.metadata.names[this.config.y];
+    var xAxis = this.metadata.names[this.config.x];
+    var yAxis = this.metadata.names[this.config.y];
+    var size = this.metadata.names[this.config.size];
+    var color = this.metadata.names[this.config.color];
 
-  //Check for updates
-  for (i = 0; i < data.length; i++) { 
-      this.view.data(this.config.title).update(function(d) { return d[xAxis] == data[i][xAxis]; }, 
-      yAxis,
-      function(d) { 
-        shouldInsert = false;
-        return data[i][yAxis];
-      });
-  }
+    if (this.config.maxLength != -1 && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
 
-  if (shouldInsert) {
-      //Removing events when max value is enabled
-      if (this.config.maxLength != -1 && this.config.maxLength <  (this.view.data(this.config.title).values().length + data.length)) {
-        var oldData;
-        var removeFunction = function(d) { 
-              return d[xAxis] == oldData; 
-            };
+        var allDataSet = this.view.data(this.config.title).values().concat(data);
+        var allowedRemovableDataSet = [];
+        for (i = 0; i < allDataSet.length - this.config.maxLength; i++) {
+            allowedRemovableDataSet.push(this.view.data(this.config.title).values()[i][xAxis]);
+        }
 
         for (i = 0; i < data.length; i++) {
-          oldData = this.view.data(this.config.title).values()[i][xAxis];
-          this.view.data(this.config.title).remove(removeFunction);  
-        }
-      } 
-       this.view.data(this.config.title).insert(data);     
-    }
+            var isValueMatched = false;
+            this.view.data(this.config.title).update(function(d) {
+                    return d[xAxis] == data[i][xAxis]; },
+                yAxis,
+                function(d) {
+                    isValueMatched = true;
+                    return data[i][yAxis];
+                });
 
+            if(isValueMatched){
+                var isIndexRemoved = false;
+
+                var index = allowedRemovableDataSet.indexOf(data[i][xAxis]);
+                if (index > -1) {
+                    // updated value matched in allowed removable values
+                    isIndexRemoved = true;
+                    allowedRemovableDataSet.splice(index, 1);
+                }
+
+                if(!isIndexRemoved){
+                    // updated value NOT matched in allowed removable values
+                    allowedRemovableDataSet.splice((allowedRemovableDataSet.length - 1), 1);
+                }
+
+            } else {
+                //insert the new data
+                this.view.data(this.config.title).insert([data[i]]);
+                this.view.update();
+            }
+        }
+
+        var oldData;
+        var removeFunction = function(d) {
+            return d[xAxis] == oldData;
+        };
+
+        for (i = 0; i < allowedRemovableDataSet.length; i++) {
+            oldData = allowedRemovableDataSet[i];
+            this.view.data(this.config.title).remove(removeFunction);
+        }
+    } else{
+        for (i = 0; i < data.length; i++) {
+            var isValueMatched = false;
+            this.view.data(this.config.title).update(function(d) {
+                    return d[xAxis] == data[i][xAxis]; },
+                yAxis,
+                function(d) {
+                    isValueMatched = true;
+                    return data[i][yAxis];
+                });
+
+            if(!isValueMatched){
+                this.view.data(this.config.title).insert([data[i]]);
+            }
+        }
+    }
     this.view.update({duration: 200});
+
 };
 
 bar.prototype.getSpec = function() {
