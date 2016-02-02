@@ -161,6 +161,9 @@ var bar = function(dataTable, config) {
                   ];
 
       marks.push(getBarMark(config, this.metadata));
+      marks.push(getToolTipMark(config, this.metadata));
+      config.hoverType = "rect";
+      signals = getSignals(config,this.metadata);
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -169,6 +172,7 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 bar.prototype.draw = function(div) {
@@ -1269,6 +1273,10 @@ function setupData(dataset, config) {
         config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
 	}
 
+	if (config.hoverType == null) {
+		config.hoverType = "symbol";
+	}
+
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
 
@@ -1381,8 +1389,8 @@ function getSignals(config, metadata){
             "name": "hover",
             "init": {},
             "streams": [
-                {"type": "symbol:mouseover", "expr": "datum"},
-                {"type": "symbol:mouseout", "expr": "{}"}
+                {"type": config.hoverType+":mouseover", "expr": "datum"},
+                {"type": config.hoverType+":mouseout", "expr": "{}"}
             ]
     }];
 
