@@ -1,7 +1,7 @@
 var scatter = function(dataTable, config) {
 
     this.metadata = dataTable[0].metadata;
-    var marks ;
+    var marks = [];
     var signals ;
     this.spec = {};
 
@@ -46,7 +46,8 @@ var scatter = function(dataTable, config) {
         {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
     ];
 
-    marks = getScatterMark(config, this.metadata);
+    marks.push(getScatterMark(config, this.metadata));
+    marks.push(getScatterToolTipMark(config, this.metadata));
     signals = getScatterSignals(config,this.metadata);
 
 
@@ -196,7 +197,7 @@ scatter.prototype.getSpec = function() {
 
 function getScatterMark(config, metadata){
 
-    var marks = [{
+    var mark = {
 
             "type": "symbol",
             "from": {"data": config.title},
@@ -213,66 +214,11 @@ function getScatterMark(config, metadata){
                 }
             }
 
-        },
-        {
-            "type": "group",
-            "from": {"data": "table",
-                "transform": [
-                    {
-                        "type": "filter",
-                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
-                    }
-                ]},
-                    "properties": {
-                        "update": {
-                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": 0},
-                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": -50},
-                            "width": {"value": config.toolTip.width},
-                            "height": {"value": config.toolTip.height},
-                            "fill": {"value": config.toolTip.color}
-                }
-            },
-
-            "marks": [
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 14},
-                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 29},
-                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 44},
-                            "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                }
-            ]
         }
-    ];
+    ;
 
 
-    return marks;
+    return mark;
 }
 
 function getScatterSignals(config, metadata){
@@ -289,4 +235,24 @@ function getScatterSignals(config, metadata){
 
     return signals;
 
+}
+
+function getScatterToolTipMark(config, metadata) {
+    config.toolTip.height = 50;
+    config.toolTip.y = -50;
+
+    var mark = getToolTipMark(config, metadata);
+    var sizeText = {
+        "type": "text",
+        "properties": {
+            "update": {
+                "x": {"value": 6},
+                "y": {"value": 44},
+                "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
+                "fill": {"value": "black"}
+            }
+        }
+    };
+    mark.marks.push(sizeText);
+    return mark;
 }
