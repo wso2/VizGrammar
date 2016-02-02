@@ -64,6 +64,10 @@ function checkConfig(config, metadata){
 		config.fillOpacity = 1;
 	}
 
+	if (config.toolTip == null) {
+		config.toolTip = {"height" : 50, "width" : 120, "color":"#e5f2ff"};
+	}
+
 	if (config.padding == null) {
         config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
 	}

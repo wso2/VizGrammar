@@ -191,6 +191,7 @@
              y : "torque",
              color: "horsepower", 
              size : "weight", 
+             padding: {"top": 50, "left": 60, "bottom": 40, "right": 150},
              maxLength: 30, 
              maxColor:"#ffff00", 
              minColor:"#ff00ff"}], 
@@ -206,7 +207,7 @@
     (function insertLoop (i) {      
               
        setTimeout(function () {    
-             scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+             scatterChart.insert([[iterations-i + 1,Number((Math.random() * 100).toFixed(2)),Number((Math.random() * 100).toFixed(2)),(Math.random() * 100).toFixed(2),"Piston"]]);             
               if (--i) insertLoop(i);
            }, 500)
     })(iterations);

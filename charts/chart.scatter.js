@@ -205,12 +205,11 @@ function getScatterMark(config, metadata){
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]}
-                    // "stroke": {"value": "transparent"}
+                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                    "size": {"value": 300},
-                    "stroke": {"value": "white"}
+                    "fillOpacity": {"value": 0.5}
                 }
             }
 
@@ -224,16 +223,13 @@ function getScatterMark(config, metadata){
                         "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
                     }
                 ]},
-            "properties": {
-                "update": {
-                    "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": -5},
-                    "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": 20},
-                    "width": {"value": 150},
-                    "height": {"value": 50},
-                    "fill": {"value": "#ffa"},
-                    "background-color": {"value": 0.85},
-                    "stroke": {"value": "#aaa"},
-                    "strokeWidth": {"value": 0.5}
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": 0},
+                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": -50},
+                            "width": {"value": config.toolTip.width},
+                            "height": {"value": config.toolTip.height},
+                            "fill": {"value": config.toolTip.color}
                 }
             },
 
@@ -245,8 +241,7 @@ function getScatterMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 14},
                             "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
+                            "fill": {"value": "black"}
                         }
                     }
                 },
@@ -257,8 +252,7 @@ function getScatterMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 29},
                             "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
+                            "fill": {"value": "black"}
                         }
                     }
                 },
@@ -269,8 +263,7 @@ function getScatterMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 44},
                             "text": {"template": "Size \t (" + metadata.names[config.size] + ") \t {{hover." + metadata.names[config.size] + "}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
+                            "fill": {"value": "black"}
                         }
                     }
                 }
