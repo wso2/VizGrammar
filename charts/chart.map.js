@@ -12,6 +12,8 @@ var map = function(dataTable, config) {
     config = checkConfig(config, this.metadata);
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
+    config.toolTip.height = 20;
+    config.toolTip.width = 100;
 
     for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
@@ -209,11 +211,9 @@ function getMapMark(config, metadata){
                 "update": {
                     "x": {"signal": "tooltipSignal.x", "offset": -5},
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
-                    "width": {"value": 100},
-                    "height": {"value": 30},
-                    "fill": {"value": "#ffa"},
-                    "background-color": {"value": 0.85},
-                    "stroke": {"value": "#aaa"}
+                    "width": {"value": config.toolTip.width},
+                    "height": {"value": config.toolTip.height},
+                    "fill": {"value": config.toolTip.color}
                 }
             },
             "marks": [
@@ -224,8 +224,7 @@ function getMapMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 14},
                             "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
-                            "fill": {"value": "black"},
-                            "fontWeight": {"value": "bold"}
+                            "fill": {"value": "black"}
                         }
                     }
                 }

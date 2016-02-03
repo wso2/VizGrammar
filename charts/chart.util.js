@@ -64,8 +64,16 @@ function checkConfig(config, metadata){
 		config.fillOpacity = 1;
 	}
 
+	if (config.toolTip == null) {
+		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
+	}
+
 	if (config.padding == null) {
-        config.padding = {"top": 20, "left": 60, "bottom": 40, "right": 50};
+        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
+	}
+
+	if (config.hoverType == null) {
+		config.hoverType = "symbol";
 	}
 
 	config.x = metadata.names.indexOf(config.x);
@@ -116,14 +124,77 @@ var  mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
-        },
-        "hover": {
-          "fillOpacity": {"value": 0.5}
         }
       }
     }
 
     return mark;
+}
+
+
+function getToolTipMark(config , metadata) {
+	    var mark =    {
+            "type": "group",
+            "from": {"data": "table",
+                "transform": [
+                    {
+                        "type": "filter",
+                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
+                    }
+                ]},
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": config.toolTip.x},
+                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": config.toolTip.y},
+                            "width": {"value": config.toolTip.width},
+                            "height": {"value": config.toolTip.height},
+                            "fill": {"value": config.toolTip.color}
+                }
+            },
+
+            "marks": [
+                {
+                    "type": "text",
+                    "properties": {
+                        "update": {
+                            "x": {"value": 6},
+                            "y": {"value": 14},
+                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
+                            "fill": {"value": "black"}
+                        }
+                    }
+                },
+                {
+                    "type": "text",
+                    "properties": {
+                        "update": {
+                            "x": {"value": 6},
+                            "y": {"value": 29},
+                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
+                            "fill": {"value": "black"}
+                        }
+                    }
+                }
+            ]
+        }
+
+    return mark;
+}
+
+function getSignals(config, metadata){
+
+    var signals = [{
+
+            "name": "hover",
+            "init": {},
+            "streams": [
+                {"type": config.hoverType+":mouseover", "expr": "datum"},
+                {"type": config.hoverType+":mouseout", "expr": "{}"}
+            ]
+    }];
+
+    return signals;
+
 }
 
 
