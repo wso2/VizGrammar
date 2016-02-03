@@ -126,19 +126,21 @@ function getTopoJson(config, metadata){
     var height = config.height;
     var scale;
     var mapType = config.charts[0].mapType;
+    var projection = "mercator";
 
     if(mapType == "usa"){
-        width = config.width + 300;
-        height = config.height + 100;
-        scale = config.height + 50;
+        width = config.width - 160;
+        height = config.height - 130;
+        scale = config.height + 270;
+        projection = "albersUsa";
     }else if(mapType == "europe"){
-        width = ((config.width/2)+ 50)/2;
-        height = config.height + 100;
+        width = ((config.width/2)+ 100)/2;
+        height = config.height + 150;
         scale = config.height + 50;
     }else{
-        scale = (config.width/640)*100;
-        width = config.width/2;
-        height = config.height/2;
+        scale = (config.width/640)*120;
+        width = config.width/2 + 10;
+        height = config.height/2+40;
     }
     var mapUrl = config.geoCodesUrl;
 
@@ -153,7 +155,7 @@ function getTopoJson(config, metadata){
                 "value": "data",
                 "scale": scale,
                 "translate": [width,height],
-                "projection": "equirectangular"
+                "projection": projection
             },
             {
                 "type": "lookup",
