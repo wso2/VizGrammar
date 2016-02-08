@@ -372,25 +372,7 @@
                 </div>
             </div>
         </div>
-      </a>
-
-      <a href="charts/number">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Number Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartNumberHorsepower"></div>
-                </div>
-            </div>
-        </div>
-      </a>
-
-
-      <script>
+              <script>
                   var data =  [
                       {
                         "metadata" : {
@@ -415,33 +397,87 @@
                     var numberChart = new vizg(data, config);
                     numberChart.draw("#dChartNumberTorque");
 
-                    var config2 = {
-                      title : "Horse power of engine",
-                      charts : [{x : "horsepower", type: "number"}],
-                      maxLength: 6,
-                      width: 400,
-                      height: 200
-                    }
-
-                    var numberChartTorque = new vizg(data, config);
-                    numberChartTorque.draw("#dChartNumberTorque");
-
-                    var numberChartHorsepower = new vizg(data, config2);
-                    numberChartHorsepower.draw("#dChartNumberHorsepower");
-
-
 
                   var iterations = 1000;
                   (function insertLoop (i) {      
                          setTimeout(function () {   
                           var dataRow = [iterations-i + 1, Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2))];
 
-                          numberChartTorque.insert([dataRow]); 
-                          numberChartHorsepower.insert([dataRow]);             
+                          numberChart.insert([dataRow]);              
                             if (--i) insertLoop(i);
                          }, 500)
                   })(iterations);
                   </script>
+      </a>
+
+      <a href="charts/table">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Table Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartTable"></div>
+                </div>
+            </div>
+        </div>
+                <script>
+
+        var data =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["ordinal","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [1, 21, 12, "Piston"]
+                            ]
+            }
+          ];
+
+
+          var config = {
+            key : "rpm",
+            charts : [{ type: "table", 
+                        y : "torque", 
+                        color: "*",
+                        columns:["EngineType",  "torque", "rpm"],  
+                        columnTitles:["Engine Type",  "Engine Torque", "Engine RPM"], 
+                        maxLength: 6}
+                      ],
+            width: 400,
+            height: 200
+          }
+
+          var table = new vizg(data, config);
+          table.draw("#dChartTable");
+
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+               setTimeout(function () {   
+                 var EngineType;
+
+                 if ( i % 2 == 0) {
+                    EngineType = "Piston";
+                 } else {
+                    EngineType = "Rotary";
+                 }
+
+                 table.insert([[Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2)), 
+                    30, 
+                    EngineType]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+
+        </script>
+      </div>
+      </a>
+
+
       </div>
 
   </body>
