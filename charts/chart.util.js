@@ -26,7 +26,7 @@ function checkConfig(config, metadata){
 
 	if (config.color == null) {
 		config.color = -1;
-	} else {
+	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
 
