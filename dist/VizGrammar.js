@@ -1129,6 +1129,7 @@ table.prototype.draw = function(div) {
   var table = d3.select(div).append("table")
                 .attr( "cellpadding", "8px")
                 .attr( "border", "2px")
+                .attr( "width", "100%")
                 .attr("id", this.config.title);
 
       // set up the table header
