@@ -190,42 +190,25 @@
           var table = new vizg(data, config);
           table.draw("#dChart");
 
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+               setTimeout(function () {   
+                 var EngineType;
 
-        setTimeout(function() {
-            table.insert([[2, 20, 13, "Piston"]]);
-          },
-          500
-        );
+                 if ( i % 2 == 0) {
+                    EngineType = "Piston";
+                 } else {
+                    EngineType = "Rotary";
+                 }
 
-          setTimeout(function() {
-            table.insert([[3, 19, 14, "Rotary"]]);
-          },
-          1000
-        );
+                 table.insert([[Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2)), 
+                    30, 
+                    EngineType]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
 
-
-        setTimeout(function() {
-            table.insert([[4, 18, 21, "Piston"]]);
-            table.insert([[5, 17, 70, "Piston"]]);
-            table.insert([[6, 16, 70, "Rotary"]]);
-          },
-          1500
-        );
-
-        setTimeout(function() {
-            table.insert([[9, 15, 70, "Piston"]]);
-            table.insert([[8, 14, 70, "Rotary"]]);
-          },
-          2000
-        );
-
-        setTimeout(function() {
-            table.insert([[6, 13, 20, "Rotary"]]);
-            table.insert([[8, 12, 20, "Piston"]]);
-
-          },
-          2500
-        );
         </script>
       </div>
   </body>
