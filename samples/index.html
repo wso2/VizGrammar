@@ -39,26 +39,6 @@
                 <div class="panel-body">
                     <div id="dChartLine"></div>
                 </div>
-
-            </div>
-        </div>
-      </a>
-      <a href="charts/line">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                       Single Line Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartLineSingle"></div>
-                </div>
-
-            </div>
-        </div>
-      </a>
-
         <script>
 
         var data =  [
@@ -87,29 +67,69 @@
 
         lineChart.draw("#dChartLine");
 
-        var configSingle = {
-            type: "line",
+        var iterations = 1000;
+          (function insertLoop (i) {          
+              setTimeout(function () {   
+                var x = iterations-i + 1;
+                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 2, "Rotary"]]);
+                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 1, "Piston"]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+        </script>
+            </div>
+        </div>
+      </a>
+      <a href="charts/bar">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                       Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartBar"></div>
+                </div>
+
+            </div>
+                    <script>
+
+        var data =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["ordinal","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                            ]
+            }
+          ];
+
+
+          var config = {
+            type: "bar",
             x : "rpm",
-            charts : [{type: "line",  y : "torque"}],
-            maxLength: 10,
+            charts : [{type: "bar",  y : "torque"}],
+            maxLength: 6,
             width: 400,
             height: 200
-        };
+          }
 
-        var lineChartSingle = new vizg(data, configSingle);
-        lineChartSingle.draw("#dChartLineSingle");
+          var lineChart3 = new vizg(data, config);
+          lineChart3.draw("#dChartBar");
 
         var iterations = 1000;
           (function insertLoop (i) {          
               setTimeout(function () {   
                 var x = iterations-i + 1;
-                lineChartSingle.insert([[x, Math.random() * 100, 13, "Rotary"]]);
-                lineChart.insert([[x, Math.random() * 100, 2, "Rotary"]]);
-                lineChart.insert([[x, Math.random() * 100, 1, "Piston"]]);          
+                lineChart3.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(2)), 20, "Piston"]]);      
                   if (--i) insertLoop(i);
-               }, 500)
+               }, 1000)
         })(iterations);
         </script>
+        </div>
+      </a>
       </div>
 
       <div class="row">
@@ -155,7 +175,7 @@
         (function insertLoop (i) {      
                   
                setTimeout(function () {   
-                areaChart.insert([[iterations-i + 1, Math.random() * 100, 13, "Rotary"]]);            
+                areaChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, "Rotary"]]);            
                   if (--i) insertLoop(i);
                }, 500)
         })(iterations);
@@ -214,7 +234,8 @@
             (function insertLoop (i) {      
                       
                setTimeout(function () {    
-                     scatterChart.insert([[iterations-i + 1,Math.random() * 100,Math.random() * 100,Math.random() * 100,"Piston"]]);             
+                     scatterChart.insert([[iterations-i + 1,Number((Math.random() * 100).toFixed(2)),
+                      Number((Math.random() * 100).toFixed(2)),Number((Math.random() * 100).toFixed(2)),"Piston"]]);             
                       if (--i) insertLoop(i);
                    }, 500)
             })(iterations);
@@ -224,94 +245,6 @@
         </div>
       </a>
         </div>
-
-
-    <div class="row">
-        <a href="charts/number">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Number Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartNumberTorque"></div>
-                </div>
-            </div>
-        </div>
-      </a>
-
-      <a href="charts/number">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Number Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartNumberHorsepower"></div>
-                </div>
-            </div>
-        </div>
-      </a>
-
-
-      <script>
-                  var data =  [
-                      {
-                        "metadata" : {
-                            "names" : ["rpm","torque","horsepower", "EngineType"],
-                            "types" : ["ordinal","linear", "ordinal","ordinal"]
-                          },
-                        "data": [
-                          [1, 10, 12, "Piston"]
-                                      ]
-                      }
-                    ];
-
-
-                    var config = {
-                      title : "Torque of engine",
-                      charts : [{x : "torque", type: "number"}],
-                      maxLength: 6,
-                      width: 400,
-                      height: 200
-                    }
-
-                    var numberChart = new vizg(data, config);
-                    numberChart.draw("#dChartNumberTorque");
-
-                    var config2 = {
-                      title : "Horse power of engine",
-                      charts : [{x : "horsepower", type: "number"}],
-                      maxLength: 6,
-                      width: 400,
-                      height: 200
-                    }
-
-                    var numberChartTorque = new vizg(data, config);
-                    numberChartTorque.draw("#dChartNumberTorque");
-
-                    var numberChartHorsepower = new vizg(data, config2);
-                    numberChartHorsepower.draw("#dChartNumberHorsepower");
-
-
-
-                  var iterations = 1000;
-                  (function insertLoop (i) {      
-                         setTimeout(function () {   
-                          var dataRow = [iterations-i + 1, Math.round(Math.random() * 100), Math.round(Math.random() * 100)];
-
-                          numberChartTorque.insert([dataRow]); 
-                          numberChartHorsepower.insert([dataRow]);             
-                            if (--i) insertLoop(i);
-                         }, 500)
-                  })(iterations);
-                  </script>
-      </div>
-
 
     <div class="row">
         <a href="charts/map">
@@ -383,7 +316,7 @@
     var iterations = 1000;
     (function insertLoop (i) {      
            setTimeout(function () {   
-            worldChart.insert([[countries[i%countries.length], Math.round(Math.random() * 100), 13]]);            
+            worldChart.insert([[countries[i%countries.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
               if (--i) insertLoop(i);
            }, 500)
     })(iterations);
@@ -417,11 +350,133 @@
     var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
     (function insertLoop (i) {      
            setTimeout(function () {   
-            usaChart.insert([[USStates[i%USStates.length], Math.round(Math.random() * 100), 13]]);            
+            usaChart.insert([[USStates[i%USStates.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
               if (--i) insertLoop(i);
            }, 500)
     })(iterations);
 </script>
+
+      </div>
+
+       <div class="row">
+        <a href="charts/number">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Number Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartNumberTorque"></div>
+                </div>
+            </div>
+        </div>
+              <script>
+                  var data =  [
+                      {
+                        "metadata" : {
+                            "names" : ["rpm","torque","horsepower", "EngineType"],
+                            "types" : ["ordinal","linear", "ordinal","ordinal"]
+                          },
+                        "data": [
+                          [1, 10, 12, "Piston"]
+                                      ]
+                      }
+                    ];
+
+
+                    var config = {
+                      title : "Torque of engine",
+                      charts : [{x : "torque", type: "number"}],
+                      maxLength: 6,
+                      width: 400,
+                      height: 200
+                    }
+
+                    var numberChart = new vizg(data, config);
+                    numberChart.draw("#dChartNumberTorque");
+
+
+                  var iterations = 1000;
+                  (function insertLoop (i) {      
+                         setTimeout(function () {   
+                          var dataRow = [iterations-i + 1, Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2))];
+
+                          numberChart.insert([dataRow]);              
+                            if (--i) insertLoop(i);
+                         }, 500)
+                  })(iterations);
+                  </script>
+      </a>
+
+      <a href="charts/table">
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Table Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartTable"></div>
+                </div>
+            </div>
+        </div>
+                <script>
+
+        var data =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["ordinal","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [1, 21, 12, "Piston"]
+                            ]
+            }
+          ];
+
+
+          var config = {
+            key : "rpm",
+            charts : [{ type: "table", 
+                        y : "torque", 
+                        color: "*",
+                        columns:["EngineType",  "torque", "rpm"],  
+                        columnTitles:["Engine Type",  "Engine Torque", "Engine RPM"], 
+                        maxLength: 6}
+                      ],
+            width: 400,
+            height: 200
+          }
+
+          var table = new vizg(data, config);
+          table.draw("#dChartTable");
+
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+               setTimeout(function () {   
+                 var EngineType;
+
+                 if ( i % 2 == 0) {
+                    EngineType = "Piston";
+                 } else {
+                    EngineType = "Rotary";
+                 }
+
+                 table.insert([[Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2)), 
+                    30, 
+                    EngineType]]);          
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+
+        </script>
+      </div>
+      </a>
+
 
       </div>
 

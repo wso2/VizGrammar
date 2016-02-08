@@ -631,19 +631,21 @@ function getTopoJson(config, metadata){
     var height = config.height;
     var scale;
     var mapType = config.charts[0].mapType;
+    var projection = "mercator";
 
     if(mapType == "usa"){
-        width = config.width + 300;
-        height = config.height + 100;
-        scale = config.height + 50;
+        width = config.width - 160;
+        height = config.height - 130;
+        scale = config.height + 270;
+        projection = "albersUsa";
     }else if(mapType == "europe"){
-        width = ((config.width/2)+ 50)/2;
-        height = config.height + 100;
+        width = ((config.width/2)+ 100)/2;
+        height = config.height + 150;
         scale = config.height + 50;
     }else{
-        scale = (config.width/640)*100;
-        width = config.width/2;
-        height = config.height/2;
+        scale = (config.width/640)*120;
+        width = config.width/2 + 10;
+        height = config.height/2+40;
     }
     var mapUrl = config.geoCodesUrl;
 
@@ -658,7 +660,7 @@ function getTopoJson(config, metadata){
                 "value": "data",
                 "scale": scale,
                 "translate": [width,height],
-                "projection": "equirectangular"
+                "projection": projection
             },
             {
                 "type": "lookup",
@@ -1124,20 +1126,22 @@ var table = function(dataTable, config) {
 };
 
 table.prototype.draw = function(div) {
-  var table = d3.select(div).append("table").attr( "border", "2px");
+  var table = d3.select(div).append("table")
+                .attr( "cellpadding", "8px")
+                .attr( "border", "2px")
+                .attr("id", this.config.title);
 
       // set up the table header
       table.append('thead').attr("align", "center")
-          .append('tr')
+          .append('tr') 
           .selectAll('th')
               .data(this.config.columnTitles)
           .enter()
               .append('th')
-              .text(function (d) { return d })
-
+              .text(function (d) { return d });
 
       table.append('tbody').attr("id", "tableChart-"+this.config.title);
-      setupData(this.data, this.config);
+      this.setupData(this.data, this.config);
 
       table.selectAll("thead th")
       .text(function(column) {
@@ -1148,12 +1152,13 @@ table.prototype.draw = function(div) {
       };
 
 table.prototype.insert = function(data) {
-    setupData(data, this.config);
+    this.setupData(data, this.config);
 };
 
 
-function setupData(dataset, config) {
+table.prototype.setupData = function (dataset, config) {
     var data = [];
+    var allColumns = this.metadata.names;
     
     //Select specified columns from dataset
     for (var i = 0; i < dataset.length; i++) {
@@ -1173,22 +1178,60 @@ function setupData(dataset, config) {
     var entertd = rows.enter()
         .append('tr')
             .selectAll('td')
-                .data(function(d) { return d3.map(d).values() })
+               .data(function(row) {
+                return config.columns.map(function(column) {
+                    return {column: column, value: row[column]};
+                });
+            })
             .enter()
-                .append('td')
+            .append('td')
+
+    //Color cell background
+    if (config.color != -1) {
+            d3.select('#tableChart-'+config.title)
+                  .selectAll('td')
+                      .attr('bgcolor',
+                        function(d) { 
+                            var column = d.key  || d.column;
+                            if (typeof d.value == "string") {
+
+                            } else if (config.color == "*" || column == allColumns[config.color]){
+                                var color = d3.scale.category10();
+                                
+                                var colorIndex;
+                                for(var i = 0; i < allColumns.length; i += 1) {
+                                if(allColumns[i] === column) {
+                                    colorIndex = i;
+                                }
+                            }
+                                var colorScale = d3.scale.linear()
+                                                .range(['#f2f2f2', color.range()[colorIndex]])
+                                                .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
+                                                         d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
+                                                        );
+                                
+                                return colorScale(d.value); 
+                            }
+
+            });
+    }
+
+                
               
     entertd.append('span')
     var td = rows.selectAll('td')
     .style({"padding": "0px 10px 0px 10px"})
+
         .data(function(d) { return d3.map(d).entries() })
         .attr('class', function (d) { return d.key })
+
+
     
 
     td.select('span')
         .text(function(d) {
             return d.value
         })
-
     //Remove data items when it hits maxLength 
     if (config.maxLength != -1 && d3.select('tbody').selectAll('tr').data().length > config.maxLength) {
           var allowedDataset = d3.select('tbody').selectAll('tr').data().slice(d3.select('tbody').selectAll('tr').data().length- config.maxLength, config.maxLength);
@@ -1226,7 +1269,7 @@ function setupData(dataset, config) {
 
 	if (config.color == null) {
 		config.color = -1;
-	} else {
+	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
 
