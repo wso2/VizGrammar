@@ -11,17 +11,19 @@ var table = function(dataTable, config) {
 };
 
 table.prototype.draw = function(div) {
-  var table = d3.select(div).append("table").attr( "border", "2px");
+  var table = d3.select(div).append("table")
+                .attr( "cellpadding", "8px")
+                .attr( "border", "2px")
+                .attr("id", this.config.title);
 
       // set up the table header
       table.append('thead').attr("align", "center")
-          .append('tr')
+          .append('tr') 
           .selectAll('th')
               .data(this.config.columnTitles)
           .enter()
               .append('th')
-              .text(function (d) { return d })
-
+              .text(function (d) { return d });
 
       table.append('tbody').attr("id", "tableChart-"+this.config.title);
       this.setupData(this.data, this.config);
