@@ -369,10 +369,15 @@ var line = function(dataTable, config) {
       var scales =  [xScale, yScale];
 
       if (config.color != -1) {
+
+          if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
+
           var colorScale = {
                     "name": "color", 
                     "type": "ordinal", 
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
+                    "domain": config.colorDomain,
                     "range": config.colorScale
                       };
           scales.push(colorScale);
