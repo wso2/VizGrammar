@@ -48,10 +48,17 @@ var area = function(dataTable, config) {
       this.spec.signals = signals;
 };
 
-area.prototype.draw = function(div) {
+area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){

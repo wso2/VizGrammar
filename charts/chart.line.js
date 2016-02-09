@@ -87,7 +87,7 @@ line.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
 
-       if ( callbacks != null) {
+       if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
           }

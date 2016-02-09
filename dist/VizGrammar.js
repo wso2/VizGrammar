@@ -63,10 +63,17 @@ var area = function(dataTable, config) {
       this.spec.signals = signals;
 };
 
-area.prototype.draw = function(div) {
+area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -175,9 +182,16 @@ var bar = function(dataTable, config) {
       this.spec.signals = signals;
 };
 
-bar.prototype.draw = function(div) {
+bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -415,7 +429,7 @@ line.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
 
-       if ( callbacks != null) {
+       if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
           }
@@ -579,9 +593,16 @@ function getLineMark(config, metadata){
 
 };
 
-map.prototype.draw = function(div) {
+map.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     vg.parse.spec(this.spec, viewUpdateFunction);
@@ -944,11 +965,18 @@ number.prototype.insert = function(data) {
 
 };
 
-scatter.prototype.draw = function(div) {
+scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
-    }).bind(this);
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
+    }).bind(this);
+    
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
