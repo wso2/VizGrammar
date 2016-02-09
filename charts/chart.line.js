@@ -82,10 +82,17 @@ var line = function(dataTable, config) {
       this.spec.signals = signals;
 };
 
-line.prototype.draw = function(div) {
+line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if ( callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -102,6 +109,8 @@ line.prototype.draw = function(div) {
     }
 
  		vg.parse.spec(this.spec, viewUpdateFunction);
+
+
 };
 
 line.prototype.insert = function(data) {

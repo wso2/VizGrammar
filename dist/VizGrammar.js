@@ -316,8 +316,8 @@ function getBarMark(config, metadata){
 	}
 };
 
-vizg.prototype.draw = function(div) {
-	this.chart.draw(div);
+vizg.prototype.draw = function(div, callback) {
+	this.chart.draw(div, callback);
 };
 
 vizg.prototype.insert = function(data) {
@@ -410,10 +410,17 @@ var line = function(dataTable, config) {
       this.spec.signals = signals;
 };
 
-line.prototype.draw = function(div) {
+line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if ( callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -430,6 +437,8 @@ line.prototype.draw = function(div) {
     }
 
  		vg.parse.spec(this.spec, viewUpdateFunction);
+
+
 };
 
 line.prototype.insert = function(data) {
@@ -1307,6 +1316,10 @@ table.prototype.setupData = function (dataset, config) {
 	if (config.fillOpacity == null) {
 		config.fillOpacity = 1;
 	}
+
+    if (this.config.renderer == null) {
+        this.config.renderer = "canvas";
+    }
 
 	if (config.toolTip == null) {
 		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};

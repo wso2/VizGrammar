@@ -64,6 +64,10 @@ function checkConfig(config, metadata){
 		config.fillOpacity = 1;
 	}
 
+    if (this.config.renderer == null) {
+        this.config.renderer = "canvas";
+    }
+
 	if (config.toolTip == null) {
 		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
 	}
