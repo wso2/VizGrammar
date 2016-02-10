@@ -1239,8 +1239,13 @@ table.prototype.setupData = function (dataset, config) {
                             if (typeof d.value == "string") {
 
                             } else if (config.color == "*" || column == allColumns[config.color]){
-                                var color = d3.scale.category10();
-                                
+                                var color;
+                                if (typeof config.colorScale == "string") {
+                                  color = window["d3"]["scale"][config.colorScale]().range();
+                                } else {
+                                  color = config.colorScale;
+                                }
+
                                 var colorIndex;
                                 for(var i = 0; i < allColumns.length; i += 1) {
                                 if(allColumns[i] === column) {
@@ -1248,7 +1253,7 @@ table.prototype.setupData = function (dataset, config) {
                                 }
                             }
                                 var colorScale = d3.scale.linear()
-                                                .range(['#f2f2f2', color.range()[colorIndex]])
+                                                .range(['#f2f2f2', color[colorIndex]])
                                                 .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
                                                          d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
                                                         );
