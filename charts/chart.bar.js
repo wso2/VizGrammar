@@ -29,9 +29,14 @@ var bar = function(dataTable, config) {
                   ];
 
       marks.push(getBarMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      config.hoverType = "rect";
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        config.hoverType = "rect";
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+      }
+
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -40,12 +45,18 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
-bar.prototype.draw = function(div) {
+bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
