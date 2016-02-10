@@ -27,10 +27,15 @@ var line = function(dataTable, config) {
       var scales =  [xScale, yScale];
 
       if (config.color != -1) {
+
+          if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
+
           var colorScale = {
                     "name": "color", 
                     "type": "ordinal", 
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
+                    "domain": config.colorDomain,
                     "range": config.colorScale
                       };
           scales.push(colorScale);
@@ -44,8 +49,12 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
 
       if (config.color != -1) {
 
@@ -79,13 +88,20 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
+      
 };
 
-line.prototype.draw = function(div) {
+line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -102,6 +118,8 @@ line.prototype.draw = function(div) {
     }
 
  		vg.parse.spec(this.spec, viewUpdateFunction);
+
+
 };
 
 line.prototype.insert = function(data) {

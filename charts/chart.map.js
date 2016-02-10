@@ -36,8 +36,12 @@ var map = function(dataTable, config) {
         }
     ];
 
-    marks = getMapMark(config, this.metadata);
-    signals = getMapSignals();
+    if (config.tooltip) {
+        marks = getMapMark(config, this.metadata);
+        signals = getMapSignals();
+        this.spec.signals = signals;
+    }
+
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
     legends.push(getMapLegends(config,this.metadata));
@@ -59,15 +63,21 @@ var map = function(dataTable, config) {
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
     this.spec.predicates = predicates;
     this.spec.legends = legends;
 
 };
 
-map.prototype.draw = function(div) {
+map.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     vg.parse.spec(this.spec, viewUpdateFunction);
