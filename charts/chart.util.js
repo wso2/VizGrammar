@@ -64,8 +64,8 @@ function checkConfig(config, metadata){
 		config.fillOpacity = 1;
 	}
 
-    if (this.config.renderer == null) {
-        this.config.renderer = "canvas";
+    if (config.renderer == null) {
+        config.renderer = "canvas";
     }
 
 	if (config.toolTip == null) {
