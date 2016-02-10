@@ -35,8 +35,12 @@ var area = function(dataTable, config) {
       config.fillOpacity  = 0;
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+      
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -45,7 +49,6 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
 area.prototype.draw = function(div, callbacks) {

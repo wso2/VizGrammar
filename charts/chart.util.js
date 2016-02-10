@@ -80,6 +80,10 @@ function checkConfig(config, metadata){
 		config.hoverType = "symbol";
 	}
 
+    if (config.tooltip == null) {
+        config.tooltip = true;
+    }
+
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
 

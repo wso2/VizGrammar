@@ -29,9 +29,14 @@ var bar = function(dataTable, config) {
                   ];
 
       marks.push(getBarMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      config.hoverType = "rect";
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        config.hoverType = "rect";
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+      }
+
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -40,7 +45,6 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
 bar.prototype.draw = function(div, callbacks) {

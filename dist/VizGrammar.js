@@ -50,8 +50,12 @@ var area = function(dataTable, config) {
       config.fillOpacity  = 0;
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+      
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -60,7 +64,6 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
 area.prototype.draw = function(div, callbacks) {
@@ -168,9 +171,14 @@ var bar = function(dataTable, config) {
                   ];
 
       marks.push(getBarMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      config.hoverType = "rect";
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        config.hoverType = "rect";
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+      }
+
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -179,7 +187,6 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
 bar.prototype.draw = function(div, callbacks) {
@@ -391,8 +398,12 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
 
       if (config.color != -1) {
 
@@ -426,7 +437,7 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
+      
 };
 
 line.prototype.draw = function(div, callbacks) {
@@ -569,8 +580,12 @@ function getLineMark(config, metadata){
         }
     ];
 
-    marks = getMapMark(config, this.metadata);
-    signals = getMapSignals();
+    if (config.tooltip) {
+        marks = getMapMark(config, this.metadata);
+        signals = getMapSignals();
+        this.spec.signals = signals;
+    }
+
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
     legends.push(getMapLegends(config,this.metadata));
@@ -592,7 +607,6 @@ function getLineMark(config, metadata){
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
     this.spec.predicates = predicates;
     this.spec.legends = legends;
 
@@ -955,8 +969,12 @@ number.prototype.insert = function(data) {
     ];
 
     marks.push(getScatterMark(config, this.metadata));
-    marks.push(getScatterToolTipMark(config, this.metadata));
-    signals = getSignals(config,this.metadata);
+    
+    if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+    }
 
 
     this.spec.width = config.width;
@@ -966,7 +984,6 @@ number.prototype.insert = function(data) {
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
 
 };
 
@@ -1370,6 +1387,10 @@ table.prototype.setupData = function (dataset, config) {
 	if (config.hoverType == null) {
 		config.hoverType = "symbol";
 	}
+
+    if (config.tooltip == null) {
+        config.tooltip = true;
+    }
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);

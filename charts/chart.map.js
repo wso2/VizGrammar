@@ -36,8 +36,12 @@ var map = function(dataTable, config) {
         }
     ];
 
-    marks = getMapMark(config, this.metadata);
-    signals = getMapSignals();
+    if (config.tooltip) {
+        marks = getMapMark(config, this.metadata);
+        signals = getMapSignals();
+        this.spec.signals = signals;
+    }
+
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
     legends.push(getMapLegends(config,this.metadata));
@@ -59,7 +63,6 @@ var map = function(dataTable, config) {
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
     this.spec.predicates = predicates;
     this.spec.legends = legends;
 
