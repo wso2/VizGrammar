@@ -24,19 +24,46 @@ var bar = function(dataTable, config) {
             ]
           };
 
+          var legendTitle = "Legend";
+
+      if (config.title != "table") {
+          legendTitle = config.title;
+      }
+
+
+
         dataTable.push(aggregateData);
 
-        var colorScale = {
-          "name": "color",
-          "type": "ordinal",
-          "range": config.colorScale,
-          "domain": config.colorDomain
-        };
+        if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
 
-        scales.push(colorScale);
+          var colorScale = {
+            "name": "color", 
+            "type": "ordinal", 
+            "domain": config.colorDomain,
+            "range": config.colorScale
+          };
 
-        yColumn = "sum_"+ this.metadata.names[config.y];
-        yDomain = "stack";
+          scales.push(colorScale);
+
+              var legends = [
+                      {
+                      "fill": "color",
+                      "title": "Legend",
+                      "offset": 0,
+                      "properties": {
+                        "symbols": {
+                          "fillOpacity": {"value": 0.5},
+                          "stroke": {"value": "transparent"}
+                        }
+                      }
+                    }
+                    ];
+
+          this.spec.legends = legends;
+          yColumn = "sum_"+ this.metadata.names[config.y];
+          yDomain = "stack";
 
       } else {
         yColumn = this.metadata.names[config.y];
@@ -138,7 +165,13 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    return d[xAxis] == data[i][xAxis]; },
+                    var match;
+                    if (color == -1) {
+                      match =  d[xAxis] == data[i][xAxis]; 
+                    } else {
+                      match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                    }
+                  },
                 yAxis,
                 function(d) {
                     isValueMatched = true;
@@ -180,7 +213,13 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    return d[xAxis] == data[i][xAxis]; },
+                  var match;
+                  if (color == -1) {
+                    match =  d[xAxis] == data[i][xAxis]; 
+                  } else {
+                    match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                  }
+                },
                 yAxis,
                 function(d) {
                     isValueMatched = true;

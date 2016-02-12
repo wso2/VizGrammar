@@ -182,11 +182,7 @@
                   "types" : ["ordinal","linear", "ordinal","ordinal"]
                 },
               "data": [
-                        [1,2,3,"Piston"],[1,2,3,"Rotary"],
-                        [2,11,3,"Piston"],[2,5,3,"Rotary"],
-                        [3,23,3,"Piston"],[3,12,3,"Rotary"],
-                        [4,25,3,"Piston"],[4,33,3,"Rotary"],
-                        [5,17,3,"Piston"],[5,12,3,"Rotary"]
+
                             ]
             }
           ];
@@ -215,12 +211,15 @@
           barChart.draw("#dChart");
 
           var barChartStack = new vizg(data, configStack);
-          barChartStack.draw("#dChartStack");
+          barChartStack.draw("#dChartStack");   
 
         var iterations = 1000;
           (function insertLoop (i) {          
-              setTimeout(function () {    
-                barChart.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);       
+              setTimeout(function () {   
+                var xVal =  Number((Math.random() * 100).toFixed(0))%15;
+                barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);
