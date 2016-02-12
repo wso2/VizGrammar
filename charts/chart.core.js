@@ -12,8 +12,8 @@ var vizg = function(dataTable, config) {
 	}
 };
 
-vizg.prototype.draw = function(div) {
-	this.chart.draw(div);
+vizg.prototype.draw = function(div, callback) {
+	this.chart.draw(div, callback);
 };
 
 vizg.prototype.insert = function(data) {

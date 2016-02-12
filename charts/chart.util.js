@@ -42,6 +42,10 @@ function checkConfig(config, metadata){
         config.maxColor = -1;
     }
 
+    if (config.mode == null) {
+        config.mode = "stack";
+    }
+
     if (config.size == null) {
         config.size = -1;
     } else {
@@ -64,6 +68,10 @@ function checkConfig(config, metadata){
 		config.fillOpacity = 1;
 	}
 
+    if (config.renderer == null) {
+        config.renderer = "canvas";
+    }
+
 	if (config.toolTip == null) {
 		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
 	}
@@ -75,6 +83,10 @@ function checkConfig(config, metadata){
 	if (config.hoverType == null) {
 		config.hoverType = "symbol";
 	}
+
+    if (config.tooltip == null) {
+        config.tooltip = true;
+    }
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);

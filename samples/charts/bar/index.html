@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/vega.js"></script>
-    <script src="../../../dist/VizGrammar.min.js"></script>
+    <script src="../../../dist/VizGrammar.js"></script>
     <style type="text/css">
         body {
             padding-top: 40px;
@@ -39,6 +39,20 @@
             </div>
         </div>
 
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartStack"></div>
+                </div>
+
+            </div>
+        </div>
                 <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -80,7 +94,7 @@
 {
     type: "bar",
     x : "rpm",
-    charts : [{type: "bar",  y : "torque"}],
+    charts : [{type: "bar",  y : "torque", color:"EngineType"}],
     maxLength: 6,
     width: 400,
     height: 200
@@ -168,6 +182,7 @@
                   "types" : ["ordinal","linear", "ordinal","ordinal"]
                 },
               "data": [
+
                             ]
             }
           ];
@@ -182,14 +197,29 @@
             height: 200
           }
 
-          var lineChart3 = new vizg(data, config);
-          lineChart3.draw("#dChart");
+
+          var configStack = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", color: "EngineType"}],
+            maxLength: 12,
+            width: 400,
+            height: 200
+          }
+
+          var barChart = new vizg(data, config);
+          barChart.draw("#dChart");
+
+          var barChartStack = new vizg(data, configStack);
+          barChartStack.draw("#dChartStack");   
 
         var iterations = 1000;
           (function insertLoop (i) {          
               setTimeout(function () {   
-                var x = iterations-i + 1;
-                lineChart3.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(2)), 20, "Piston"]]);      
+                var xVal =  Number((Math.random() * 100).toFixed(0))%15;
+                barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);

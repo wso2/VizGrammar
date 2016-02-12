@@ -50,8 +50,12 @@ var area = function(dataTable, config) {
       config.fillOpacity  = 0;
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+      
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -60,13 +64,19 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
 };
 
-area.prototype.draw = function(div) {
+area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -134,36 +144,111 @@ function getAreaMark(config, metadata){
 var bar = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var scales =[];
       this.spec = {};
+      var yColumn;
+      var yDomain;
 
       config = checkConfig(config, this.metadata);
       this.config = config;
       dataTable[0].name= config.title;
+      
+      if (config.color != -1) {
+        var aggregateData = {
+            "name": "stack",
+            "source": config.title,
+            "transform": [
+              {
+                "type": "aggregate",
+                "groupby": [this.metadata.names[config.x]],
+                "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
+              }
+            ]
+          };
+
+          var legendTitle = "Legend";
+
+      if (config.title != "table") {
+          legendTitle = config.title;
+      }
+
+
+
+        dataTable.push(aggregateData);
+
+        if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
+
+          var colorScale = {
+            "name": "color", 
+            "type": "ordinal", 
+            "domain": config.colorDomain,
+            "range": config.colorScale
+          };
+
+          scales.push(colorScale);
+
+              var legends = [
+                      {
+                      "fill": "color",
+                      "title": "Legend",
+                      "offset": 0,
+                      "properties": {
+                        "symbols": {
+                          "fillOpacity": {"value": 0.5},
+                          "stroke": {"value": "transparent"}
+                        }
+                      }
+                    }
+                    ];
+
+          this.spec.legends = legends;
+          yColumn = "sum_"+ this.metadata.names[config.y];
+          yDomain = "stack";
+
+      } else {
+        yColumn = this.metadata.names[config.y];
+        yDomain = config.title;
+      }
 
       var xScale = {
-                    "name": "x",
-                    "type": "ordinal",
-                    "range": "width",
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-                    };
+              "name": "x",
+              "type": "ordinal",
+              "range": "width",
+              "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+              };
 
       var yScale = {
-                "name": "y",
-                "type": this.metadata.types[config.y],
-                "range": "height",
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-                };
+          "name": "y",
+          "type": this.metadata.types[config.y],
+          "range": "height",
+          "domain": {"data": yDomain, "field": yColumn}
+          };
       
-      var scales =  [xScale, yScale];
+      scales.push(xScale);
+      scales.push(yScale);
+
+
+
       var axes =  [
                     {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
-      marks.push(getBarMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      config.hoverType = "rect";
-      signals = getSignals(config,this.metadata);
+      if (config.color != -1 && config.mode == "stack") {
+        marks.push(getStackBarMark(config, this.metadata));
+      } else {
+        marks.push(getBarMark(config, this.metadata));
+      }
+      
+      if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        config.hoverType = "rect";
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+      }
+
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -172,12 +257,20 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
+
+      var specc = JSON.stringify(this.spec);
 };
 
-bar.prototype.draw = function(div) {
+bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -214,7 +307,13 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    return d[xAxis] == data[i][xAxis]; },
+                    var match;
+                    if (color == -1) {
+                      match =  d[xAxis] == data[i][xAxis]; 
+                    } else {
+                      match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                    }
+                  },
                 yAxis,
                 function(d) {
                     isValueMatched = true;
@@ -256,7 +355,13 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    return d[xAxis] == data[i][xAxis]; },
+                  var match;
+                  if (color == -1) {
+                    match =  d[xAxis] == data[i][xAxis]; 
+                  } else {
+                    match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                  }
+                },
                 yAxis,
                 function(d) {
                     isValueMatched = true;
@@ -302,6 +407,38 @@ function getBarMark(config, metadata){
   return mark;
 }
 
+function getStackBarMark(config, metadata){
+
+  var mark =      {
+      "type": "rect",
+      "from": {
+        "data": "table",
+        "transform": [
+          { "type": "stack", 
+            "groupby": [metadata.names[config.x]], 
+            "sortby": [metadata.names[config.color]], 
+            "field":metadata.names[config.y]}
+        ]
+      },
+      "properties": {
+        "update": {
+          "x": {"scale": "x", "field": metadata.names[config.x]},
+          "width": {"scale": "x", "band": true, "offset": -1},
+          "y": {"scale": "y", "field": "layout_start"},
+          "y2": {"scale": "y", "field": "layout_end"},
+          "fill": {"scale": "color", "field": metadata.names[config.color]},
+           "fillOpacity": {"value": 1}
+        },
+        "hover": {
+          "fillOpacity": {"value": 0.5}
+        }
+      }
+    };
+      
+
+  return mark;
+}
+
 ;var vizg = function(dataTable, config) {
 	dataTable = buildTable(dataTable); 
 	if (typeof config.charts !== "undefined" && config.charts.length == 1) {
@@ -316,8 +453,8 @@ function getBarMark(config, metadata){
 	}
 };
 
-vizg.prototype.draw = function(div) {
-	this.chart.draw(div);
+vizg.prototype.draw = function(div, callback) {
+	this.chart.draw(div, callback);
 };
 
 vizg.prototype.insert = function(data) {
@@ -355,10 +492,15 @@ var line = function(dataTable, config) {
       var scales =  [xScale, yScale];
 
       if (config.color != -1) {
+
+          if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
+
           var colorScale = {
                     "name": "color", 
                     "type": "ordinal", 
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.color]},
+                    "domain": config.colorDomain,
                     "range": config.colorScale
                       };
           scales.push(colorScale);
@@ -372,8 +514,12 @@ var line = function(dataTable, config) {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
-      marks.push(getToolTipMark(config, this.metadata));
-      signals = getSignals(config,this.metadata);
+
+      if (config.tooltip) {
+          marks.push(getToolTipMark(config, this.metadata));
+          signals = getSignals(config,this.metadata);
+          this.spec.signals = signals;
+      }
 
       if (config.color != -1) {
 
@@ -407,13 +553,20 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
-      this.spec.signals = signals;
+      
 };
 
-line.prototype.draw = function(div) {
+line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     if(this.config.maxLength != -1){
@@ -430,6 +583,8 @@ line.prototype.draw = function(div) {
     }
 
  		vg.parse.spec(this.spec, viewUpdateFunction);
+
+
 };
 
 line.prototype.insert = function(data) {
@@ -541,8 +696,12 @@ function getLineMark(config, metadata){
         }
     ];
 
-    marks = getMapMark(config, this.metadata);
-    signals = getMapSignals();
+    if (config.tooltip) {
+        marks = getMapMark(config, this.metadata);
+        signals = getMapSignals();
+        this.spec.signals = signals;
+    }
+
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
     legends.push(getMapLegends(config,this.metadata));
@@ -564,15 +723,21 @@ function getLineMark(config, metadata){
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
     this.spec.predicates = predicates;
     this.spec.legends = legends;
 
 };
 
-map.prototype.draw = function(div) {
+map.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
     }).bind(this);
 
     vg.parse.spec(this.spec, viewUpdateFunction);
@@ -920,8 +1085,12 @@ number.prototype.insert = function(data) {
     ];
 
     marks.push(getScatterMark(config, this.metadata));
-    marks.push(getScatterToolTipMark(config, this.metadata));
-    signals = getSignals(config,this.metadata);
+    
+    if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+    }
 
 
     this.spec.width = config.width;
@@ -931,15 +1100,21 @@ number.prototype.insert = function(data) {
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
 
 };
 
-scatter.prototype.draw = function(div) {
+scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
-    }).bind(this);
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
+    }).bind(this);
+    
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
@@ -1197,8 +1372,13 @@ table.prototype.setupData = function (dataset, config) {
                             if (typeof d.value == "string") {
 
                             } else if (config.color == "*" || column == allColumns[config.color]){
-                                var color = d3.scale.category10();
-                                
+                                var color;
+                                if (typeof config.colorScale == "string") {
+                                  color = window["d3"]["scale"][config.colorScale]().range();
+                                } else {
+                                  color = config.colorScale;
+                                }
+
                                 var colorIndex;
                                 for(var i = 0; i < allColumns.length; i += 1) {
                                 if(allColumns[i] === column) {
@@ -1206,7 +1386,7 @@ table.prototype.setupData = function (dataset, config) {
                                 }
                             }
                                 var colorScale = d3.scale.linear()
-                                                .range(['#f2f2f2', color.range()[colorIndex]])
+                                                .range(['#f2f2f2', color[colorIndex]])
                                                 .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
                                                          d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
                                                         );
@@ -1286,6 +1466,10 @@ table.prototype.setupData = function (dataset, config) {
         config.maxColor = -1;
     }
 
+    if (config.mode == null) {
+        config.mode = "stack";
+    }
+
     if (config.size == null) {
         config.size = -1;
     } else {
@@ -1308,6 +1492,10 @@ table.prototype.setupData = function (dataset, config) {
 		config.fillOpacity = 1;
 	}
 
+    if (config.renderer == null) {
+        config.renderer = "canvas";
+    }
+
 	if (config.toolTip == null) {
 		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
 	}
@@ -1319,6 +1507,10 @@ table.prototype.setupData = function (dataset, config) {
 	if (config.hoverType == null) {
 		config.hoverType = "symbol";
 	}
+
+    if (config.tooltip == null) {
+        config.tooltip = true;
+    }
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);

@@ -47,8 +47,12 @@ var scatter = function(dataTable, config) {
     ];
 
     marks.push(getScatterMark(config, this.metadata));
-    marks.push(getScatterToolTipMark(config, this.metadata));
-    signals = getSignals(config,this.metadata);
+    
+    if (config.tooltip) {
+        marks.push(getToolTipMark(config, this.metadata));
+        signals = getSignals(config,this.metadata);
+        this.spec.signals = signals;
+    }
 
 
     this.spec.width = config.width;
@@ -58,15 +62,21 @@ var scatter = function(dataTable, config) {
     this.spec.scales = scales;
     this.spec.padding = config.padding;
     this.spec.marks = marks;
-    this.spec.signals = signals;
 
 };
 
-scatter.prototype.draw = function(div) {
+scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-        this.view = chart({el:div}).update();
-    }).bind(this);
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
+    }).bind(this);
+    
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
