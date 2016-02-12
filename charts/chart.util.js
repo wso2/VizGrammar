@@ -42,6 +42,10 @@ function checkConfig(config, metadata){
         config.maxColor = -1;
     }
 
+    if (config.mode == null) {
+        config.mode = "stack";
+    }
+
     if (config.size == null) {
         config.size = -1;
     } else {
