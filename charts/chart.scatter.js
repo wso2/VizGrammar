@@ -47,13 +47,6 @@ var scatter = function(dataTable, config) {
     ];
 
     marks.push(getScatterMark(config, this.metadata));
-    
-    if (config.tooltip) {
-        marks.push(getToolTipMark(config, this.metadata));
-        signals = getSignals(config,this.metadata);
-        this.spec.signals = signals;
-    }
-
 
     this.spec.width = config.width;
     this.spec.height = config.height;
@@ -68,6 +61,10 @@ var scatter = function(dataTable, config) {
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"symbol",this.view,this.config,this.metadata,["x","y","size"]);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {

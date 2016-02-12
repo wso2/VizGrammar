@@ -50,12 +50,6 @@ var line = function(dataTable, config) {
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
 
-      if (config.tooltip) {
-          marks.push(getToolTipMark(config, this.metadata));
-          signals = getSignals(config,this.metadata);
-          this.spec.signals = signals;
-      }
-
       if (config.color != -1) {
 
       var legendTitle = "Legend";
@@ -95,6 +89,10 @@ line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
