@@ -1186,9 +1186,7 @@ var table = function(dataTable, config) {
 
 table.prototype.draw = function(div) {
   var table = d3.select(div).append("table")
-                .attr( "cellpadding", "8px")
-                .attr( "border", "2px")
-                .attr( "width", "100%")
+                .attr( "class", "table table-bordered")
                 .attr("id", this.config.title);
 
       // set up the table header
