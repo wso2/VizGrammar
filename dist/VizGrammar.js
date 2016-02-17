@@ -366,7 +366,7 @@ var bar = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
@@ -696,7 +696,7 @@ var line = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
