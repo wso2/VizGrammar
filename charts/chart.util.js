@@ -72,9 +72,9 @@ function checkConfig(config, metadata){
         config.renderer = "canvas";
     }
 
-	if (config.toolTip == null) {
-		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-	}
+    if (config.toolTip == null) {
+        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
+    }
 
 	if (config.padding == null) {
         config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
@@ -144,54 +144,6 @@ var  mark = {
 }
 
 
-function getToolTipMark(config , metadata) {
-	    var mark =    {
-            "type": "group",
-            "from": {"data": "table",
-                "transform": [
-                    {
-                        "type": "filter",
-                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
-                    }
-                ]},
-                    "properties": {
-                        "update": {
-                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": config.toolTip.x},
-                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": config.toolTip.y},
-                            "width": {"value": config.toolTip.width},
-                            "height": {"value": config.toolTip.height},
-                            "fill": {"value": config.toolTip.color}
-                }
-            },
-
-            "marks": [
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 14},
-                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 29},
-                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                }
-            ]
-        }
-
-    return mark;
-}
 
 function getSignals(config, metadata){
 
@@ -208,6 +160,79 @@ function getSignals(config, metadata){
     return signals;
 
 }
+
+function bindTooltip(div,markType,eventObj, config, metaData, keyList){
+
+    eventObj.on("mouseover", function(event, item) {
+
+        if (item != null && item.status != "exit" && item.mark.marktype == markType) {
+            var canvas = $(".marks")[0];
+
+            $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
+
+            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $tip=$('#tip');
+            $tip.empty();
+
+            var dataObj = item.datum;
+            var dynamicContent = "";
+            for (var key in dataObj) {
+                if (dataObj.hasOwnProperty(key)) {
+                    if(keyList != undefined){
+                        for(var z=0;z<keyList.length;z++){
+                            for (var keyVal in config) {
+                                if(keyVal == keyList[z] && metaData.names[config[keyVal]] == key){
+                                    dynamicContent += "<p>"+keyList[z]+" ("+key+"):"+dataObj[key]+"</p>";
+                                    break;
+                                }
+                            }
+                        }
+                    }else{
+                        if(metaData.names[config.x] == key){
+                            dynamicContent += "<p>X ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                        if(metaData.names[config.y] == key){
+                            dynamicContent += "<p>Y ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                    }
+                }
+            }
+
+            $tip.append(dynamicContent);
+
+            var canvasWidth = canvas.width;
+            var canvasHeight = canvas.height;
+            var dynamicWidth = $tip.width();
+            var dynamicHeight = $tip.height();
+
+            var toolTipWidth = item.bounds.x2 + config.padding.left + dynamicWidth;
+            var toolTipHeight = (canvasHeight - item.bounds.y2) - config.padding.top + dynamicHeight;
+            var toolTipCalculatedXPosition;
+            var toolTipCalculatedYPosition = ((item.bounds.y2 + config.padding.top) - dynamicHeight);
+
+            if(toolTipWidth > canvasWidth){
+                toolTipCalculatedXPosition = ((item.bounds.x2 + config.padding.left) - dynamicWidth);
+            }else{
+                toolTipCalculatedXPosition = (item.bounds.x2 + config.padding.left);
+            }
+
+            if(toolTipHeight > canvasHeight){
+                toolTipCalculatedYPosition = item.bounds.y2 + config.padding.top;
+            }
+
+            $tip.css({left:toolTipCalculatedXPosition,top:toolTipCalculatedYPosition}).show();
+        }else{
+
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
+            if($(div).closest("#wrapper").length) {
+                $(div).unwrap();
+            }
+        }
+    })
+}
+
 
 
 

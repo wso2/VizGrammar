@@ -1,0 +1,36 @@
+body {
+    background: #F2F2F2;
+    padding-top: 80px;
+}
+
+.navbar-inverse {
+    background: #1D2331;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #fff;
+}
+
+.container .jumbotron {
+    border-radius: 0;
+}
+
+.panel {
+    border-radius: 0;
+    border: none;
+}
+
+.panel-default > .panel-heading {
+    background-color: transparent;
+    text-align: center;
+    border: none;
+    padding: 20px;
+}
+
+/* =============================================
+chart styling
+==============================================*/
+
+svg .mark-symbol {
+    fill: #000 !important;
+}
