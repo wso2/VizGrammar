@@ -168,6 +168,10 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
         if (item != null && item.status != "exit" && item.mark.marktype == markType) {
             var canvas = $(".marks")[0];
 
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
+
             $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
 
             $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
