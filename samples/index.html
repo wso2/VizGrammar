@@ -1,484 +1,632 @@
-<html>
-  <head>
+<!--
+~   Copyright (c) WSO2 Inc. (http://wso2.com) All Rights Reserved.
+~
+~   Licensed under the Apache License, Version 2.0 (the "License");
+~   you may not use this file except in compliance with the License.
+~   You may obtain a copy of the License at
+~
+~        http://www.apache.org/licenses/LICENSE-2.0
+~
+~   Unless required by applicable law or agreed to in writing, software
+~   distributed under the License is distributed on an "AS IS" BASIS,
+~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~   See the License for the specific language governing permissions and
+~   limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>VizGrammar.js</title>
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    
     <script src="js/d3.min.js"></script>
     <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
     <script src="../dist/VizGrammar.min.js"></script>
-    <style type="text/css">
-        body {
-            padding-top: 40px;
-        }
-    </style>
-  </head>
-  
-  <div class="container">
-  <body>
-        <a style="text-decoration: none">
+    
+</head>
+<body>
+    
+    <!-- nav -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed hidden" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">VizGrammar</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse hidden">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+      
+    <div class="container">
+        
         <div class="jumbotron">
-            <h2>VizGrammar.js
-                <small> Drawing a chart has never been this easy!</small>
-            </h2>
-            <p>Interactive Generic Visualization library for Javascript that is based on d3.js</p>
+            <h1>VizGrammar.js</h1>
+            <p class="lead">
+                Drawing a chart has never been this easy!<br>
+                Interactive Generic Visualization library for Javascript that is based on d3.js
+            </p>
+            <p><a class="btn btn-lg btn-success" href="https://github.com/wso2/VizGrammar" role="button">View GitHub</a></p>
         </div>
-    </a>
+  
+        <div class="row">
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Group Multi Line Chart Sample</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartLine"></div>
+                        <div class="text-right">
+                            <a href="charts/line">View Usage</a>
+                        </div>
+                    </div>
+                    <script>
+
+                        var data =  [
+                          { 
+                            "metadata" : {
+                                "names" : ["rpm","torque","horsepower", "EngineType"],
+                                "types" : ["linear","linear", "ordinal","ordinal"]
+                            },
+                            "data": [
+                              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
+                          }
+                        ];
+
+                        var config = {
+                          x : "rpm",
+                          charts : [
+                            {type: "line",  y : "torque", color: "EngineType"}
+                          ],
+                          renderer: 'svg',
+                          maxLength: 20,
+                          width: 400,
+                          height: 200
+                        }
+
+                        var lineChart = new vizg(data, config); 
+                        var spec = lineChart.getSpec();
+
+                        lineChart.draw("#dChartLine");
+
+                        var iterations = 1000;
+                          (function insertLoop(i) {          
+                              setTimeout(function () {   
+                                var x = iterations-i + 1;
+                                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 2, "Rotary"]]);
+                                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 1, "Piston"]]);          
+                                  if (--i) insertLoop(i);
+                               }, 500)
+                        })(iterations);
+                        
+                    </script>
+                </div>
+            </div>
+ 
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Bar Chart Sample</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartBar"></div>
+                        <div class="text-right">
+                            <a href="charts/bar">View Usage</a>
+                        </div>
+                    </div>
+                </div>
+                <script>
+
+                    var data =  [
+                        {
+                          "metadata" : {
+                              "names" : ["rpm","torque","horsepower", "EngineType"],
+                              "types" : ["ordinal","linear", "ordinal","ordinal"]
+                            },
+                          "data": [
+                                        ]
+                        }
+                      ];
+
+                      var config = {
+                        type: "bar",
+                        x : "rpm",
+                        charts : [{type: "bar",  y : "torque"}],
+                        renderer: 'svg',
+                        maxLength: 6,
+                        width: 400,
+                        height: 200
+                      }
+
+                      var lineChart3 = new vizg(data, config);
+                      lineChart3.draw("#dChartBar");
+
+                      var iterations = 1000;
+                      (function insertLoop (i) {          
+                          setTimeout(function () {   
+                            var x = iterations-i + 1;
+                            lineChart3.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(2)), 20, "Piston"]]);      
+                              if (--i) insertLoop(i);
+                           }, 1000)
+                     })(iterations);
+                    
+                </script>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Area Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartArea"></div>
+                        <div class="text-right">
+                            <a href="charts/area">View Usage</a>
+                        </div>
+                    </div>
+                </div>
+                <script>
+
+                    var data =  [
+                        {
+                          "metadata" : {
+                              "names" : ["rpm","torque","horsepower", "EngineType"],
+                              "types" : ["linear","linear", "ordinal","ordinal"]
+                            },
+                          "data": [
+                            [0, 10, 12]
+                                        ]
+                        }
+                      ];
+
+                    var config = {
+                        charts : [{type: "area",  x : "rpm", y : "torque"}],
+                        renderer: 'svg',
+                        maxLength: 10,
+                        width: 400,
+                        height: 200
+                      }
+
+                    var areaChart = new vizg(data, config);
+                    areaChart.draw("#dChartArea");
+
+                    var iterations = 1000;
+                    (function insertLoop (i) {      
+
+                           setTimeout(function () {   
+                            areaChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, "Rotary"]]);            
+                              if (--i) insertLoop(i);
+                           }, 500)
+                    })(iterations);
+                    
+                </script>
+            </div>
+
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Scatter Plot Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartScatter"></div>
+                        <div class="text-right">
+                            <a href="charts/scatter">View Usage</a>
+                        </div>
+                    </div>
+                </div>
+                <script>
+
+                    var data =  [
+                        {
+                            "metadata" : {
+                                  "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
+                                "types" : ["linear","linear", "linear","linear", "ordinal"]
+                            },
+                            "data": [
 
 
+                                ]
+                        }
+                    ];
 
+                    var config = {
+                        type: "scatter",
+                        charts : [
+                            {type: "scatter",
+                             x : "rpm",  
+                             y : "torque",
+                             color: "horsepower", 
+                             size : "weight", 
+                             maxLength: 30, 
+                             maxColor:"#ffff00", 
+                             minColor:"#ff00ff"}], 
 
-       <div class="row">
-        <a href="charts/line">
+                        width: 400,
+                        height: 200
+                    }
+
+                    var scatterChart = new vizg(data, config);
+                    scatterChart.draw("#dChartScatter");
+
+                    var iterations = 1000;
+                    (function insertLoop (i) {      
+
+                       setTimeout(function () {    
+                             scatterChart.insert([[iterations-i + 1,Number((Math.random() * 100).toFixed(2)),
+                              Number((Math.random() * 100).toFixed(2)),Number((Math.random() * 100).toFixed(2)),"Piston"]]);             
+                              if (--i) insertLoop(i);
+                           }, 500)
+                    })(iterations);
+
+                </script>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            World Map Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartMapWorld"></div>
+                        <div class="text-right">
+                            <a href="charts/map">View Usage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+  
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            US Map Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartMapUS"></div>
+                        <div class="text-right">
+                            <a href="charts/map">View Usage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+  
+            <script>
+
+                var data =  [
+                    {
+                        "metadata" : {
+                            "names" : ["Country","Inflation"],
+                            "types" : ["ordinal", "linear"]
+                        },
+                        "data": [
+
+                            ["Afghanistan",4.23]
+                        ]
+                    }
+                ];
+
+                var configWorld = {
+                    type: "map",
+                    x : "Country",
+                    charts : [{type: "map",  y : "Inflation", mapType : "world"}],
+                    width: 400,
+                    height: 200
+                };
+
+                var worlHelperInfoJsonUrl = "jsonMapFiles/countryInfo.json";
+                var usaHelperInfoJsonUrl = "jsonMapFiles/usaInfo.json";
+                var worldGeoCodesUrl = "jsonMapFiles/world.json";
+                var usaGeoCodesUrl = "jsonMapFiles/usa.json";
+                var europeGeoCodesUrl = "jsonMapFiles/europe.json";
+
+                configWorld.helperUrl = worlHelperInfoJsonUrl;
+                configWorld.geoCodesUrl = worldGeoCodesUrl;
+                var worldChart = new vizg(data, configWorld);
+                worldChart.draw("#dChartMapWorld");
+
+                var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
+
+                var iterations = 1000;
+                (function insertLoop (i) {      
+                       setTimeout(function () {   
+                        worldChart.insert([[countries[i%countries.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
+                          if (--i) insertLoop(i);
+                       }, 500)
+                })(iterations);
+
+                var usaData =  [
+                    {
+                        "metadata" : {
+                            "names" : ["County","Inflation"],
+                            "types" : ["ordinal", "linear"]
+                        },
+                        "data": [
+
+                            ["Alabama",4.23]
+                        ]
+                    }
+                ];
+
+                var configUsa = {
+                    type: "map",
+                    x : "County",
+                    charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
+                    width: 400,
+                    height: 200
+                };
+
+                configUsa.helperUrl = usaHelperInfoJsonUrl;
+                configUsa.geoCodesUrl = usaGeoCodesUrl;
+                var usaChart = new vizg(usaData, configUsa);
+                usaChart.draw("#dChartMapUS");
+
+                var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
+                (function insertLoop (i) {      
+                       setTimeout(function () {   
+                        usaChart.insert([[USStates[i%USStates.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
+                          if (--i) insertLoop(i);
+                       }, 500)
+                })(iterations);
+                
+            </script>
+        </div>
+
+        <div class="row">
+
         <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Group Multi Line Chart Sample
+                        Donut Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="dChartLine"></div>
+                    <div id="dChartDonut"></div>
+                     <div class="text-right">
+                        <a href="charts/arc">View Usage</a>
+                    </div>
                 </div>
+            </div>
+        </div>
+       <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Pie Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartPie"></div>
+                    <div class="text-right">
+                        <a href="charts/arc">View Usage</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <script>
-
-        var data =  [
-          { 
-            "metadata" : {
-                "names" : ["rpm","torque","horsepower", "EngineType"],
-                "types" : ["linear","linear", "ordinal","ordinal"]
-            },
-            "data": [
-              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
-          }
-        ];
-
-        var config = {
-          x : "rpm",
-          charts : [
-          {type: "line",  y : "torque", color: "EngineType"}
-          ],
-          maxLength: 20,
-          width: 400,
-          height: 200
-        }
-
-        var lineChart = new vizg(data, config); 
-        var spec = lineChart.getSpec();
-
-        lineChart.draw("#dChartLine");
-
-        var iterations = 1000;
-          (function insertLoop (i) {          
-              setTimeout(function () {   
-                var x = iterations-i + 1;
-                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 2, "Rotary"]]);
-                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 1, "Piston"]]);          
-                  if (--i) insertLoop(i);
-               }, 500)
-        })(iterations);
-        </script>
-            </div>
-        </div>
-      </a>
-      <a href="charts/bar">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                       Bar Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartBar"></div>
-                </div>
-
-            </div>
-                    <script>
-
-        var data =  [
-            {
-              "metadata" : {
-                  "names" : ["rpm","torque","horsepower", "EngineType"],
-                  "types" : ["ordinal","linear", "ordinal","ordinal"]
-                },
-              "data": [
-                            ]
-            }
-          ];
-
-
-          var config = {
-            type: "bar",
-            x : "rpm",
-            charts : [{type: "bar",  y : "torque"}],
-            maxLength: 6,
-            width: 400,
-            height: 200
-          }
-
-          var lineChart3 = new vizg(data, config);
-          lineChart3.draw("#dChartBar");
-
-        var iterations = 1000;
-          (function insertLoop (i) {          
-              setTimeout(function () {   
-                var x = iterations-i + 1;
-                lineChart3.insert([[Number((Math.random() * 100).toFixed(0))%15, Number((Math.random() * 100).toFixed(2)), 20, "Piston"]]);      
-                  if (--i) insertLoop(i);
-               }, 1000)
-        })(iterations);
-        </script>
-        </div>
-      </a>
-      </div>
-
-      <div class="row">
-      <a href="charts/area">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Area Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartArea"></div>
-                </div>
-
-            </div>
-                    <script>
-
-        var data =  [
-            {
-              "metadata" : {
-                  "names" : ["rpm","torque","horsepower", "EngineType"],
-                  "types" : ["linear","linear", "ordinal","ordinal"]
-                },
-              "data": [
-                [0, 10, 12]
-                            ]
-            }
-          ];
-
-
-        var config = {
-            charts : [{type: "area",  x : "rpm", y : "torque"}],
-            maxLength: 10,
-            width: 400,
-            height: 200
-          }
-
-        var areaChart = new vizg(data, config);
-        areaChart.draw("#dChartArea");
-
-        var iterations = 1000;
-        (function insertLoop (i) {      
-                  
-               setTimeout(function () {   
-                areaChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, "Rotary"]]);            
-                  if (--i) insertLoop(i);
-               }, 500)
-        })(iterations);
-        </script>
-        </div>
-      </a>
-       <a href="charts/scatter">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Scatter Plot Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartScatter"></div>
-                </div>
-
-            </div>
-                    <script>
-
             var data =  [
                 {
-                    "metadata" : {
-                          "names" : ["rpm","torque","horsepower", "weight", "EngineType"],
-                        "types" : ["linear","linear", "linear","linear", "ordinal"]
+                  "metadata" : {
+                      "names" : ["rpm","torque","horsepower", "EngineType"],
+                      "types" : ["linear","linear", "ordinal","ordinal"]
                     },
-                    "data": [
+                  "data": [
+                    [0, 100, 12,"Rotary"]
 
-
-                        ]
+                                ]
                 }
-            ];
+              ];
 
 
             var config = {
-                type: "scatter",
-                charts : [
-                    {type: "scatter",
-                     x : "rpm",  
-                     y : "torque",
-                     color: "horsepower", 
-                     size : "weight", 
-                     maxLength: 30, 
-                     maxColor:"#ffff00", 
-                     minColor:"#ff00ff"}], 
-                     
-                width: 400,
-                height: 200
+                charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "donut"}],
+                width: 300,
+                height: 250
+              }
+
+            var configPie = {
+                charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "pie"}],
+                width: 300,
+                height: 250
             }
 
-            var scatterChart = new vizg(data, config);
-            scatterChart.draw("#dChartScatter");
+            var donutChart = new vizg(data, config);
+            donutChart.draw("#dChartDonut");
+
+            var pieChart = new vizg(data, configPie);
+            pieChart.draw("#dChartPie"); 
+
+
 
             var iterations = 1000;
             (function insertLoop (i) {      
                       
-               setTimeout(function () {    
-                     scatterChart.insert([[iterations-i + 1,Number((Math.random() * 100).toFixed(2)),
-                      Number((Math.random() * 100).toFixed(2)),Number((Math.random() * 100).toFixed(2)),"Piston"]]);             
+                   setTimeout(function () { 
+                  if ( i % 4 == 0) {
+                        EngineType = "Rotary";
+                     } else if( i % 4 == 1) {
+                        EngineType = "Piston V6";
+                     } 
+                     else if( i % 4 == 2) {
+                        EngineType = "Piston V8";
+                     }  else if( i % 4 == 3) {
+                        EngineType = "Piston";
+                     }
+
+                    pieChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);
+                    donutChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);            
                       if (--i) insertLoop(i);
                    }, 500)
             })(iterations);
-
-
         </script>
-        </div>
-      </a>
-        </div>
 
-    <div class="row">
-        <a href="charts/map">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        World Map Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartMapWorld"></div>
-                </div>
-            </div>
-        </div>
-      </a>
+    </div>
 
-      <a href="charts/map">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        US Map Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartMapUS"></div>
+        <div class="row">
+  
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Number Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartNumberTorque"></div>
+                        <div class="text-right">
+                            <a href="charts/number">View Usage</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-      </a>
-<script>
-
-    var data =  [
-        {
-            "metadata" : {
-                "names" : ["Country","Inflation"],
-                "types" : ["ordinal", "linear"]
-            },
-            "data": [
-
-                ["Afghanistan",4.23]
-            ]
-        }
-    ];
+            <script>
+                
+              var data =  [
+                  {
+                    "metadata" : {
+                        "names" : ["rpm","torque","horsepower", "EngineType"],
+                        "types" : ["ordinal","linear", "ordinal","ordinal"]
+                      },
+                    "data": [
+                      [1, 10, 12, "Piston"]
+                                  ]
+                  }
+                ];
 
 
-    var configWorld = {
-        type: "map",
-        x : "Country",
-        charts : [{type: "map",  y : "Inflation", mapType : "world"}],
-        width: 400,
-        height: 200
-    };
+                var config = {
+                  title : "Torque of engine",
+                  charts : [{x : "torque", type: "number"}],
+                  maxLength: 6,
+                  width: 400,
+                  height: 200
+                }
 
-    var worlHelperInfoJsonUrl = "jsonMapFiles/countryInfo.json";
-    var usaHelperInfoJsonUrl = "jsonMapFiles/usaInfo.json";
-    var worldGeoCodesUrl = "jsonMapFiles/world.json";
-    var usaGeoCodesUrl = "jsonMapFiles/usa.json";
-    var europeGeoCodesUrl = "jsonMapFiles/europe.json";
+                var numberChart = new vizg(data, config);
+                numberChart.draw("#dChartNumberTorque");
 
-    configWorld.helperUrl = worlHelperInfoJsonUrl;
-    configWorld.geoCodesUrl = worldGeoCodesUrl;
-    var worldChart = new vizg(data, configWorld);
-    worldChart.draw("#dChartMapWorld");
 
-    var countries = ["RUS","Canada","USA","China","AUS", "Brazil","Spain","France", "Nigeria", "Sudan", "LKA", "Algeria", "DR Congo"];
+              var iterations = 1000;
+              (function insertLoop (i) {      
+                     setTimeout(function () {   
+                      var dataRow = [iterations-i + 1, Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2))];
 
-    var iterations = 1000;
-    (function insertLoop (i) {      
-           setTimeout(function () {   
-            worldChart.insert([[countries[i%countries.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
-              if (--i) insertLoop(i);
-           }, 500)
-    })(iterations);
+                      numberChart.insert([dataRow]);              
+                        if (--i) insertLoop(i);
+                     }, 500)
+              })(iterations);
+                
+            </script>
 
-    var usaData =  [
-        {
-            "metadata" : {
-                "names" : ["County","Inflation"],
-                "types" : ["ordinal", "linear"]
-            },
-            "data": [
-
-                ["Alabama",4.23]
-            ]
-        }
-    ];
-
-    var configUsa = {
-        type: "map",
-        x : "County",
-        charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
-        width: 400,
-        height: 200
-    };
-
-    configUsa.helperUrl = usaHelperInfoJsonUrl;
-    configUsa.geoCodesUrl = usaGeoCodesUrl;
-    var usaChart = new vizg(usaData, configUsa);
-    usaChart.draw("#dChartMapUS");
-
-    var USStates = ["Alabam", "Alaska","Arizona", "Georgia", "Ohio", "Massahusetts", "Michigan", "Texas", "Utah", "Vermont", "Virginia", "Wahington", "West Virginia", "Wsconsin", "Wyoming"];
-    (function insertLoop (i) {      
-           setTimeout(function () {   
-            usaChart.insert([[USStates[i%USStates.length], Number((Math.random() * 100).toFixed(2)), 13]]);            
-              if (--i) insertLoop(i);
-           }, 500)
-    })(iterations);
-</script>
-
-      </div>
-
-       <div class="row">
-        <a href="charts/number">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Number Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartNumberTorque"></div>
+            <div class="col-md-6" class="tile">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            Table Chart Sample
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="dChartTable"></div>
+                        <div class="text-right">
+                            <a href="charts/table">View Usage</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-              <script>
-                  var data =  [
-                      {
-                        "metadata" : {
-                            "names" : ["rpm","torque","horsepower", "EngineType"],
-                            "types" : ["ordinal","linear", "ordinal","ordinal"]
-                          },
-                        "data": [
-                          [1, 10, 12, "Piston"]
-                                      ]
-                      }
-                    ];
+            <script>
 
-
-                    var config = {
-                      title : "Torque of engine",
-                      charts : [{x : "torque", type: "number"}],
-                      maxLength: 6,
-                      width: 400,
-                      height: 200
+                var data =  [
+                    {
+                      "metadata" : {
+                          "names" : ["rpm","torque","horsepower", "EngineType"],
+                          "types" : ["ordinal","linear", "ordinal","ordinal"]
+                        },
+                      "data": [
+                        [1, 21, 12, "Piston"]
+                                    ]
                     }
-
-                    var numberChart = new vizg(data, config);
-                    numberChart.draw("#dChartNumberTorque");
+                  ];
 
 
-                  var iterations = 1000;
-                  (function insertLoop (i) {      
-                         setTimeout(function () {   
-                          var dataRow = [iterations-i + 1, Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2))];
+                  var config = {
+                    key : "rpm",
+                    charts : [{ type: "table", 
+                                y : "torque", 
+                                color: "*",
+                                columns:["EngineType",  "torque", "rpm"],  
+                                columnTitles:["Engine Type",  "Engine Torque", "Engine RPM"], 
+                                maxLength: 6}
+                              ],
+                    width: 400,
+                    height: 200
+                  }
 
-                          numberChart.insert([dataRow]);              
-                            if (--i) insertLoop(i);
-                         }, 500)
-                  })(iterations);
-                  </script>
-      </a>
+                  var table = new vizg(data, config);
+                  table.draw("#dChartTable");
 
-      <a href="charts/table">
-        <div class="col-md-6" class="tile">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        Table Chart Sample
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div id="dChartTable"></div>
-                </div>
-            </div>
+                var iterations = 1000;
+                (function insertLoop (i) {      
+
+                       setTimeout(function () {   
+                         var EngineType;
+
+                         if ( i % 2 == 0) {
+                            EngineType = "Piston";
+                         } else {
+                            EngineType = "Rotary";
+                         }
+
+                         table.insert([[Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2)), 
+                            30, 
+                            EngineType]]);          
+                          if (--i) insertLoop(i);
+                       }, 500)
+                })(iterations);
+
+            </script>
         </div>
-                <script>
+        
+    </div>
+    
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script>.</p>
+        </div>
+    </footer>
 
-        var data =  [
-            {
-              "metadata" : {
-                  "names" : ["rpm","torque","horsepower", "EngineType"],
-                  "types" : ["ordinal","linear", "ordinal","ordinal"]
-                },
-              "data": [
-                [1, 21, 12, "Piston"]
-                            ]
-            }
-          ];
-
-
-          var config = {
-            key : "rpm",
-            charts : [{ type: "table", 
-                        y : "torque", 
-                        color: "*",
-                        columns:["EngineType",  "torque", "rpm"],  
-                        columnTitles:["Engine Type",  "Engine Torque", "Engine RPM"], 
-                        maxLength: 6}
-                      ],
-            width: 400,
-            height: 200
-          }
-
-          var table = new vizg(data, config);
-          table.draw("#dChartTable");
-
-        var iterations = 1000;
-        (function insertLoop (i) {      
-                  
-               setTimeout(function () {   
-                 var EngineType;
-
-                 if ( i % 2 == 0) {
-                    EngineType = "Piston";
-                 } else {
-                    EngineType = "Rotary";
-                 }
-
-                 table.insert([[Number((Math.random() * 100).toFixed(2)), Number((Math.random() * 100).toFixed(2)), 
-                    30, 
-                    EngineType]]);          
-                  if (--i) insertLoop(i);
-               }, 500)
-        })(iterations);
-
-        </script>
-      </div>
-      </a>
-
-
-      </div>
-
-  </body>
+</body>
 </html>

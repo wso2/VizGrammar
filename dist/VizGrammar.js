@@ -14,6 +14,181 @@
  * limitations under the License.
  */
 
+var arc = function(dataTable, config) {
+      this.metadata = dataTable[0].metadata;
+      var marks =[];
+      this.spec = {};
+
+      config = checkConfig(config, this.metadata);
+      this.config = config;
+      dataTable[0].name= config.title;
+
+      dataTable[0].transform = [{"type": "pie", "field": this.metadata.names[config.x]}];
+      
+      var scales =  []; 
+
+      if (config.colorDomain == null) {
+         config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+      }
+
+
+       var colorScale = {
+                    "name": "color", 
+                    "type": "ordinal", 
+                    "domain": config.colorDomain,
+                    "range": config.colorScale
+                      };
+      scales.push(colorScale);
+      marks.push(getPieMark(config, this.metadata));
+      marks.push(getPieText(config, this.metadata));
+      var legendTitle = "Legend";
+
+      if (config.title != "table") {
+          legendTitle = config.title;
+      }
+
+      var legends = [
+                      {
+                      "fill": "color",
+                      "title": "Legend",
+                      "offset": 20,
+                      "properties": {
+                        "symbols": {
+                          "fillOpacity": {"value": 0.5},
+                          "stroke": {"value": "transparent"}
+                        }
+                      }
+                    }
+                    ];
+
+      this.spec.legends = legends;
+      this.spec.width = config.width;
+      this.spec.height = config.height;
+      this.spec.data = dataTable;
+      this.spec.scales = scales;
+      this.spec.padding = config.padding;
+      this.spec.marks = marks;
+};
+
+arc.prototype.draw = function(div, callbacks) {
+
+    var viewUpdateFunction = (function(chart) {
+       this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+       if (callbacks != null) {
+          for (var i = 0; i<callbacks.length; i++) {
+            this.view.on(callbacks[i].type, callbacks[i].callback);
+          }
+       }
+
+    }).bind(this);
+
+    if(this.config.maxLength != -1){
+        var dataset = this.spec.data[0].values;
+        var maxValue = this.config.maxLength;
+        if(dataset.length >= this.config.maxLength){
+            var allowedDataSet = [];
+            var startingPoint = dataset.length - maxValue;
+            for(var i = startingPoint; i < dataset.length;i++){
+                allowedDataSet.push(dataset[i]);
+            }
+            this.spec.data[0].values = allowedDataSet;
+        }
+    }
+
+ 		vg.parse.spec(this.spec, viewUpdateFunction);
+};
+
+arc.prototype.insert = function(data) {
+
+    var color = this.metadata.names[this.config.color];
+    var x = this.metadata.names[this.config.x];
+    var view =this.view;
+
+
+
+    var updated = false;
+
+    for (i = 0; i < data.length; i++) {
+          this.view.data(this.config.title)
+           .update(
+            function(d) { 
+              return d[color] == data[i][color]; 
+            }, 
+            x, 
+            function(d) { 
+              updated = true;
+              return data[i][x]; 
+            });  
+        }
+
+        if (updated == false) {
+          view.data(this.config.title).insert(data);
+        }
+
+     this.view.update({duration: 500});
+};
+
+arc.prototype.getSpec = function() {
+  return this.spec;
+};
+
+
+function getPieMark(config, metadata){
+        var innerRadius;
+        if (config.mode == "donut") { 
+          var innerRadius = config.width/5;
+        } else {
+          var innerRadius = 0;
+        }
+
+        var mark =  {
+                      "type": "arc",
+                      "from":  {"data": config.title},
+                      "properties": {
+                        "update": {
+                          "x": {"field": {"group": "width"}, "mult": 0.5},
+                          "y": {"field": {"group": "height"}, "mult": 0.5},
+                          "startAngle": {"field": "layout_start"},
+                          "endAngle": {"field": "layout_end"},
+                          "innerRadius": {"value": innerRadius},
+                          "outerRadius":  {"value": config.width * 0.4},
+                          "fill": {"scale": "color", "field": metadata.names[config.color]},
+                          "fillOpacity": {"value": 1}
+                        },
+
+                        "hover": {
+                          "fillOpacity": {"value": 0.8}
+                        }
+                      }
+                    };
+
+        return mark;
+};
+
+function getPieText(config, metadata){
+        var mark =      {
+                          "type": "text",
+                          "from": {"data": config.title},
+                          "properties": {
+                            "update": {
+                              "x": {"field": {"group": "width"}, "mult": 0.5},
+                              "y": {"field": {"group": "height"}, "mult": 0.5},
+                              "radius": { "value": config.width * 0.5},
+                              "theta": {"field": "layout_mid"},
+                              "fill": {"value": "#000"},
+                              "align": {"value": "center"},
+                              "baseline": {"value": "middle"},
+                              "text": {"field": metadata.names[config.x], "mult":0.5},
+
+                            }
+                          }
+                        };
+
+        return mark;
+};
+
+;
 var area = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
@@ -51,12 +226,6 @@ var area = function(dataTable, config) {
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
       
-      if (config.tooltip) {
-          marks.push(getToolTipMark(config, this.metadata));
-          signals = getSignals(config,this.metadata);
-          this.spec.signals = signals;
-      }
-      
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -70,6 +239,10 @@ area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -241,15 +414,7 @@ var bar = function(dataTable, config) {
       } else {
         marks.push(getBarMark(config, this.metadata));
       }
-      
-      if (config.tooltip) {
-        marks.push(getToolTipMark(config, this.metadata));
-        config.hoverType = "rect";
-        signals = getSignals(config,this.metadata);
-        this.spec.signals = signals;
-      }
 
-      
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -264,6 +429,10 @@ var bar = function(dataTable, config) {
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"rect",this.view,this.config,this.metadata);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -515,12 +684,6 @@ var line = function(dataTable, config) {
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
 
-      if (config.tooltip) {
-          marks.push(getToolTipMark(config, this.metadata));
-          signals = getSignals(config,this.metadata);
-          this.spec.signals = signals;
-      }
-
       if (config.color != -1) {
 
       var legendTitle = "Legend";
@@ -560,6 +723,10 @@ line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -1085,13 +1252,6 @@ number.prototype.insert = function(data) {
     ];
 
     marks.push(getScatterMark(config, this.metadata));
-    
-    if (config.tooltip) {
-        marks.push(getToolTipMark(config, this.metadata));
-        signals = getSignals(config,this.metadata);
-        this.spec.signals = signals;
-    }
-
 
     this.spec.width = config.width;
     this.spec.height = config.height;
@@ -1106,6 +1266,10 @@ number.prototype.insert = function(data) {
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
        this.view = chart({el:div}).renderer(this.config.renderer).update();
+
+        if(this.config.tooltip != false){
+            bindTooltip(div,"symbol",this.view,this.config,this.metadata,["x","y","size"]);
+        }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -1302,9 +1466,7 @@ var table = function(dataTable, config) {
 
 table.prototype.draw = function(div) {
   var table = d3.select(div).append("table")
-                .attr( "cellpadding", "8px")
-                .attr( "border", "2px")
-                .attr( "width", "100%")
+                .attr( "class", "table table-bordered")
                 .attr("id", this.config.title);
 
       // set up the table header
@@ -1496,9 +1658,9 @@ table.prototype.setupData = function (dataset, config) {
         config.renderer = "canvas";
     }
 
-	if (config.toolTip == null) {
-		config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-	}
+    if (config.toolTip == null) {
+        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
+    }
 
 	if (config.padding == null) {
         config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
@@ -1568,54 +1730,6 @@ var  mark = {
 }
 
 
-function getToolTipMark(config , metadata) {
-	    var mark =    {
-            "type": "group",
-            "from": {"data": "table",
-                "transform": [
-                    {
-                        "type": "filter",
-                        "test": "datum." + metadata.names[config.x] + " == hover." + metadata.names[config.x] + ""
-                    }
-                ]},
-                    "properties": {
-                        "update": {
-                            "x": {"scale": "x", "signal": "hover." + metadata.names[config.x], "offset": config.toolTip.x},
-                            "y": {"scale": "y", "signal": "hover." + metadata.names[config.y], "offset": config.toolTip.y},
-                            "width": {"value": config.toolTip.width},
-                            "height": {"value": config.toolTip.height},
-                            "fill": {"value": config.toolTip.color}
-                }
-            },
-
-            "marks": [
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 14},
-                            "text": {"template": "X \n (" + metadata.names[config.x] + ") \t {{hover." + metadata.names[config.x] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                },
-                {
-                    "type": "text",
-                    "properties": {
-                        "update": {
-                            "x": {"value": 6},
-                            "y": {"value": 29},
-                            "text": {"template": "Y \t (" + metadata.names[config.y] + ") \t {{hover." + metadata.names[config.y] + "}}"},
-                            "fill": {"value": "black"}
-                        }
-                    }
-                }
-            ]
-        }
-
-    return mark;
-}
 
 function getSignals(config, metadata){
 
@@ -1632,6 +1746,79 @@ function getSignals(config, metadata){
     return signals;
 
 }
+
+function bindTooltip(div,markType,eventObj, config, metaData, keyList){
+
+    eventObj.on("mouseover", function(event, item) {
+
+        if (item != null && item.status != "exit" && item.mark.marktype == markType) {
+            var canvas = $(".marks")[0];
+
+            $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
+
+            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $tip=$('#tip');
+            $tip.empty();
+
+            var dataObj = item.datum;
+            var dynamicContent = "";
+            for (var key in dataObj) {
+                if (dataObj.hasOwnProperty(key)) {
+                    if(keyList != undefined){
+                        for(var z=0;z<keyList.length;z++){
+                            for (var keyVal in config) {
+                                if(keyVal == keyList[z] && metaData.names[config[keyVal]] == key){
+                                    dynamicContent += "<p>"+keyList[z]+" ("+key+"):"+dataObj[key]+"</p>";
+                                    break;
+                                }
+                            }
+                        }
+                    }else{
+                        if(metaData.names[config.x] == key){
+                            dynamicContent += "<p>X ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                        if(metaData.names[config.y] == key){
+                            dynamicContent += "<p>Y ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                    }
+                }
+            }
+
+            $tip.append(dynamicContent);
+
+            var canvasWidth = canvas.width;
+            var canvasHeight = canvas.height;
+            var dynamicWidth = $tip.width();
+            var dynamicHeight = $tip.height();
+
+            var toolTipWidth = item.bounds.x2 + config.padding.left + dynamicWidth;
+            var toolTipHeight = (canvasHeight - item.bounds.y2) - config.padding.top + dynamicHeight;
+            var toolTipCalculatedXPosition;
+            var toolTipCalculatedYPosition = ((item.bounds.y2 + config.padding.top) - dynamicHeight);
+
+            if(toolTipWidth > canvasWidth){
+                toolTipCalculatedXPosition = ((item.bounds.x2 + config.padding.left) - dynamicWidth);
+            }else{
+                toolTipCalculatedXPosition = (item.bounds.x2 + config.padding.left);
+            }
+
+            if(toolTipHeight > canvasHeight){
+                toolTipCalculatedYPosition = item.bounds.y2 + config.padding.top;
+            }
+
+            $tip.css({left:toolTipCalculatedXPosition,top:toolTipCalculatedYPosition}).show();
+        }else{
+
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
+            if($(div).closest("#wrapper").length) {
+                $(div).unwrap();
+            }
+        }
+    })
+}
+
 
 
 

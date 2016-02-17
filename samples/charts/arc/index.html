@@ -1,45 +1,27 @@
-<!--
-~   Copyright (c) WSO2 Inc. (http://wso2.com) All Rights Reserved.
-~
-~   Licensed under the Apache License, Version 2.0 (the "License");
-~   you may not use this file except in compliance with the License.
-~   You may obtain a copy of the License at
-~
-~        http://www.apache.org/licenses/LICENSE-2.0
-~
-~   Unless required by applicable law or agreed to in writing, software
-~   distributed under the License is distributed on an "AS IS" BASIS,
-~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-~   See the License for the specific language governing permissions and
-~   limitations under the License.
--->
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
+<html>
+  <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>VizGrammar.js - Bar Chart Sample</title>
+    <title>VizGrammar.js - Arc Chart Sample</title>
     
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
-
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../css/VizGrammer.css">
     <link rel="stylesheet" href="../../css/custom.css">
-
+    
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
     <script src="../../../dist/VizGrammar.min.js"></script>
-    
-</head>
-<body>
-    
-    <!-- nav -->
+  </head>
+  
+ 
+  <body>
+  <!-- nav -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
@@ -58,94 +40,43 @@
             </div><!--/.nav-collapse -->
         </div>
     </nav>
-      
-    <div class="container">
-     
-            <div class="row">
+ <div class="container">
+       <div class="row">
 
         <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Group Multi Line Chart Sample
+                        Donut Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
                     <div id="dChart"></div>
+                    <div id="dChartContent"></div>
                 </div>
 
             </div>
         </div>
-
-                <div class="col-md-6" class="tile">
+       <div class="col-md-6" class="tile">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                       Single Line Chart Sample
+                        Pie Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="dChart3"></div>
+                    <div id="dChartPie"></div>
                 </div>
 
             </div>
         </div>
 
-        <script>
+    </div>
 
-        var data =  [
-          { 
-            "metadata" : {
-                "names" : ["rpm","torque","horsepower", "EngineType"],
-                "types" : ["linear","linear", "ordinal","ordinal"]
-            },
-            "data": [
-              [0, 10, 1, "Piston"], [0, 10, 1, "Rotary"]]
-          }
-        ];
+    <div class="row">
+ 
 
-        var config = {
-          x : "rpm",
-          charts : [
-          {type: "line",  y : "torque", color: "EngineType"}
-          ],
-          maxLength: 10,
-          width: 400,
-          height: 200
-        }
 
-        var lineChart = new vizg(data, config); 
-        var spec = lineChart.getSpec();
-
-        lineChart.draw("#dChart");
-
-        var configSingle = {
-            type: "line",
-            x : "rpm",
-            y : "torque",
-            charts : [{type: "line",  y : "torque"}],
-            maxLength: 6,
-            width: 400,
-            height: 200
-        };
-
-        var lineChartSingle = new vizg(data, configSingle);
-        lineChartSingle.draw("#dChart3");
-
-        var iterations = 1000;
-          (function insertLoop (i) {          
-              setTimeout(function () {   
-                var x = iterations-i + 1;
-                lineChartSingle.insert([[x, Number((Math.random() * 100).toFixed(2)), 13, "Rotary"]]);
-                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 2, "Rotary"]]);
-                lineChart.insert([[x, Number((Math.random() * 100).toFixed(2)), 1, "Piston"]]);          
-                  if (--i) insertLoop(i);
-               }, 1000)
-        })(iterations);
-        </script>
-      </div>
-
-          <div class="row">
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -173,25 +104,20 @@
             </div>
         </div>
 
-
-        <div class="col-md-6" >
-            <div class="panel panel-default" >
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Configurations
+                       Configurations
                     </h3>
                 </div>
                 <div class="panel-body">
-                    <div id="config">
-
                       <pre>
-{
-  x : "rpm",
-  charts : [{type: "line",  y : "torque", color: "EngineType"}],
-  maxLength: 10,
-  width: 400,
-  height: 200
-}
+    {
+        charts : [{type:"arc", x:"torque", color:"EngineType", mode:"donut"}],
+        width: 300,
+        height: 250
+    }
                       </pre>
 
                         <table class="table table-bordered">
@@ -213,7 +139,7 @@
                                 <td>String</td>
                                 <td>cAttribute name for X-axis</td>
                             </tr>
-                            <tr class="info">
+                            <tr class="danger">
                                 <td>maxLength</td>
                                 <td>int</td>
                                 <td>Maximum length of chart datatable</td>
@@ -256,30 +182,92 @@
                                 <td>Attribute name for Y-axis</td>
 
                             </tr>
-                            <tr class="info">
-                                <td>color</td>
-                                <td>String</td>
-                                <td>Attribute name for color dimension</td>
-                            </tr>
 
                             </tbody>
                         </table>
-
-                    </div>
+                    
                 </div>
+
             </div>
         </div>
 
-        </div>
-     
+
     </div>
-    
+
+        <script>
+        var data =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [0, 100, 12,"Rotary"]
+
+                            ]
+            }
+          ];
+
+
+        var config = {
+            charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "donut"}],
+            width: 300,
+            height: 250
+          }
+
+        var configPie = {
+            charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "pie"}],
+            width: 300,
+            height: 250
+        }
+
+        var callbackmethod = function(event, item) { 
+
+        if (item != null) {
+              var div = document.getElementById("dChartContent");
+                  div.innerHTML = "<p> Torque : "+item.datum.torque+"</p>"
+                  +  "<p> RPM : "+item.datum.rpm+"</p>"
+                  +  "<p> Engine Type : "+item.datum.EngineType+"</p>";
+          }
+        };
+
+        var donutChart = new vizg(data, config);
+        donutChart.draw("#dChart", [{type:"click", callback:callbackmethod}]);
+
+        var pieChart = new vizg(data, configPie);
+        pieChart.draw("#dChartPie"); 
+
+
+
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+               setTimeout(function () { 
+              if ( i % 4 == 0) {
+                    EngineType = "Rotary";
+                 } else if( i % 4 == 1) {
+                    EngineType = "Piston V6";
+                 } 
+                 else if( i % 4 == 2) {
+                    EngineType = "Piston V8";
+                 }  else if( i % 4 == 3) {
+                    EngineType = "Piston";
+                 }
+
+                pieChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);
+                donutChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);            
+                  if (--i) insertLoop(i);
+               }, 500)
+        })(iterations);
+        </script>
+      </div>
+
+
     <!-- footer -->
     <footer class="footer">
         <div class="container">
             <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script>.</p>
         </div>
     </footer>
-
-</body>
+  </body>
 </html>
