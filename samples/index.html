@@ -48,7 +48,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">Viz Grammar</a>
+                <a class="navbar-brand" href="#">VizGrammar</a>
             </div>
             <div id="navbar" class="collapse navbar-collapse hidden">
                 <ul class="nav navbar-nav">
@@ -402,6 +402,92 @@
                 
             </script>
         </div>
+
+        <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Donut Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChart"></div>
+                </div>
+            </div>
+            <script>
+            var data =  [
+                {
+                  "metadata" : {
+                      "names" : ["rpm","torque","horsepower", "EngineType"],
+                      "types" : ["linear","linear", "ordinal","ordinal"]
+                    },
+                  "data": [
+                    [0, 100, 12,"Rotary"]
+
+                                ]
+                }
+              ];
+
+
+            var config = {
+                charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "donut"}],
+                width: 300,
+                height: 250
+              }
+
+            var configPie = {
+                charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "pie"}],
+                width: 300,
+                height: 250
+            }
+
+            var donutChart = new vizg(data, config);
+            donutChart.draw("#dChart");
+
+            var pieChart = new vizg(data, configPie);
+            pieChart.draw("#dChartPie"); 
+
+
+
+            var iterations = 1000;
+            (function insertLoop (i) {      
+                      
+                   setTimeout(function () { 
+                  if ( i % 4 == 0) {
+                        EngineType = "Rotary";
+                     } else if( i % 4 == 1) {
+                        EngineType = "Piston V6";
+                     } 
+                     else if( i % 4 == 2) {
+                        EngineType = "Piston V8";
+                     }  else if( i % 4 == 3) {
+                        EngineType = "Piston";
+                     }
+
+                    pieChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);
+                    donutChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);            
+                      if (--i) insertLoop(i);
+                   }, 500)
+            })(iterations);
+            </script>
+        </div>
+       <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Pie Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartPie"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 
         <div class="row">
   
