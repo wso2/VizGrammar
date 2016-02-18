@@ -8,7 +8,15 @@ var arc = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
-      dataTable[0].transform = [{"type": "pie", "field": this.metadata.names[config.x]}];
+      dataTable[0].transform = [{
+                                  "type": "pie",
+                                   "field": this.metadata.names[config.x]
+                                },
+                                {
+                                  "type": "formula",
+                                  "field": "percentage",
+                                  "expr": "datum."+this.metadata.names[config.x]+" / 360 * 100"
+                                }];
       
       var scales =  []; 
 
@@ -164,7 +172,7 @@ function getPieText(config, metadata){
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "text": {"field": metadata.names[config.x], "mult":0.5},
+                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
 
                             }
                           }

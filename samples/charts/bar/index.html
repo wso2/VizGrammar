@@ -82,7 +82,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Bar Chart Sample
+                        Stack Bar Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
@@ -91,7 +91,22 @@
 
             </div>
         </div>
-                <div class="col-md-6">
+        
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroup"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -220,7 +235,6 @@
                   "types" : ["ordinal","linear", "ordinal","ordinal"]
                 },
               "data": [
-
                             ]
             }
           ];
@@ -239,7 +253,16 @@
           var configStack = {
             type: "bar",
             x : "rpm",
-            charts : [{type: "bar",  y : "torque", color: "EngineType"}],
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack"}],
+            maxLength: 12,
+            width: 400,
+            height: 200
+          }
+
+          var configGroup = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group"}],
             maxLength: 12,
             width: 400,
             height: 200
@@ -249,7 +272,19 @@
           barChart.draw("#dChart");
 
           var barChartStack = new vizg(data, configStack);
-          barChartStack.draw("#dChartStack");   
+          barChartStack.draw("#dChartStack"); 
+
+
+        data[0].data = [
+            [1,20,20,"Piston"],[1,35,20,"Rotary"],
+            [2,31,20,"Piston"],[2,28,20,"Rotary"],
+            [3,10,20,"Piston"],[3,38,20,"Rotary"],
+            [4,19,20,"Piston"],[4,24,20,"Rotary"],
+            [5,33,20,"Piston"],[5,27,20,"Rotary"]
+            ];
+
+        var barChartGroup = new vizg(data, configGroup);
+        barChartGroup.draw("#dChartGroup");
 
         var iterations = 1000;
           (function insertLoop (i) {          
