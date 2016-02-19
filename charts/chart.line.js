@@ -1,7 +1,4 @@
-
 var line = function(dataTable, config) {
-    
-    //console.log(settings);
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
@@ -66,19 +63,18 @@ var line = function(dataTable, config) {
                   "title": "Legend",
                   "offset": 0,
                   "properties": {
-                    "symbols": {
-                        //"fillOpacity": {"value": 0.5},
-                        "stroke": {"value": "transparent"}
-                    },
-                    "title": {
-                        "fill": {"value": config.legendTitleColor},
-                        "fontSize": {"value": config.legendTitleFontSize}
-                    },
-                    "labels": {
-                        "fill": {"value": config.legendTextColor},
-                        "fontSize": {"value": config.ledgendTextFontSize}
+                        "symbols": {
+                            "stroke": {"value": "transparent"}
+                        },
+                        "title": {
+                            "fill": {"value": config.legendTitleColor},
+                            "fontSize": {"value": config.legendTitleFontSize}
+                        },
+                        "labels": {
+                            "fill": {"value": config.legendTextColor},
+                            "fontSize": {"value": config.ledgendTextFontSize}
+                          }
                     }
-                  }
                 }
             ];
 
