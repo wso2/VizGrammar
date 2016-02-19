@@ -23,7 +23,15 @@ var arc = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
-      dataTable[0].transform = [{"type": "pie", "field": this.metadata.names[config.x]}];
+      dataTable[0].transform = [{
+                                  "type": "pie",
+                                   "field": this.metadata.names[config.x]
+                                },
+                                {
+                                  "type": "formula",
+                                  "field": "percentage",
+                                  "expr": "datum."+this.metadata.names[config.x]+" / 360 * 100"
+                                }];
       
       var scales =  []; 
 
@@ -179,7 +187,7 @@ function getPieText(config, metadata){
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "text": {"field": metadata.names[config.x], "mult":0.5},
+                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
 
                             }
                           }
@@ -327,28 +335,10 @@ var bar = function(dataTable, config) {
       dataTable[0].name= config.title;
       
       if (config.color != -1) {
-        var aggregateData = {
-            "name": "stack",
-            "source": config.title,
-            "transform": [
-              {
-                "type": "aggregate",
-                "groupby": [this.metadata.names[config.x]],
-                "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
-              }
-            ]
-          };
-
-          var legendTitle = "Legend";
-
+        var legendTitle = "Legend";
       if (config.title != "table") {
           legendTitle = config.title;
       }
-
-
-
-        dataTable.push(aggregateData);
-
         if (config.colorDomain == null) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
@@ -366,7 +356,7 @@ var bar = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
@@ -376,10 +366,30 @@ var bar = function(dataTable, config) {
                     }
                     ];
 
-          this.spec.legends = legends;
-          yColumn = "sum_"+ this.metadata.names[config.y];
-          yDomain = "stack";
 
+          if (config.mode == "stack") {
+            var aggregateData = {
+              "name": "stack",
+              "source": config.title,
+              "transform": [
+                {
+                  "type": "aggregate",
+                  "groupby": [this.metadata.names[config.x]],
+                  "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
+                }
+              ]
+            };
+
+            dataTable.push(aggregateData);
+            yColumn = "sum_"+ this.metadata.names[config.y];
+            yDomain = "stack";
+
+        } else {
+            yColumn = this.metadata.names[config.y];
+            yDomain = config.title;
+        }
+        
+        this.spec.legends = legends;
       } else {
         yColumn = this.metadata.names[config.y];
         yDomain = config.title;
@@ -391,6 +401,10 @@ var bar = function(dataTable, config) {
               "range": "width",
               "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
               };
+
+    if (config.mode == "group") {
+        xScale.padding = 0.2;
+      }
 
       var yScale = {
           "name": "y",
@@ -411,6 +425,8 @@ var bar = function(dataTable, config) {
 
       if (config.color != -1 && config.mode == "stack") {
         marks.push(getStackBarMark(config, this.metadata));
+      } else if (config.color != -1 && config.mode == "group") {
+        marks.push(getGroupBarMark(config, this.metadata));
       } else {
         marks.push(getBarMark(config, this.metadata));
       }
@@ -581,7 +597,7 @@ function getStackBarMark(config, metadata){
   var mark =      {
       "type": "rect",
       "from": {
-        "data": "table",
+        "data": config.title,
         "transform": [
           { "type": "stack", 
             "groupby": [metadata.names[config.x]], 
@@ -596,12 +612,59 @@ function getStackBarMark(config, metadata){
           "y": {"scale": "y", "field": "layout_start"},
           "y2": {"scale": "y", "field": "layout_end"},
           "fill": {"scale": "color", "field": metadata.names[config.color]},
-           "fillOpacity": {"value": 1}
+          "fillOpacity": {"value": 1}
         },
         "hover": {
           "fillOpacity": {"value": 0.5}
         }
       }
+    };
+      
+
+  return mark;
+}
+
+function getGroupBarMark(config, metadata){
+
+  var mark =  {
+      "type": "group",
+      "from": {
+        "data": config.title,
+        "transform": [{"type":"facet", "groupby": [metadata.names[config.x]]}]
+      },
+      "properties": {
+        "update": {
+          "x": {"scale": "x", "field": "key"},
+          "width": {"scale": "x", "band": true}
+        }
+      },
+      "scales": [
+        {
+          "name": "pos",
+          "type": "ordinal",
+          "range": "width",
+          "domain": {"field": metadata.names[config.color]}
+        }
+      ],
+      "marks": [
+      {
+          "name": "bars",
+          "type": "rect",
+          "properties": {
+            "update": {
+              "x": {"scale": "pos", "field": metadata.names[config.color]},
+              "width": {"scale": "pos", "band": true},
+              "y": {"scale": "y", "field": metadata.names[config.y]},
+              "y2": {"scale": "y", "value": 0},
+              "fill": {"scale": "color", "field": metadata.names[config.color]},
+              "fillOpacity": {"value": 1}
+            },
+            "hover": {
+              "fillOpacity": {"value": 0.5}
+            }
+          }
+        }
+      ]
     };
       
 
@@ -696,7 +759,7 @@ var line = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
