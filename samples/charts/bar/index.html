@@ -240,48 +240,38 @@
           ];
 
 
-          var config = {
+        var config = {
             type: "bar",
             x : "rpm",
             charts : [{type: "bar",  y : "torque"}],
             maxLength: 6,
             width: 400,
             height: 200
-          }
+        }
 
-
-          var configStack = {
+        var configStack = {
             type: "bar",
             x : "rpm",
             charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack"}],
             maxLength: 12,
             width: 400,
             height: 200
-          }
+        }
 
-          var configGroup = {
+        var configGroup = {
             type: "bar",
             x : "rpm",
             charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group"}],
             maxLength: 12,
             width: 400,
             height: 200
-          }
+        }
 
-          var barChart = new vizg(data, config);
-          barChart.draw("#dChart");
+        var barChart = new vizg(data, config);
+        barChart.draw("#dChart");
 
-          var barChartStack = new vizg(data, configStack);
-          barChartStack.draw("#dChartStack"); 
-
-
-        data[0].data = [
-            [1,20,20,"Piston"],[1,35,20,"Rotary"],
-            [2,31,20,"Piston"],[2,28,20,"Rotary"],
-            [3,10,20,"Piston"],[3,38,20,"Rotary"],
-            [4,19,20,"Piston"],[4,24,20,"Rotary"],
-            [5,33,20,"Piston"],[5,27,20,"Rotary"]
-            ];
+        var barChartStack = new vizg(data, configStack);
+        barChartStack.draw("#dChartStack"); 
 
         var barChartGroup = new vizg(data, configGroup);
         barChartGroup.draw("#dChartGroup");
@@ -292,7 +282,9 @@
                 var xVal =  Number((Math.random() * 100).toFixed(0))%15;
                 barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
-                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
+                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);

@@ -558,8 +558,13 @@ bar.prototype.insert = function(data) {
             }
         }
     }
-    this.view.update({duration: 200});
 
+    //Group does not support duration update animation
+    if (this.config.mode == "group") {
+      this.view.update();
+    } else {
+      this.view.update({duration: 200});
+    }
 };
 
 bar.prototype.getSpec = function() {
