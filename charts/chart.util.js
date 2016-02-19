@@ -1,50 +1,26 @@
+var extend = function (defaults, options) {
+    var extended = {};
+    var prop;
+    for (prop in defaults) {
+        if (Object.prototype.hasOwnProperty.call(defaults, prop)) {
+            extended[prop] = defaults[prop];
+        }
+    }
+    for (prop in options) {
+        if (Object.prototype.hasOwnProperty.call(options, prop)) {
+            extended[prop] = options[prop];
+        }
+    }
+    return extended;
+};
+
 function checkConfig(config, metadata){
-
-	if (config.title == null) {
-		config.title = "table";
-	}
-
-	if (config.xTitle == null) {
-		config.xTitle = config.x;
-	}
-
-	if (config.yTitle == null) {
-		config.yTitle = config.y;
-	}
-
-	if (config.colorScale == null) {
-		config.colorScale = "category10";
-	}
-
-	if (config.grid == null) {
-		config.grid  = true; 
-	}
-
-	if (config.zero == null) {
-		config.zero = false;
-	}
-
-	if (config.color == null) {
+    
+    if (config.color == null) {
 		config.color = -1;
 	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
-
-    if (config.mapType == null) {
-        config.mapType = -1;
-    }
-
-    if (config.minColor == null) {
-        config.minColor = -1;
-    }
-
-    if (config.maxColor == null) {
-        config.maxColor = -1;
-    }
-
-    if (config.mode == null) {
-        config.mode = "stack";
-    }
 
     if (config.size == null) {
         config.size = -1;
@@ -52,41 +28,33 @@ function checkConfig(config, metadata){
         config.size = metadata.names.indexOf(config.size);
     }
 
-	if (config.maxLength == null) {
-		config.maxLength = -1;
-	}
-
-	if (config.markColor == null) {
-		config.markColor = "steelblue";
-	}
-
-	if (config.markSize == null) {
-		config.markSize = 2;
-	}
-
-	if (config.fillOpacity == null) {
-		config.fillOpacity = 1;
-	}
-
-    if (config.renderer == null) {
-        config.renderer = "canvas";
-    }
-
-    if (config.toolTip == null) {
-        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-    }
-
-	if (config.padding == null) {
-        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
-	}
-
-	if (config.hoverType == null) {
-		config.hoverType = "symbol";
-	}
-
-    if (config.tooltip == null) {
-        config.tooltip = true;
-    }
+    var defaults = {
+        title: "table",
+        xTitle: config.x,
+        yTitle: config.y,
+        grid: true,
+        zero: false,
+        mapType: -1,
+        minColor: -1,
+        maxColor: -1,
+        mode: "stack",
+        colorScale: ["#008CBF","#005D7F","#00BAFF","#002F40","#00A7E5"], //color hex array or string: category10, 10c, category20, category20b, category20c
+        maxLength: -1,
+        markColor: "steelblue",
+        markSize: 2,
+        fillOpacity: 1,
+        renderer: "svg", //string: canvas or svg
+        legendTitleColor: "#222",
+        legendTitleFontSize: 13,
+        legendTextColor: "#888",
+        ledgendTextFontSize: 12,
+        padding: {"top": 50, "left": 60, "bottom": 40, "right": 150},
+        hoverType: "symbol",
+        tooltip: true,
+        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
+    },
+    defaults = extend(defaults, vizgSettings),
+    config = extend(defaults, config);
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
@@ -148,7 +116,6 @@ var  mark = {
 function getSignals(config, metadata){
 
     var signals = [{
-
             "name": "hover",
             "init": {},
             "streams": [
@@ -242,7 +209,3 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
         }
     })
 }
-
-
-
-

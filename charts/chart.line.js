@@ -1,5 +1,7 @@
 
 var line = function(dataTable, config) {
+    
+    //console.log(settings);
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
@@ -9,20 +11,20 @@ var line = function(dataTable, config) {
       dataTable[0].name= config.title;
 
       var xScale = {
-                    "name": "x",
-                    "type": this.metadata.types[config.x],
-                    "range": "width",
-                    "zero": config.zero,
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-                    };
+            "name": "x",
+            "type": this.metadata.types[config.x],
+            "range": "width",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+        };
 
       var yScale = {
-                "name": "y",
-                "type": this.metadata.types[config.y],
-                "range": "height",
-                "zero": config.zero,
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-                };
+            "name": "y",
+            "type": this.metadata.types[config.y],
+            "range": "height",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
+        };
       
       var scales =  [xScale, yScale];
 
@@ -59,21 +61,29 @@ var line = function(dataTable, config) {
       }
 
       var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 0,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
+                {
+                  "fill": "color",
+                  "title": "Legend",
+                  "offset": 0,
+                  "properties": {
+                    "symbols": {
+                        //"fillOpacity": {"value": 0.5},
+                        "stroke": {"value": "transparent"}
+                    },
+                    "title": {
+                        "fill": {"value": config.legendTitleColor},
+                        "fontSize": {"value": config.legendTitleFontSize}
+                    },
+                    "labels": {
+                        "fill": {"value": config.legendTextColor},
+                        "fontSize": {"value": config.ledgendTextFontSize}
                     }
-                    ];
+                  }
+                }
+            ];
 
-                    this.spec.legends = legends;
-          }
+            this.spec.legends = legends;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -115,8 +125,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
-
+    vg.parse.spec(this.spec, viewUpdateFunction);
 
 };
 
@@ -144,48 +153,48 @@ line.prototype.getSpec = function() {
 function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
-              mark =  {
-                              "type": "group",
-                              "from": {
-                                "data":  config.title,
-                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "line",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2},
-                                      "strokeOpacity": {"value": 1}
-                                    },
-                                    "hover": {
-                                      "strokeOpacity": {"value": 0.5}
-                                    }
-                                  }
-                                }
-                              ]
-                            };
+          mark =  {
+                  "type": "group",
+                  "from": {
+                    "data":  config.title,
+                    "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+                  },
+                  "marks": [
+                    {
+                      "type": "line",
+                      "properties": {
+                        "update": {
+                          "x": {"scale": "x", "field": metadata.names[config.x]},
+                          "y": {"scale": "y", "field": metadata.names[config.y]},
+                          "stroke": {"scale": "color", "field": metadata.names[config.color]},
+                          "strokeWidth": {"value": 2},
+                          "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                          "strokeOpacity": {"value": 0.5}
+                        }
+                      }
+                    }
+                  ]
+                };
         } else {
-                mark = {
-                                "type": "line",
-                                "from": {"data": config.title},
-                                "properties": {
-                                  "update": {
+            mark = {
+                    "type": "line",
+                    "from": {"data": config.title},
+                    "properties": {
+                      "update": {
 
-                                    "x": {"scale": "x", "field": metadata.names[config.x]},
-                                    "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "stroke": { "value": config.markColor},
-                                    "strokeWidth": {"value": 2},
-                                    "strokeOpacity": {"value": 1}
-                                  },
-                                  "hover": {
-                                    "strokeOpacity": {"value": 0.5}
-                                  }
-                                }
-                            };
+                        "x": {"scale": "x", "field": metadata.names[config.x]},
+                        "y": {"scale": "y", "field": metadata.names[config.y]},
+                        "stroke": { "value": config.markColor},
+                        "strokeWidth": {"value": 2},
+                        "strokeOpacity": {"value": 1}
+                      },
+                      "hover": {
+                        "strokeOpacity": {"value": 0.5}
+                      }
+                    }
+                };
         }
 
         return mark;
