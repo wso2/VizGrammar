@@ -1816,7 +1816,6 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
         if (item != null && item.status != "exit" && item.mark.marktype == markType) {
             var canvas = $(".marks")[0];
-
             if($("#wrapper #tip").length) {
                 $tip.remove();
             }
@@ -1855,6 +1854,13 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
             var canvasWidth = canvas.width;
             var canvasHeight = canvas.height;
+
+            var el = $('.marks[style*="width"]');
+
+            if(el.length > 0){
+                canvasWidth = parseFloat($(".marks")[0].style.width);
+                canvasHeight = parseFloat($(".marks")[0].style.height);
+            }
             var dynamicWidth = $tip.width();
             var dynamicHeight = $tip.height();
 
