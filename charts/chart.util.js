@@ -38,7 +38,7 @@ function checkConfig(config, metadata){
         minColor: -1,
         maxColor: -1,
         mode: "stack",
-        colorScale: ["#008CBF","#005D7F","#00BAFF","#002F40","#00A7E5"], //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: ["#343B59","#444B6A","#396B94","#438CAD","#BBBCCD","#597CC3"], //color hex array or string: category10, 10c, category20, category20b, category20c
         maxLength: -1,
         markColor: "steelblue",
         markSize: 2,
@@ -52,8 +52,12 @@ function checkConfig(config, metadata){
         hoverType: "symbol",
         tooltip: true,
         toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
-    },
-    defaults = extend(defaults, vizgSettings),
+    };
+    
+    if (typeof vizgSettings != 'undefined'){
+        defaults = extend(defaults, vizgSettings);
+    }
+    
     config = extend(defaults, config);
 
 	config.x = metadata.names.indexOf(config.x);

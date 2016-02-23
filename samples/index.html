@@ -35,11 +35,7 @@
     <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
     <script src="js/VizGrammar.min.js"></script>
-    <script>
-        var vizgSettings = {
-            colorScale: "category20"
-        }
-    </script>
+    <script src="js/VizGrammarSettings.js"></script>
     
 </head>
 <body>
@@ -105,13 +101,13 @@
                           charts : [
                             {type: "line",  y : "torque", color: "EngineType"}
                           ],
-                          colorScale: "category10",
+                          //colorScale: "category10",
                           maxLength: 20,
                           width: 400,
                           height: 200
                         }
 
-                        var lineChart = new vizg(data, config, vizgSettings);
+                        var lineChart = new vizg(data, config);
                         var spec = lineChart.getSpec();
 
                         lineChart.draw("#dChartLine");
@@ -159,7 +155,6 @@
                         type: "bar",
                         x : "rpm",
                         charts : [{type: "bar",  y : "torque"}],
-                        renderer: 'svg',
                         maxLength: 6,
                         width: 400,
                         height: 200
@@ -212,7 +207,6 @@
 
                     var config = {
                         charts : [{type: "area",  x : "rpm", y : "torque"}],
-                        renderer: 'svg',
                         maxLength: 10,
                         width: 400,
                         height: 200
@@ -264,19 +258,19 @@
 
                     var config = {
                         type: "scatter",
-                        charts : [
-                            {type: "scatter",
-                             x : "rpm",  
-                             y : "torque",
-                             color: "horsepower", 
-                             size : "weight", 
-                             maxLength: 30, 
-                             maxColor:"#ffff00", 
-                             minColor:"#ff00ff"}], 
-
+                        charts : [{
+                            type: "scatter",
+                            x : "rpm",  
+                            y : "torque",
+                            color: "horsepower", 
+                            size : "weight",
+                            maxColor:"#597CC3", 
+                            minColor:"#343B59",
+                            maxLength: 30
+                        }],
                         width: 400,
                         height: 200
-                    }
+                    }   
 
                     var scatterChart = new vizg(data, config);
                     scatterChart.draw("#dChartScatter");
