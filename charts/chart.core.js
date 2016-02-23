@@ -1,4 +1,4 @@
-var vizg = function(dataTable, config, settings) {
+var vizg = function(dataTable, config) {
 	dataTable = buildTable(dataTable); 
 	if (typeof config.charts !== "undefined" && config.charts.length == 1) {
 		//Set chart config properties for main
