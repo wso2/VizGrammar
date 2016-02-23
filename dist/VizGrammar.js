@@ -671,7 +671,7 @@ function getGroupBarMark(config, metadata){
   return mark;
 }
 
-;var vizg = function(dataTable, config) {
+;var vizg = function(dataTable, config, settings) {
 	dataTable = buildTable(dataTable); 
 	if (typeof config.charts !== "undefined" && config.charts.length == 1) {
 		//Set chart config properties for main
@@ -695,8 +695,7 @@ vizg.prototype.insert = function(data) {
 
 vizg.prototype.getSpec = function() {
 	return this.chart.getSpec();
-};;
-var line = function(dataTable, config) {
+};;var line = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
@@ -706,20 +705,20 @@ var line = function(dataTable, config) {
       dataTable[0].name= config.title;
 
       var xScale = {
-                    "name": "x",
-                    "type": this.metadata.types[config.x],
-                    "range": "width",
-                    "zero": config.zero,
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-                    };
+            "name": "x",
+            "type": this.metadata.types[config.x],
+            "range": "width",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+        };
 
       var yScale = {
-                "name": "y",
-                "type": this.metadata.types[config.y],
-                "range": "height",
-                "zero": config.zero,
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-                };
+            "name": "y",
+            "type": this.metadata.types[config.y],
+            "range": "height",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
+        };
       
       var scales =  [xScale, yScale];
 
@@ -756,21 +755,28 @@ var line = function(dataTable, config) {
       }
 
       var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 10,
-                      "properties": {
+                {
+                  "fill": "color",
+                  "title": "Legend",
+                  "offset": 0,
+                  "properties": {
                         "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
+                            "stroke": {"value": "transparent"}
+                        },
+                        "title": {
+                            "fill": {"value": config.legendTitleColor},
+                            "fontSize": {"value": config.legendTitleFontSize}
+                        },
+                        "labels": {
+                            "fill": {"value": config.legendTextColor},
+                            "fontSize": {"value": config.ledgendTextFontSize}
+                          }
                     }
-                    ];
+                }
+            ];
 
-                    this.spec.legends = legends;
-          }
+            this.spec.legends = legends;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -812,8 +818,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
-
+    vg.parse.spec(this.spec, viewUpdateFunction);
 
 };
 
@@ -841,48 +846,48 @@ line.prototype.getSpec = function() {
 function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
-              mark =  {
-                              "type": "group",
-                              "from": {
-                                "data":  config.title,
-                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "line",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2},
-                                      "strokeOpacity": {"value": 1}
-                                    },
-                                    "hover": {
-                                      "strokeOpacity": {"value": 0.5}
-                                    }
-                                  }
-                                }
-                              ]
-                            };
+          mark =  {
+                  "type": "group",
+                  "from": {
+                    "data":  config.title,
+                    "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+                  },
+                  "marks": [
+                    {
+                      "type": "line",
+                      "properties": {
+                        "update": {
+                          "x": {"scale": "x", "field": metadata.names[config.x]},
+                          "y": {"scale": "y", "field": metadata.names[config.y]},
+                          "stroke": {"scale": "color", "field": metadata.names[config.color]},
+                          "strokeWidth": {"value": 2},
+                          "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                          "strokeOpacity": {"value": 0.5}
+                        }
+                      }
+                    }
+                  ]
+                };
         } else {
-                mark = {
-                                "type": "line",
-                                "from": {"data": config.title},
-                                "properties": {
-                                  "update": {
+            mark = {
+                    "type": "line",
+                    "from": {"data": config.title},
+                    "properties": {
+                      "update": {
 
-                                    "x": {"scale": "x", "field": metadata.names[config.x]},
-                                    "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "stroke": { "value": config.markColor},
-                                    "strokeWidth": {"value": 2},
-                                    "strokeOpacity": {"value": 1}
-                                  },
-                                  "hover": {
-                                    "strokeOpacity": {"value": 0.5}
-                                  }
-                                }
-                            };
+                        "x": {"scale": "x", "field": metadata.names[config.x]},
+                        "y": {"scale": "y", "field": metadata.names[config.y]},
+                        "stroke": { "value": config.markColor},
+                        "strokeWidth": {"value": 2},
+                        "strokeOpacity": {"value": 1}
+                      },
+                      "hover": {
+                        "strokeOpacity": {"value": 0.5}
+                      }
+                    }
+                };
         }
 
         return mark;
@@ -1647,53 +1652,29 @@ table.prototype.setupData = function (dataset, config) {
             })  
           .remove();
     }
-};function checkConfig(config, metadata){
+};var extend = function (defaults, options) {
+    var extended = {};
+    var prop;
+    for (prop in defaults) {
+        if (Object.prototype.hasOwnProperty.call(defaults, prop)) {
+            extended[prop] = defaults[prop];
+        }
+    }
+    for (prop in options) {
+        if (Object.prototype.hasOwnProperty.call(options, prop)) {
+            extended[prop] = options[prop];
+        }
+    }
+    return extended;
+};
 
-	if (config.title == null) {
-		config.title = "table";
-	}
-
-	if (config.xTitle == null) {
-		config.xTitle = config.x;
-	}
-
-	if (config.yTitle == null) {
-		config.yTitle = config.y;
-	}
-
-	if (config.colorScale == null) {
-		config.colorScale = "category10";
-	}
-
-	if (config.grid == null) {
-		config.grid  = true; 
-	}
-
-	if (config.zero == null) {
-		config.zero = false;
-	}
-
-	if (config.color == null) {
+function checkConfig(config, metadata){
+    
+    if (config.color == null) {
 		config.color = -1;
 	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
-
-    if (config.mapType == null) {
-        config.mapType = -1;
-    }
-
-    if (config.minColor == null) {
-        config.minColor = -1;
-    }
-
-    if (config.maxColor == null) {
-        config.maxColor = -1;
-    }
-
-    if (config.mode == null) {
-        config.mode = "stack";
-    }
 
     if (config.size == null) {
         config.size = -1;
@@ -1701,41 +1682,33 @@ table.prototype.setupData = function (dataset, config) {
         config.size = metadata.names.indexOf(config.size);
     }
 
-	if (config.maxLength == null) {
-		config.maxLength = -1;
-	}
-
-	if (config.markColor == null) {
-		config.markColor = "steelblue";
-	}
-
-	if (config.markSize == null) {
-		config.markSize = 2;
-	}
-
-	if (config.fillOpacity == null) {
-		config.fillOpacity = 1;
-	}
-
-    if (config.renderer == null) {
-        config.renderer = "canvas";
-    }
-
-    if (config.toolTip == null) {
-        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-    }
-
-	if (config.padding == null) {
-        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
-	}
-
-	if (config.hoverType == null) {
-		config.hoverType = "symbol";
-	}
-
-    if (config.tooltip == null) {
-        config.tooltip = true;
-    }
+    var defaults = {
+        title: "table",
+        xTitle: config.x,
+        yTitle: config.y,
+        grid: true,
+        zero: false,
+        mapType: -1,
+        minColor: -1,
+        maxColor: -1,
+        mode: "stack",
+        colorScale: ["#008CBF","#005D7F","#00BAFF","#002F40","#00A7E5"], //color hex array or string: category10, 10c, category20, category20b, category20c
+        maxLength: -1,
+        markColor: "steelblue",
+        markSize: 2,
+        fillOpacity: 1,
+        renderer: "svg", //string: canvas or svg
+        legendTitleColor: "#222",
+        legendTitleFontSize: 13,
+        legendTextColor: "#888",
+        ledgendTextFontSize: 12,
+        padding: {"top": 50, "left": 60, "bottom": 40, "right": 150},
+        hoverType: "symbol",
+        tooltip: true,
+        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
+    },
+    defaults = extend(defaults, vizgSettings),
+    config = extend(defaults, config);
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
@@ -1797,7 +1770,6 @@ var  mark = {
 function getSignals(config, metadata){
 
     var signals = [{
-
             "name": "hover",
             "init": {},
             "streams": [
@@ -1891,7 +1863,3 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
         }
     })
 }
-
-
-
-

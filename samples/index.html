@@ -35,6 +35,11 @@
     <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
     <script src="js/VizGrammar.min.js"></script>
+    <script>
+        var vizgSettings = {
+            colorScale: "category20"
+        }
+    </script>
     
 </head>
 <body>
@@ -100,13 +105,13 @@
                           charts : [
                             {type: "line",  y : "torque", color: "EngineType"}
                           ],
-                          renderer: 'svg',
+                          colorScale: "category10",
                           maxLength: 20,
                           width: 400,
                           height: 200
                         }
 
-                        var lineChart = new vizg(data, config); 
+                        var lineChart = new vizg(data, config, vizgSettings);
                         var spec = lineChart.getSpec();
 
                         lineChart.draw("#dChartLine");
