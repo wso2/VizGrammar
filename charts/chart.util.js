@@ -174,8 +174,17 @@ function bindTooltip(div, view, config, metadata){
     view.on("mouseover", function(event, item) {
       if (item != null) { 
         var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
-        var tooltipContent = "<b>X</b> ("+ metadata.names[config.x] +") : "+item.datum[metadata.names[config.x]]+"<br/>" 
-                             + "<b>Y</b> ("+ metadata.names[config.y] + ") : "+item.datum[metadata.names[config.y]] ;
+        var tooltipContent = "";
+        
+
+        if (metadata.names[config.x] != null) {
+          tooltipContent += "<b>X</b> ("+ metadata.names[config.x] +") : "+item.datum[metadata.names[config.x]]+"<br/>" ;
+        }
+
+        if (metadata.names[config.y] != null) {
+          tooltipContent += "<b>Y</b> ("+ metadata.names[config.y] + ") : "+item.datum[metadata.names[config.y]]+"<br/>" ;
+        }
+
         tooltipSpan.innerHTML = tooltipContent;
         tooltipSpan.style.padding = "5px 5px 5px 5px";
 

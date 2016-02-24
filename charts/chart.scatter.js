@@ -60,12 +60,13 @@ var scatter = function(dataTable, config) {
 
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
-
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata,["x","y","size"]);
-        }
-
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
