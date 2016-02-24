@@ -42,7 +42,7 @@ var line = function(dataTable, config) {
       } 
 
       var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
+                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle, "ticks":2},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
@@ -62,7 +62,7 @@ var line = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
@@ -88,11 +88,13 @@ var line = function(dataTable, config) {
 line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
-
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
-        }
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
