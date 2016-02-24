@@ -121,17 +121,20 @@ var bar = function(dataTable, config) {
 
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
-        if(this.config.tooltip != false){
-            bindTooltip(div,"rect",this.view,this.config,this.metadata);
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          this.view.on(callbacks[i].type, callbacks[i].callback);
         }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
+      }
 
     }).bind(this);
 

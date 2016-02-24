@@ -201,10 +201,72 @@ var area = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
+      var scales = [];
 
       config = checkConfig(config, this.metadata);
       this.config = config;
       dataTable[0].name= config.title;
+
+
+      config = checkConfig(config, this.metadata);
+      this.config = config;
+      dataTable[0].name= config.title;
+      
+      if (config.color != -1) {
+        var legendTitle = "Legend";
+      if (config.title != "table") {
+          legendTitle = config.title;
+      }
+        if (config.colorDomain == null) {
+              config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+          }
+
+          var colorScale = {
+            "name": "color", 
+            "type": "ordinal", 
+            "domain": config.colorDomain,
+            "range": config.colorScale
+          };
+
+          scales.push(colorScale);
+
+              var legends = [
+                      {
+                      "fill": "color",
+                      "title": "Legend",
+                      "offset": 10,
+                      "properties": {
+                        "symbols": {
+                          "fillOpacity": {"value": 0.5},
+                          "stroke": {"value": "transparent"}
+                        }
+                      }
+                    }
+                    ];
+
+
+          if (config.mode == "stack") {
+            var aggregateData = {
+              "name": "stack",
+              "source": config.title,
+              "transform": [
+                {
+                  "type": "aggregate",
+                  "groupby": [this.metadata.names[config.x]],
+                  "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
+                }
+              ]
+            };
+
+            dataTable.push(aggregateData);
+            yColumn = "sum_"+ this.metadata.names[config.y];
+            yDomain = "stack";
+
+        }
+      } else {
+          yColumn = this.metadata.names[config.y];
+          yDomain = config.title;
+      }
 
       var xScale = {
                     "name": "x",
@@ -219,15 +281,23 @@ var area = function(dataTable, config) {
                 "type": this.metadata.types[config.y],
                 "range": "height",
                 "zero": "false",
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
+                "domain": {"data":  yDomain, "field": yColumn}
                 };
       
-      var scales =  [xScale, yScale]; 
+      scales.push(xScale);
+      scales.push(yScale);
+
 
       var axes =  [
                     {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
+
+      if (config.color != -1 && config.mode == "stack") {
+        marks.push(getStackAreaMark(config, this.metadata));
+      } else {
+        marks.push(getAreaMark(config, this.metadata));
+      }
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -318,6 +388,26 @@ function getAreaMark(config, metadata){
                         }
                     };
 
+        return mark;
+}
+
+
+function getStackAreaMark(config, metadata){
+        var mark = {
+                      "type": "area",
+                      "properties": {
+                        "update": {
+                          "x": {"scale": "x", "field": metadata.names[config.x]},
+                          "y": {"scale": "y", "field": "layout_start"},
+                          "y2": {"scale": "y", "field": "layout_end"},
+                          "fill": {"scale": "color", "field": metadata.names[config.color]},
+                          "fillOpacity": {"value": 1}
+                        },
+                        "hover": {
+                          "fillOpacity": {"value": 0.5}
+                        }
+                      }
+                    };
         return mark;
 }
 
@@ -444,17 +534,20 @@ var bar = function(dataTable, config) {
 
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
-        if(this.config.tooltip != false){
-            bindTooltip(div,"rect",this.view,this.config,this.metadata);
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          this.view.on(callbacks[i].type, callbacks[i].callback);
         }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
+      }
 
     }).bind(this);
 
@@ -744,7 +837,7 @@ var line = function(dataTable, config) {
       } 
 
       var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
+                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle, "ticks":2},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
@@ -790,11 +883,13 @@ var line = function(dataTable, config) {
 line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
-
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
-        }
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -1731,7 +1826,7 @@ table.prototype.setupData = function (dataset, config) {
     }
 
 	if (config.padding == null) {
-        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
+        config.padding = {"top": 10, "left": 50, "bottom": 40, "right": 100};
 	}
 
 	if (config.hoverType == null) {
@@ -1741,6 +1836,9 @@ table.prototype.setupData = function (dataset, config) {
     if (config.tooltip == null) {
         config.tooltip = true;
     }
+
+    config.height = config.height  - (config.padding.top + config.padding.bottom);
+    config.width = config.width  - (config.padding.left + config.padding.right);
 
 	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
@@ -1815,88 +1913,60 @@ function getSignals(config, metadata){
 
 }
 
-function bindTooltip(div,markType,eventObj, config, metaData, keyList){
-
-    eventObj.on("mouseover", function(event, item) {
-
-        if (item != null && item.status != "exit" && item.mark.marktype == markType) {
-            var canvas = $(".marks")[0];
-            if($("#wrapper #tip").length) {
-                $tip.remove();
-            }
-
-            $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
-
-            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
-            $tip=$('#tip');
-            $tip.empty();
-
-            var dataObj = item.datum;
-            var dynamicContent = "";
-            for (var key in dataObj) {
-                if (dataObj.hasOwnProperty(key)) {
-                    if(keyList != undefined){
-                        for(var z=0;z<keyList.length;z++){
-                            for (var keyVal in config) {
-                                if(keyVal == keyList[z] && metaData.names[config[keyVal]] == key){
-                                    dynamicContent += "<p>"+keyList[z]+" ("+key+"):"+dataObj[key]+"</p>";
-                                    break;
-                                }
-                            }
-                        }
-                    }else{
-                        if(metaData.names[config.x] == key){
-                            dynamicContent += "<p>X ("+key+"):"+dataObj[key]+"</p>";
-                        }
-                        if(metaData.names[config.y] == key){
-                            dynamicContent += "<p>Y ("+key+"):"+dataObj[key]+"</p>";
-                        }
-                    }
-                }
-            }
-
-            $tip.append(dynamicContent);
-
-            var canvasWidth = canvas.width;
-            var canvasHeight = canvas.height;
-
-            var el = $('.marks[style*="width"]');
-
-            if(el.length > 0){
-                canvasWidth = parseFloat($(".marks")[0].style.width);
-                canvasHeight = parseFloat($(".marks")[0].style.height);
-            }
-            var dynamicWidth = $tip.width();
-            var dynamicHeight = $tip.height();
-
-            var toolTipWidth = item.bounds.x2 + config.padding.left + dynamicWidth;
-            var toolTipHeight = (canvasHeight - item.bounds.y2) - config.padding.top + dynamicHeight;
-            var toolTipCalculatedXPosition;
-            var toolTipCalculatedYPosition = ((item.bounds.y2 + config.padding.top) - dynamicHeight);
-
-            if(toolTipWidth > canvasWidth){
-                toolTipCalculatedXPosition = ((item.bounds.x2 + config.padding.left) - dynamicWidth);
-            }else{
-                toolTipCalculatedXPosition = (item.bounds.x2 + config.padding.left);
-            }
-
-            if(toolTipHeight > canvasHeight){
-                toolTipCalculatedYPosition = item.bounds.y2 + config.padding.top;
-            }
-
-            $tip.css({left:toolTipCalculatedXPosition,top:toolTipCalculatedYPosition}).show();
-        }else{
-
-            if($("#wrapper #tip").length) {
-                $tip.remove();
-            }
-            if($(div).closest("#wrapper").length) {
-                $(div).unwrap();
-            }
-        }
-    })
+function createTooltip(div) {
+   document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
+        + "<div id= "+div.replace("#", "")+"-tooltip></div>";
 }
 
+function bindTooltip(div, view, config, metadata){
+
+    view.on("mouseover", function(event, item) {
+      if (item != null) { 
+        var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+        var tooltipContent = "<b>X</b> ("+ metadata.names[config.x] +") : "+item.datum[metadata.names[config.x]]+"<br/>" 
+                             + "<b>Y</b> ("+ metadata.names[config.y] + ") : "+item.datum[metadata.names[config.y]] ;
+        tooltipSpan.innerHTML = tooltipContent;
+        tooltipSpan.style.padding = "5px 5px 5px 5px";
+
+        window.onmousemove = function (e) {
+          tooltipSpan.style.top = (e.clientY + 15) + 'px';
+          tooltipSpan.style.left = (e.clientX + 10) + 'px';
+          tooltipSpan.style.zIndex  = 1000;
+          tooltipSpan.style.backgroundColor = config.toolTip.color;
+          tooltipSpan.style.position = "fixed";
+
+          if (tooltipSpan.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
+            tooltipSpan.style.left = (e.clientX - tooltipSpan.offsetWidth) + 'px';
+          }
+
+          if (e.clientY - (cumulativeOffset(document.getElementById(div.replace("#", ""))).top + 500) >  document.getElementById(div.replace("#", "")).offsetHeight) {
+            tooltipSpan.style.top = (e.clientY - 400) + 'px';
+          }
+        
+        }; 
+      }
+    })
+    .on("mouseout", function(event, item) {
+      var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+      tooltipSpan.style.padding = "0px 0px 0px 0px";
+      tooltipSpan.innerHTML = "";
+    }).update();
+}
+
+
+function cumulativeOffset(element) {
+    var top = 0, left = 0;
+    do {
+        top += element.offsetTop  || 0;
+        left += element.offsetLeft || 0;
+        element = element.offsetParent;
+    } while(element);
+
+    return {
+        top: top,
+        left: left
+    };
+};
 
 
 
