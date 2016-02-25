@@ -48,17 +48,19 @@ var area = function(dataTable, config) {
 area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
+      if(this.config.tooltip != false){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
 
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
-        }
-
-       if (callbacks != null) {
+      if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
           }
-       }
+      }
 
     }).bind(this);
 
@@ -75,7 +77,7 @@ area.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
 area.prototype.insert = function(data) {
