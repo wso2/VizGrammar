@@ -711,8 +711,7 @@ vizg.prototype.insert = function(data) {
 
 vizg.prototype.getSpec = function() {
 	return this.chart.getSpec();
-};;
-var line = function(dataTable, config) {
+};;var line = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
       this.spec = {};
@@ -722,20 +721,20 @@ var line = function(dataTable, config) {
       dataTable[0].name= config.title;
 
       var xScale = {
-                    "name": "x",
-                    "type": this.metadata.types[config.x],
-                    "range": "width",
-                    "zero": config.zero,
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-                    };
+            "name": "x",
+            "type": this.metadata.types[config.x],
+            "range": "width",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+        };
 
       var yScale = {
-                "name": "y",
-                "type": this.metadata.types[config.y],
-                "range": "height",
-                "zero": config.zero,
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-                };
+            "name": "y",
+            "type": this.metadata.types[config.y],
+            "range": "height",
+            "zero": config.zero,
+            "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
+        };
       
       var scales =  [xScale, yScale];
 
@@ -772,21 +771,28 @@ var line = function(dataTable, config) {
       }
 
       var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 10,
-                      "properties": {
+                {
+                  "fill": "color",
+                  "title": "Legend",
+                  "offset": 0,
+                  "properties": {
                         "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
+                            "stroke": {"value": "transparent"}
+                        },
+                        "title": {
+                            "fill": {"value": config.legendTitleColor},
+                            "fontSize": {"value": config.legendTitleFontSize}
+                        },
+                        "labels": {
+                            "fill": {"value": config.legendTextColor},
+                            "fontSize": {"value": config.ledgendTextFontSize}
+                          }
                     }
-                    ];
+                }
+            ];
 
-                    this.spec.legends = legends;
-          }
+            this.spec.legends = legends;
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -830,8 +836,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
-
+    vg.parse.spec(this.spec, viewUpdateFunction);
 
 };
 
@@ -859,48 +864,48 @@ line.prototype.getSpec = function() {
 function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
-              mark =  {
-                              "type": "group",
-                              "from": {
-                                "data":  config.title,
-                                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
-                              },
-                              "marks": [
-                                {
-                                  "type": "line",
-                                  "properties": {
-                                    "update": {
-                                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                                      "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                                      "strokeWidth": {"value": 2},
-                                      "strokeOpacity": {"value": 1}
-                                    },
-                                    "hover": {
-                                      "strokeOpacity": {"value": 0.5}
-                                    }
-                                  }
-                                }
-                              ]
-                            };
+          mark =  {
+                  "type": "group",
+                  "from": {
+                    "data":  config.title,
+                    "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+                  },
+                  "marks": [
+                    {
+                      "type": "line",
+                      "properties": {
+                        "update": {
+                          "x": {"scale": "x", "field": metadata.names[config.x]},
+                          "y": {"scale": "y", "field": metadata.names[config.y]},
+                          "stroke": {"scale": "color", "field": metadata.names[config.color]},
+                          "strokeWidth": {"value": 2},
+                          "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                          "strokeOpacity": {"value": 0.5}
+                        }
+                      }
+                    }
+                  ]
+                };
         } else {
-                mark = {
-                                "type": "line",
-                                "from": {"data": config.title},
-                                "properties": {
-                                  "update": {
+            mark = {
+                    "type": "line",
+                    "from": {"data": config.title},
+                    "properties": {
+                      "update": {
 
-                                    "x": {"scale": "x", "field": metadata.names[config.x]},
-                                    "y": {"scale": "y", "field": metadata.names[config.y]},
-                                    "stroke": { "value": config.markColor},
-                                    "strokeWidth": {"value": 2},
-                                    "strokeOpacity": {"value": 1}
-                                  },
-                                  "hover": {
-                                    "strokeOpacity": {"value": 0.5}
-                                  }
-                                }
-                            };
+                        "x": {"scale": "x", "field": metadata.names[config.x]},
+                        "y": {"scale": "y", "field": metadata.names[config.y]},
+                        "stroke": { "value": config.markColor},
+                        "strokeWidth": {"value": 2},
+                        "strokeOpacity": {"value": 1}
+                      },
+                      "hover": {
+                        "strokeOpacity": {"value": 0.5}
+                      }
+                    }
+                };
         }
 
         return mark;
@@ -1666,53 +1671,29 @@ table.prototype.setupData = function (dataset, config) {
             })  
           .remove();
     }
-};function checkConfig(config, metadata){
+};var extend = function (defaults, options) {
+    var extended = {};
+    var prop;
+    for (prop in defaults) {
+        if (Object.prototype.hasOwnProperty.call(defaults, prop)) {
+            extended[prop] = defaults[prop];
+        }
+    }
+    for (prop in options) {
+        if (Object.prototype.hasOwnProperty.call(options, prop)) {
+            extended[prop] = options[prop];
+        }
+    }
+    return extended;
+};
 
-	if (config.title == null) {
-		config.title = "table";
-	}
-
-	if (config.xTitle == null) {
-		config.xTitle = config.x;
-	}
-
-	if (config.yTitle == null) {
-		config.yTitle = config.y;
-	}
-
-	if (config.colorScale == null) {
-		config.colorScale = "category10";
-	}
-
-	if (config.grid == null) {
-		config.grid  = true; 
-	}
-
-	if (config.zero == null) {
-		config.zero = false;
-	}
-
-	if (config.color == null) {
+function checkConfig(config, metadata){
+    
+    if (config.color == null) {
 		config.color = -1;
 	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
-
-    if (config.mapType == null) {
-        config.mapType = -1;
-    }
-
-    if (config.minColor == null) {
-        config.minColor = -1;
-    }
-
-    if (config.maxColor == null) {
-        config.maxColor = -1;
-    }
-
-    if (config.mode == null) {
-        config.mode = "stack";
-    }
 
     if (config.size == null) {
         config.size = -1;
@@ -1720,46 +1701,41 @@ table.prototype.setupData = function (dataset, config) {
         config.size = metadata.names.indexOf(config.size);
     }
 
-	if (config.maxLength == null) {
-		config.maxLength = -1;
-	}
-
-	if (config.markColor == null) {
-		config.markColor = "steelblue";
-	}
-
-	if (config.markSize == null) {
-		config.markSize = 2;
-	}
-
-	if (config.fillOpacity == null) {
-		config.fillOpacity = 1;
-	}
-
-    if (config.renderer == null) {
-        config.renderer = "canvas";
+    var defaults = {
+        title: "table",
+        xTitle: config.x,
+        yTitle: config.y,
+        grid: true,
+        zero: false,
+        mapType: -1,
+        minColor: -1,
+        maxColor: -1,
+        mode: "stack",
+        colorScale: "category20c", //color hex array or string: category10, 10c, category20, category20b, category20c
+        maxLength: -1,
+        markColor: "steelblue",
+        markSize: 2,
+        fillOpacity: 1,
+        renderer: "svg", //string: canvas or svg
+        legendTitleColor: "#222",
+        legendTitleFontSize: 13,
+        legendTextColor: "#888",
+        ledgendTextFontSize: 12,
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        hoverType: "symbol",
+        tooltip: true,
+        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
+    };
+    
+    if (typeof vizgSettings != 'undefined'){
+        defaults = extend(defaults, vizgSettings);
     }
 
-    if (config.toolTip == null) {
-        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-    }
-
-	if (config.padding == null) {
-        config.padding = {"top": 10, "left": 50, "bottom": 40, "right": 100};
-	}
-
-	if (config.hoverType == null) {
-		config.hoverType = "symbol";
-	}
-
-    if (config.tooltip == null) {
-        config.tooltip = true;
-    }
-
+    config = extend(defaults, config);
     config.height = config.height  - (config.padding.top + config.padding.bottom);
     config.width = config.width  - (config.padding.left + config.padding.right);
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
 
     return config;
@@ -1819,7 +1795,6 @@ var  mark = {
 function getSignals(config, metadata){
 
     var signals = [{
-
             "name": "hover",
             "init": {},
             "streams": [
@@ -1831,6 +1806,90 @@ function getSignals(config, metadata){
     return signals;
 
 }
+
+function bindTooltip(div,markType,eventObj, config, metaData, keyList){
+
+    eventObj.on("mouseover", function(event, item) {
+
+        if (item != null && item.status != "exit" && item.mark.marktype == markType) {
+            var canvas = $(".marks")[0];
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
+
+            $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
+
+            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $tip=$('#tip');
+            $tip.empty();
+
+            var dataObj = item.datum;
+            var dynamicContent = "";
+            for (var key in dataObj) {
+                if (dataObj.hasOwnProperty(key)) {
+                    if(keyList != undefined){
+                        for(var z=0;z<keyList.length;z++){
+                            for (var keyVal in config) {
+                                if(keyVal == keyList[z] && metaData.names[config[keyVal]] == key){
+                                    dynamicContent += "<p>"+keyList[z]+" ("+key+"):"+dataObj[key]+"</p>";
+                                    break;
+                                }
+                            }
+                        }
+                    }else{
+                        if(metaData.names[config.x] == key){
+                            dynamicContent += "<p>X ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                        if(metaData.names[config.y] == key){
+                            dynamicContent += "<p>Y ("+key+"):"+dataObj[key]+"</p>";
+                        }
+                    }
+                }
+            }
+
+            $tip.append(dynamicContent);
+
+            var canvasWidth = canvas.width;
+            var canvasHeight = canvas.height;
+
+            var el = $('.marks[style*="width"]');
+
+            if(el.length > 0){
+                canvasWidth = parseFloat($(".marks")[0].style.width);
+                canvasHeight = parseFloat($(".marks")[0].style.height);
+            }
+            var dynamicWidth = $tip.width();
+            var dynamicHeight = $tip.height();
+
+            var toolTipWidth = item.bounds.x2 + config.padding.left + dynamicWidth;
+            var toolTipHeight = (canvasHeight - item.bounds.y2) - config.padding.top + dynamicHeight;
+            var toolTipCalculatedXPosition;
+            var toolTipCalculatedYPosition = ((item.bounds.y2 + config.padding.top) - dynamicHeight);
+
+            if(toolTipWidth > canvasWidth){
+                toolTipCalculatedXPosition = ((item.bounds.x2 + config.padding.left) - dynamicWidth);
+            }else{
+                toolTipCalculatedXPosition = (item.bounds.x2 + config.padding.left);
+            }
+
+            if(toolTipHeight > canvasHeight){
+                toolTipCalculatedYPosition = item.bounds.y2 + config.padding.top;
+            }
+
+            $tip.css({left:toolTipCalculatedXPosition,top:toolTipCalculatedYPosition}).show();
+        }else{
+
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
+            if($(div).closest("#wrapper").length) {
+                $(div).unwrap();
+            }
+        }
+    })
+};
+
+
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
@@ -1903,6 +1962,3 @@ function cumulativeOffset(element) {
         left: left
     };
 };
-
-
-
