@@ -28,12 +28,14 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/VizGrammar.css">
     <link rel="stylesheet" href="css/custom.css">
     
     <script src="js/d3.min.js"></script>
     <script src="js/topojson.js"></script>
     <script src="js/vega.js"></script>
-    <script src="../dist/VizGrammar.min.js"></script>
+    <script src="js/VizGrammar.min.js"></script>
+    <script src="js/VizGrammarSettings.js"></script>
     
 </head>
 <body>
@@ -99,13 +101,13 @@
                           charts : [
                             {type: "line",  y : "torque", color: "EngineType"}
                           ],
-                          renderer: 'svg',
+                          //colorScale: "category10",
                           maxLength: 20,
-                          width: 400,
-                          height: 200
+                          width: 500,
+                          height: 250
                         }
 
-                        var lineChart = new vizg(data, config); 
+                        var lineChart = new vizg(data, config);
                         var spec = lineChart.getSpec();
 
                         lineChart.draw("#dChartLine");
@@ -153,10 +155,9 @@
                         type: "bar",
                         x : "rpm",
                         charts : [{type: "bar",  y : "torque"}],
-                        renderer: 'svg',
                         maxLength: 6,
-                        width: 400,
-                        height: 200
+                        width: 500,
+                        height: 250
                       }
 
                       var lineChart3 = new vizg(data, config);
@@ -206,10 +207,9 @@
 
                     var config = {
                         charts : [{type: "area",  x : "rpm", y : "torque"}],
-                        renderer: 'svg',
                         maxLength: 10,
-                        width: 400,
-                        height: 200
+                        width: 500,
+                        height: 250
                       }
 
                     var areaChart = new vizg(data, config);
@@ -258,19 +258,19 @@
 
                     var config = {
                         type: "scatter",
-                        charts : [
-                            {type: "scatter",
-                             x : "rpm",  
-                             y : "torque",
-                             color: "horsepower", 
-                             size : "weight", 
-                             maxLength: 30, 
-                             maxColor:"#ffff00", 
-                             minColor:"#ff00ff"}], 
-
-                        width: 400,
-                        height: 200
-                    }
+                        charts : [{
+                            type: "scatter",
+                            x : "rpm",  
+                            y : "torque",
+                            color: "horsepower", 
+                            size : "weight",
+                            maxColor:"#597CC3", 
+                            minColor:"#343B59",
+                            maxLength: 30
+                        }],
+                        width: 500,
+                        height: 250
+                    }   
 
                     var scatterChart = new vizg(data, config);
                     scatterChart.draw("#dChartScatter");
@@ -341,8 +341,8 @@
                     type: "map",
                     x : "Country",
                     charts : [{type: "map",  y : "Inflation", mapType : "world"}],
-                    width: 400,
-                    height: 200
+                    width: 550,
+                    height: 300
                 };
 
                 var worlHelperInfoJsonUrl = "jsonMapFiles/countryInfo.json";
@@ -383,8 +383,8 @@
                     type: "map",
                     x : "County",
                     charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
-                    width: 400,
-                    height: 200
+                    width: 500,
+                    height: 300
                 };
 
                 configUsa.helperUrl = usaHelperInfoJsonUrl;
@@ -453,14 +453,14 @@
 
             var config = {
                 charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "donut"}],
-                width: 300,
-                height: 250
+                width: 500,
+                height: 350
               }
 
             var configPie = {
                 charts : [{type: "arc",  x : "torque", color : "EngineType", mode: "pie"}],
-                width: 300,
-                height: 250
+                width: 500,
+                height: 350
             }
 
             var donutChart = new vizg(data, config);
@@ -624,7 +624,7 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container">
-            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script>.</p>
+            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script> WSO2 Inc.</p>
         </div>
     </footer>
 

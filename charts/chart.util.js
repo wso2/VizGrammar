@@ -1,50 +1,26 @@
+var extend = function (defaults, options) {
+    var extended = {};
+    var prop;
+    for (prop in defaults) {
+        if (Object.prototype.hasOwnProperty.call(defaults, prop)) {
+            extended[prop] = defaults[prop];
+        }
+    }
+    for (prop in options) {
+        if (Object.prototype.hasOwnProperty.call(options, prop)) {
+            extended[prop] = options[prop];
+        }
+    }
+    return extended;
+};
+
 function checkConfig(config, metadata){
-
-	if (config.title == null) {
-		config.title = "table";
-	}
-
-	if (config.xTitle == null) {
-		config.xTitle = config.x;
-	}
-
-	if (config.yTitle == null) {
-		config.yTitle = config.y;
-	}
-
-	if (config.colorScale == null) {
-		config.colorScale = "category10";
-	}
-
-	if (config.grid == null) {
-		config.grid  = true; 
-	}
-
-	if (config.zero == null) {
-		config.zero = false;
-	}
-
-	if (config.color == null) {
+    
+    if (config.color == null) {
 		config.color = -1;
 	} else if (config.color != "*"){
 		config.color = metadata.names.indexOf(config.color);
 	}
-
-    if (config.mapType == null) {
-        config.mapType = -1;
-    }
-
-    if (config.minColor == null) {
-        config.minColor = -1;
-    }
-
-    if (config.maxColor == null) {
-        config.maxColor = -1;
-    }
-
-    if (config.mode == null) {
-        config.mode = "stack";
-    }
 
     if (config.size == null) {
         config.size = -1;
@@ -52,43 +28,41 @@ function checkConfig(config, metadata){
         config.size = metadata.names.indexOf(config.size);
     }
 
-	if (config.maxLength == null) {
-		config.maxLength = -1;
-	}
-
-	if (config.markColor == null) {
-		config.markColor = "steelblue";
-	}
-
-	if (config.markSize == null) {
-		config.markSize = 2;
-	}
-
-	if (config.fillOpacity == null) {
-		config.fillOpacity = 1;
-	}
-
-    if (config.renderer == null) {
-        config.renderer = "canvas";
+    var defaults = {
+        title: "table",
+        xTitle: config.x,
+        yTitle: config.y,
+        grid: true,
+        zero: false,
+        mapType: -1,
+        minColor: -1,
+        maxColor: -1,
+        mode: "stack",
+        colorScale: "category20c", //color hex array or string: category10, 10c, category20, category20b, category20c
+        maxLength: -1,
+        markColor: "steelblue",
+        markSize: 2,
+        fillOpacity: 1,
+        renderer: "svg", //string: canvas or svg
+        legendTitleColor: "#222",
+        legendTitleFontSize: 13,
+        legendTextColor: "#888",
+        ledgendTextFontSize: 12,
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        hoverType: "symbol",
+        tooltip: true,
+        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
+    };
+    
+    if (typeof vizgSettings != 'undefined'){
+        defaults = extend(defaults, vizgSettings);
     }
 
-    if (config.toolTip == null) {
-        config.toolTip = {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30};
-    }
+    config = extend(defaults, config);
+    config.height = config.height  - (config.padding.top + config.padding.bottom);
+    config.width = config.width  - (config.padding.left + config.padding.right);
 
-	if (config.padding == null) {
-        config.padding = {"top": 50, "left": 60, "bottom": 40, "right": 150};
-	}
-
-	if (config.hoverType == null) {
-		config.hoverType = "symbol";
-	}
-
-    if (config.tooltip == null) {
-        config.tooltip = true;
-    }
-
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
 
     return config;
@@ -148,7 +122,6 @@ var  mark = {
 function getSignals(config, metadata){
 
     var signals = [{
-
             "name": "hover",
             "init": {},
             "streams": [
@@ -167,6 +140,9 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
         if (item != null && item.status != "exit" && item.mark.marktype == markType) {
             var canvas = $(".marks")[0];
+            if($("#wrapper #tip").length) {
+                $tip.remove();
+            }
 
             $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
 
@@ -202,6 +178,13 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
             var canvasWidth = canvas.width;
             var canvasHeight = canvas.height;
+
+            var el = $('.marks[style*="width"]');
+
+            if(el.length > 0){
+                canvasWidth = parseFloat($(".marks")[0].style.width);
+                canvasHeight = parseFloat($(".marks")[0].style.height);
+            }
             var dynamicWidth = $tip.width();
             var dynamicHeight = $tip.height();
 
@@ -231,8 +214,78 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
             }
         }
     })
+};
+
+
+
+function createTooltip(div) {
+   document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
+        + "<div id= "+div.replace("#", "")+"-tooltip></div>";
+}
+
+function bindTooltip(div, view, config, metadata){
+
+    view.on("mouseover", function(event, item) {
+      if (item != null) { 
+        var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+        var tooltipContent = "";
+        
+
+        if (metadata.names[config.x] != null) {
+          var content;
+
+          if ("time"== "time") {
+            content =  new Date(parseInt(item.datum[metadata.names[config.x]]));
+          } else {
+            content = item.datum[metadata.names[config.x]];
+          }
+
+          tooltipContent += "<b>X</b> ("+ metadata.names[config.x] +") : "+content+"<br/>" ;
+        }
+
+        if (metadata.names[config.y] != null) {
+          tooltipContent += "<b>Y</b> ("+ metadata.names[config.y] + ") : "+item.datum[metadata.names[config.y]]+"<br/>" ;
+        }
+
+        tooltipSpan.innerHTML = tooltipContent;
+        tooltipSpan.style.padding = "5px 5px 5px 5px";
+
+        window.onmousemove = function (e) {
+          tooltipSpan.style.top = (e.clientY + 15) + 'px';
+          tooltipSpan.style.left = (e.clientX + 10) + 'px';
+          tooltipSpan.style.zIndex  = 1000;
+          tooltipSpan.style.backgroundColor = config.toolTip.color;
+          tooltipSpan.style.position = "fixed";
+
+          if (tooltipSpan.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
+            tooltipSpan.style.left = (e.clientX - tooltipSpan.offsetWidth) + 'px';
+          }
+
+          if (e.clientY - (cumulativeOffset(document.getElementById(div.replace("#", ""))).top + 500) >  document.getElementById(div.replace("#", "")).offsetHeight) {
+            tooltipSpan.style.top = (e.clientY - 400) + 'px';
+          }
+        
+        }; 
+      }
+    })
+    .on("mouseout", function(event, item) {
+      var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+      tooltipSpan.style.padding = "0px 0px 0px 0px";
+      tooltipSpan.innerHTML = "";
+    }).update();
 }
 
 
+function cumulativeOffset(element) {
+    var top = 0, left = 0;
+    do {
+        top += element.offsetTop  || 0;
+        left += element.offsetLeft || 0;
+        element = element.offsetParent;
+    } while(element);
 
-
+    return {
+        top: top,
+        left: left
+    };
+};

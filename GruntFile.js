@@ -32,11 +32,19 @@ module.exports = function(grunt) {
           'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
         }
       }
+    },
+    copy: {
+        main: {
+            files: [
+                { expand: true, cwd: 'dist', src: ['VizGrammar.min.js'], dest: 'samples/js/' }
+            ],
+        },
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['concat', 'uglify']);
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.registerTask('default', ['concat', 'uglify', 'copy']);
 
 };

@@ -28,13 +28,14 @@
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/VizGrammer.css">
+    <link rel="stylesheet" href="../../css/VizGrammar.css">
     <link rel="stylesheet" href="../../css/custom.css">
     
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
-    <script src="../../../dist/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammarSettings.js"></script>
     
 </head>
 <body>
@@ -82,7 +83,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        Bar Chart Sample
+                        Stack Bar Chart Sample
                     </h3>
                 </div>
                 <div class="panel-body">
@@ -91,7 +92,22 @@
 
             </div>
         </div>
-                <div class="col-md-6">
+        
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroup"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -220,36 +236,46 @@
                   "types" : ["ordinal","linear", "ordinal","ordinal"]
                 },
               "data": [
-
                             ]
             }
           ];
 
 
-          var config = {
+        var config = {
             type: "bar",
             x : "rpm",
             charts : [{type: "bar",  y : "torque"}],
             maxLength: 6,
-            width: 400,
-            height: 200
-          }
+            width: 500,
+            height: 250
+        }
 
-
-          var configStack = {
+        var configStack = {
             type: "bar",
             x : "rpm",
-            charts : [{type: "bar",  y : "torque", color: "EngineType"}],
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack"}],
             maxLength: 12,
-            width: 400,
-            height: 200
-          }
+            width: 500,
+            height: 250
+        }
 
-          var barChart = new vizg(data, config);
-          barChart.draw("#dChart");
+        var configGroup = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group"}],
+            maxLength: 12,
+            width: 500,
+            height: 250
+        }
 
-          var barChartStack = new vizg(data, configStack);
-          barChartStack.draw("#dChartStack");   
+        var barChart = new vizg(data, config);
+        barChart.draw("#dChart");
+
+        var barChartStack = new vizg(data, configStack);
+        barChartStack.draw("#dChartStack"); 
+
+        var barChartGroup = new vizg(data, configGroup);
+        barChartGroup.draw("#dChartGroup");
 
         var iterations = 1000;
           (function insertLoop (i) {          
@@ -257,7 +283,9 @@
                 var xVal =  Number((Math.random() * 100).toFixed(0))%15;
                 barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
-                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
+                barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
+                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);
@@ -269,7 +297,7 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container">
-            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script>.</p>
+            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script> WSO2 Inc.</p>
         </div>
     </footer>
 

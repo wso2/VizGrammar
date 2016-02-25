@@ -1,5 +1,5 @@
 body {
-    background: #F2F2F2;
+    background: #e6e6e6;
     padding-top: 80px;
 }
 
@@ -17,7 +17,12 @@ body {
 
 .panel {
     border-radius: 0;
-    border: none;
+    border: 1px dotted #898A90;
+    box-shadow: none;
+}
+
+.panel-default {
+    background: transparent;
 }
 
 .panel-default > .panel-heading {
@@ -27,10 +32,20 @@ body {
     padding: 20px;
 }
 
-/* =============================================
-chart styling
-==============================================*/
+.jumbotron {
+    background: #20263C;
+    color: #fff;
+}
 
-svg .mark-symbol {
-    fill: #000 !important;
+.btn-lg, .btn-group-lg>.btn {
+    border-radius: 0;
+}
+
+.footer {
+    background: #11141F;
+    color: #A2ABCE;
+}
+
+.footer p {
+    margin: 10px 0;
 }
