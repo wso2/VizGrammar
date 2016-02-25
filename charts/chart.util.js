@@ -178,7 +178,15 @@ function bindTooltip(div, view, config, metadata){
         
 
         if (metadata.names[config.x] != null) {
-          tooltipContent += "<b>X</b> ("+ metadata.names[config.x] +") : "+item.datum[metadata.names[config.x]]+"<br/>" ;
+          var content;
+
+          if ("time"== "time") {
+            content =  new Date(parseInt(item.datum[metadata.names[config.x]]));
+          } else {
+            content = item.datum[metadata.names[config.x]];
+          }
+
+          tooltipContent += "<b>X</b> ("+ metadata.names[config.x] +") : "+content+"<br/>" ;
         }
 
         if (metadata.names[config.y] != null) {
