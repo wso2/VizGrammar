@@ -35,7 +35,7 @@ var scatter = function(dataTable, config) {
     var cScale = {
         "name": "color",
         "type": "linear",
-        "range": [config.minColor,config.maxColor],
+        "range": config.colorScale,
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
 
