@@ -35,12 +35,9 @@ function checkConfig(config, metadata){
         grid: true,
         zero: false,
         mapType: -1,
-        minColor: -1,
-        maxColor: -1,
         mode: "stack",
-        colorScale: "category20c", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
         maxLength: -1,
-        markColor: "steelblue",
         markSize: 2,
         fillOpacity: 1,
         renderer: "svg", //string: canvas or svg
@@ -63,7 +60,13 @@ function checkConfig(config, metadata){
     config.height = config.height  - (config.padding.top + config.padding.bottom);
     config.width = config.width  - (config.padding.left + config.padding.right);
 
-	  config.x = metadata.names.indexOf(config.x);
+    if (typeof config.colorScale == "string") {
+      config.markColor = window["d3"]["scale"][config.colorScale]().range()[0];
+    } else {
+      config.markColor = config.colorScale[0];
+    }
+
+	config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
 
     return config;

@@ -264,7 +264,7 @@ function getBarMark(config, metadata){
                       "width": {"scale": "x", "band": true, "offset": -1},
                       "y": {"scale": "y", "field": metadata.names[config.y]},
                       "y2": {"scale": "y", "value": 0},
-                      "fill": {"value": "steelblue"},
+                      "fill": {"value": config.markColor},
                        "fillOpacity": {"value": 1}
                     },
                     "hover": {

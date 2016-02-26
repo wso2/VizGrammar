@@ -52,7 +52,7 @@ var map = function(dataTable, config) {
         "domain": {"data": "geoData","field": "zipped.v"},
         "domainMin": 0.0,
         "zero": false,
-        "range":  ["#FFEDBC", "#f83600"]
+        "range":  config.colorScale
     };
 
     var scales =  [cScale];
