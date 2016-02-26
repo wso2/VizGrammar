@@ -759,7 +759,7 @@ vizg.prototype.getSpec = function() {
       } 
 
       var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle, "ticks":2},
+                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
                     {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
                   ];
 
