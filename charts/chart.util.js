@@ -51,7 +51,8 @@ function checkConfig(config, metadata){
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
         hoverType: "symbol",
         tooltip: true,
-        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30}
+        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30},
+        dateFormat: "%x %X"
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -234,8 +235,9 @@ function bindTooltip(div, view, config, metadata){
         if (metadata.names[config.x] != null) {
           var content;
 
-          if ("time"== "time") {
-            content =  new Date(parseInt(item.datum[metadata.names[config.x]]));
+          if (metadata.types[config.x]== "time") {
+            var dFormat =  d3.time.format(config.dateFormat);
+            content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
           } else {
             content = item.datum[metadata.names[config.x]];
           }

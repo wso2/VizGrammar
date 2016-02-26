@@ -33,7 +33,12 @@ var arc = function(dataTable, config) {
                       };
       scales.push(colorScale);
       marks.push(getPieMark(config, this.metadata));
-      marks.push(getPieText(config, this.metadata));
+
+      if (config.percentage) {
+        marks.push(getPieText(config, this.metadata));
+      }
+
+      
       var legendTitle = "Legend";
 
       if (config.title != "table") {
