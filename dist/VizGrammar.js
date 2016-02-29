@@ -606,10 +606,7 @@ bar.prototype.getSpec = function() {
 
 
 function getBarMark(config, metadata){
-
-
-    var markContent;
-
+  var markContent;
   if (config.orientation == "left") {
     markContent = {
                     "y": {"scale": "x", "field": metadata.names[config.x]},
@@ -1955,11 +1952,11 @@ function bindTooltip(div, view, config, metadata){
             content = item.datum[metadata.names[config.x]];
           }
 
-          tooltipContent += "<b>X</b> ("+ metadata.names[config.x] +") : "+content+"<br/>" ;
+          tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
         }
 
         if (metadata.names[config.y] != null) {
-          tooltipContent += "<b>Y</b> ("+ metadata.names[config.y] + ") : "+item.datum[metadata.names[config.y]]+"<br/>" ;
+          tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" ;
         }
 
         tooltipSpan.innerHTML = tooltipContent;
