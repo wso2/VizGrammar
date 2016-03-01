@@ -859,10 +859,24 @@ vizg.prototype.getSpec = function() {
           scales.push(colorScale);
       } 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+        var axes =  [
+              { "type": "x", 
+                "scale": "x",
+                "grid": config.grid, 
+                "format" : config.xFormat, 
+                "ticks" : config.xTicks, 
+                "title": config.xTitle
+              },
+              {
+                "type": "y", 
+                "scale": "y", 
+                "grid": config.grid, 
+                "format" : config.yFormat, 
+                "ticks" : config.yTicks, 
+                "title": config.yTitle
+              }
+            ];
+
 
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
@@ -1828,7 +1842,11 @@ function checkConfig(config, metadata){
         hoverType: "symbol",
         tooltip: true,
         toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30},
-        dateFormat: "%x %X"
+        dateFormat: "%x %X",
+        xTicks: 0,
+        yTicks: 0,
+        xFormat: "",
+        yFormat: ""
     };
     
     if (typeof vizgSettings != 'undefined'){

@@ -49,7 +49,11 @@ function checkConfig(config, metadata){
         hoverType: "symbol",
         tooltip: true,
         toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30},
-        dateFormat: "%x %X"
+        dateFormat: "%x %X",
+        xTicks: 0,
+        yTicks: 0,
+        xFormat: "",
+        yFormat: ""
     };
     
     if (typeof vizgSettings != 'undefined'){
