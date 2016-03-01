@@ -78,6 +78,19 @@
             </div>
         </div>
 
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartH"></div>
+                </div>
+
+            </div>
+        </div>
 
         <div class="col-md-6" class="tile">
             <div class="panel panel-default">
@@ -88,6 +101,19 @@
                 </div>
                 <div class="panel-body">
                     <div id="dChartStack"></div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Stack Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartStackH"></div>
                 </div>
 
             </div>
@@ -105,7 +131,21 @@
                 </div>
 
             </div>
+        </div>        
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Horizontal Group Bar Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroupH"></div>
+                </div>
+
+            </div>
         </div>
+
 
         <div class="col-md-6">
             <div class="panel panel-default">
@@ -268,6 +308,33 @@
             height: 250
         }
 
+        var configH = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", orientation : "left"}],
+            maxLength: 6,
+            width: 500,
+            height: 250
+        }
+
+        var configStackH = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"stack", orientation : "left"}],
+            maxLength: 12,
+            width: 500,
+            height: 250
+        }
+
+        var configGroupH = {
+            type: "bar",
+            x : "rpm",
+            charts : [{type: "bar",  y : "torque", color: "EngineType", mode:"group", orientation : "left"}],
+            maxLength: 12,
+            width: 500,
+            height: 250
+        }
+
         var barChart = new vizg(data, config);
         barChart.draw("#dChart");
 
@@ -277,6 +344,15 @@
         var barChartGroup = new vizg(data, configGroup);
         barChartGroup.draw("#dChartGroup");
 
+        var barChartH = new vizg(data, configH);
+        barChartH.draw("#dChartH");
+
+        var barChartStackH = new vizg(data, configStackH);
+        barChartStackH.draw("#dChartStackH"); 
+
+        var barChartGroupH = new vizg(data, configGroupH);
+        barChartGroupH.draw("#dChartGroupH");
+
         var iterations = 1000;
           (function insertLoop (i) {          
               setTimeout(function () {   
@@ -285,7 +361,13 @@
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
                 barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
-                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);         
+                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);     
+
+                barChartH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
+                barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
+                barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);     
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);
