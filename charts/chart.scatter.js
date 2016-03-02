@@ -40,11 +40,7 @@ var scatter = function(dataTable, config) {
     };
 
     var scales =  [xScale, yScale, rScale, cScale];
-
-    var axes =  [
-        {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-        {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-    ];
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
 
@@ -60,7 +56,7 @@ var scatter = function(dataTable, config) {
 
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);

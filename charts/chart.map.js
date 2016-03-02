@@ -36,7 +36,7 @@ var map = function(dataTable, config) {
         }
     ];
 
-    if (config.tooltip) {
+    if (config.tooltip.enabled) {
         marks = getMapMark(config, this.metadata);
         signals = getMapSignals();
         this.spec.signals = signals;

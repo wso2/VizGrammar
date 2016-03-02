@@ -110,12 +110,7 @@ var bar = function(dataTable, config) {
       scales.push(xScale);
       scales.push(yScale);
 
-
-
-      var axes =  [
-                    {"type": xAxesType, "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": yAxesType, "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, xAxesType, "x", yAxesType, "y");
 
       if (config.color != -1 && config.mode == "stack") {
         marks.push(getStackBarMark(config, this.metadata));
@@ -139,7 +134,8 @@ var bar = function(dataTable, config) {
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
 
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
+         this.config.tooltip.type = "rect";
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);

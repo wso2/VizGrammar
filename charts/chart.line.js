@@ -40,10 +40,7 @@ var line = function(dataTable, config) {
           scales.push(colorScale);
       } 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
@@ -94,7 +91,7 @@ var line = function(dataTable, config) {
 line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);

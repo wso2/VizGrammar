@@ -26,10 +26,7 @@ var area = function(dataTable, config) {
       
       var scales =  [xScale, yScale]; 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -48,7 +45,7 @@ var area = function(dataTable, config) {
 area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);

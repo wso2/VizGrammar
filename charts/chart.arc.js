@@ -71,10 +71,11 @@ var arc = function(dataTable, config) {
 arc.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
+      if(this.config.tooltip.enabled){
+        this.config.tooltip.type = "arc";
+        createTooltip(div);
+        this.view = chart({el:div}).renderer(this.config.renderer).update();
+        bindTooltip(div,this.view,this.config,this.metadata);
       } else {
          this.view = chart({el:div}).renderer(this.config.renderer).update();
       }
