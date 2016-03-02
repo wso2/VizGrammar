@@ -47,8 +47,7 @@ function checkConfig(config, metadata){
         ledgendTextFontSize: 12,
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
         hoverType: "symbol",
-        tooltip: true,
-        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30},
+        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
         dateFormat: "%x %X",
         xTicks: 0,
         yTicks: 0,
@@ -234,12 +233,12 @@ function createTooltip(div) {
 function bindTooltip(div, view, config, metadata){
 
     view.on("mouseover", function(event, item) {
-      if (item != null) { 
-        var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+      if (item != null && item.mark.marktype == config.tooltip.type) { 
+        var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
         var tooltipContent = "";
         
 
-        if (metadata.names[config.x] != null) {
+        if (item.datum[metadata.names[config.x]]!= null) {
           var content;
 
           if (metadata.types[config.x]== "time") {
@@ -252,35 +251,37 @@ function bindTooltip(div, view, config, metadata){
           tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
         }
 
-        if (metadata.names[config.y] != null) {
+        if (item.datum[metadata.names[config.y]] != null) {
           tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" ;
         }
 
-        tooltipSpan.innerHTML = tooltipContent;
-        tooltipSpan.style.padding = "5px 5px 5px 5px";
+        if (tooltipContent != "") {
+            tooltipDiv.innerHTML = tooltipContent;
+            tooltipDiv.style.padding = "5px 5px 5px 5px";
+        }
 
         window.onmousemove = function (e) {
-          tooltipSpan.style.top = (e.clientY + 15) + 'px';
-          tooltipSpan.style.left = (e.clientX + 10) + 'px';
-          tooltipSpan.style.zIndex  = 1000;
-          tooltipSpan.style.backgroundColor = config.toolTip.color;
-          tooltipSpan.style.position = "fixed";
+          tooltipDiv.style.top = (e.clientY + 15) + 'px';
+          tooltipDiv.style.left = (e.clientX + 10) + 'px';
+          tooltipDiv.style.zIndex  = 1000;
+          tooltipDiv.style.backgroundColor = config.tooltip.color;
+          tooltipDiv.style.position = "fixed";
 
-          if (tooltipSpan.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
-            tooltipSpan.style.left = (e.clientX - tooltipSpan.offsetWidth) + 'px';
+          if (tooltipDiv.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
+            tooltipDiv.style.left = (e.clientX - tooltipDiv.offsetWidth) + 'px';
           }
 
           if (e.clientY - (cumulativeOffset(document.getElementById(div.replace("#", ""))).top + 500) >  document.getElementById(div.replace("#", "")).offsetHeight) {
-            tooltipSpan.style.top = (e.clientY - 400) + 'px';
+            tooltipDiv.style.top = (e.clientY - 400) + 'px';
           }
         
         }; 
       }
     })
     .on("mouseout", function(event, item) {
-      var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
-      tooltipSpan.style.padding = "0px 0px 0px 0px";
-      tooltipSpan.innerHTML = "";
+      var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
+      tooltipDiv.style.padding = "0px 0px 0px 0px";
+      tooltipDiv.innerHTML = "";
     }).update();
 }
 

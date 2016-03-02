@@ -45,7 +45,7 @@ var area = function(dataTable, config) {
 area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);
