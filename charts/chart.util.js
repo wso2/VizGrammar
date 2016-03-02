@@ -236,24 +236,47 @@ function bindTooltip(div, view, config, metadata){
       if (item != null && item.mark.marktype == config.tooltip.type) { 
         var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
         var tooltipContent = "";
-        
-
+    
         if (item.datum[metadata.names[config.x]]!= null) {
           var content;
 
-          if (metadata.types[config.x]== "time") {
-            var dFormat =  d3.time.format(config.dateFormat);
-            content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
-          } else {
-            content = item.datum[metadata.names[config.x]];
-          }
+        //Default tooltip content if tooltip content is not defined
+        if (config.tooltip.content == null) {
+              if (metadata.types[config.x]== "time") {
+                var dFormat =  d3.time.format(config.dateFormat);
+                content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+              } else {
+                content = item.datum[metadata.names[config.x]];
+              }
 
-          tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
+              tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
+
+            if (item.datum[metadata.names[config.y]] != null) {
+                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" 
+                }
+            
+            } else {
+                //check all specified column and add them as tooltip content
+                for (var i = 0; i < config.tooltip.content.length; i++) {
+                    if (metadata.types[config.x]== "time") {
+                        var dFormat =  d3.time.format(config.dateFormat);
+                        content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                    } else {
+                        content = item.datum[config.tooltip.content[i]];
+                    }
+
+                    if (config.tooltip.label != false) {
+                        tooltipContent += "<b>"+ config.tooltip.content[i] +"</b> : "+content+"<br/>" ;
+                    } else {
+                        tooltipContent += content+"<br/>" ;
+                    }
+                };
+
         }
 
-        if (item.datum[metadata.names[config.y]] != null) {
-          tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" ;
-        }
+       
+        } 
+
 
         if (tooltipContent != "") {
             tooltipDiv.innerHTML = tooltipContent;
