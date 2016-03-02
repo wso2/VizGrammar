@@ -2024,7 +2024,7 @@ function bindTooltip(div, view, config, metadata){
             } else {
                 //check all specified column and add them as tooltip content
                 for (var i = 0; i < config.tooltip.content.length; i++) {
-                    if (metadata.types[config.x]== "time") {
+                    if (metadata.types[i]== "time") {
                         var dFormat =  d3.time.format(config.dateFormat);
                         content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
                     } else {
