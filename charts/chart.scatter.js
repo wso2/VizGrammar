@@ -40,11 +40,7 @@ var scatter = function(dataTable, config) {
     };
 
     var scales =  [xScale, yScale, rScale, cScale];
-
-    var axes =  [
-        {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-        {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-    ];
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
 

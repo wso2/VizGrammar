@@ -298,3 +298,25 @@ function cumulativeOffset(element) {
         left: left
     };
 };
+
+function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var axes =  [
+      { "type": xAxesType, 
+        "scale": xScale,
+        "grid": config.grid, 
+        "format" : config.xFormat, 
+        "ticks" : config.xTicks, 
+        "title": config.xTitle
+      },
+      {
+        "type": yAxesType, 
+        "scale": yScale, 
+        "grid": config.grid, 
+        "format" : config.yFormat, 
+        "ticks" : config.yTicks, 
+        "title": config.yTitle
+      }
+    ];
+
+    return axes;
+}

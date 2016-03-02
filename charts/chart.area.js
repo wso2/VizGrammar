@@ -26,10 +26,7 @@ var area = function(dataTable, config) {
       
       var scales =  [xScale, yScale]; 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;

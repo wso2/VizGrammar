@@ -40,23 +40,7 @@ var line = function(dataTable, config) {
           scales.push(colorScale);
       } 
 
-        var axes =  [
-              { "type": "x", 
-                "scale": "x",
-                "grid": config.grid, 
-                "format" : config.xFormat, 
-                "ticks" : config.xTicks, 
-                "title": config.xTitle
-              },
-              {
-                "type": "y", 
-                "scale": "y", 
-                "grid": config.grid, 
-                "format" : config.yFormat, 
-                "ticks" : config.yTicks, 
-                "title": config.yTitle
-              }
-            ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;

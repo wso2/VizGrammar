@@ -235,10 +235,7 @@ var area = function(dataTable, config) {
       
       var scales =  [xScale, yScale]; 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -446,12 +443,7 @@ var bar = function(dataTable, config) {
       scales.push(xScale);
       scales.push(yScale);
 
-
-
-      var axes =  [
-                    {"type": xAxesType, "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": yAxesType, "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, xAxesType, "x", yAxesType, "y");
 
       if (config.color != -1 && config.mode == "stack") {
         marks.push(getStackBarMark(config, this.metadata));
@@ -859,24 +851,7 @@ vizg.prototype.getSpec = function() {
           scales.push(colorScale);
       } 
 
-        var axes =  [
-              { "type": "x", 
-                "scale": "x",
-                "grid": config.grid, 
-                "format" : config.xFormat, 
-                "ticks" : config.xTicks, 
-                "title": config.xTitle
-              },
-              {
-                "type": "y", 
-                "scale": "y", 
-                "grid": config.grid, 
-                "format" : config.yFormat, 
-                "ticks" : config.yTicks, 
-                "title": config.yTitle
-              }
-            ];
-
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
@@ -1451,11 +1426,7 @@ number.prototype.insert = function(data) {
     };
 
     var scales =  [xScale, yScale, rScale, cScale];
-
-    var axes =  [
-        {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-        {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-    ];
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
 
@@ -2091,3 +2062,25 @@ function cumulativeOffset(element) {
         left: left
     };
 };
+
+function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var axes =  [
+      { "type": xAxesType, 
+        "scale": xScale,
+        "grid": config.grid, 
+        "format" : config.xFormat, 
+        "ticks" : config.xTicks, 
+        "title": config.xTitle
+      },
+      {
+        "type": yAxesType, 
+        "scale": yScale, 
+        "grid": config.grid, 
+        "format" : config.yFormat, 
+        "ticks" : config.yTicks, 
+        "title": config.yTitle
+      }
+    ];
+
+    return axes;
+}
