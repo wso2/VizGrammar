@@ -86,10 +86,11 @@ var arc = function(dataTable, config) {
 arc.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
+      if(this.config.tooltip.enabled){
+        this.config.tooltip.type = "arc";
+        createTooltip(div);
+        this.view = chart({el:div}).renderer(this.config.renderer).update();
+        bindTooltip(div,this.view,this.config,this.metadata);
       } else {
          this.view = chart({el:div}).renderer(this.config.renderer).update();
       }
@@ -235,10 +236,7 @@ var area = function(dataTable, config) {
       
       var scales =  [xScale, yScale]; 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -257,7 +255,7 @@ var area = function(dataTable, config) {
 area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);
@@ -446,12 +444,7 @@ var bar = function(dataTable, config) {
       scales.push(xScale);
       scales.push(yScale);
 
-
-
-      var axes =  [
-                    {"type": xAxesType, "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": yAxesType, "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, xAxesType, "x", yAxesType, "y");
 
       if (config.color != -1 && config.mode == "stack") {
         marks.push(getStackBarMark(config, this.metadata));
@@ -475,7 +468,8 @@ var bar = function(dataTable, config) {
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
 
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
+         this.config.tooltip.type = "rect";
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);
@@ -859,10 +853,7 @@ vizg.prototype.getSpec = function() {
           scales.push(colorScale);
       } 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
@@ -913,7 +904,7 @@ vizg.prototype.getSpec = function() {
 line.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);
@@ -1031,8 +1022,6 @@ function getLineMark(config, metadata){
     config = checkConfig(config, this.metadata);
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
-    config.toolTip.height = 20;
-    config.toolTip.width = 100;
 
     for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
@@ -1055,7 +1044,7 @@ function getLineMark(config, metadata){
         }
     ];
 
-    if (config.tooltip) {
+    if (config.tooltip.enabled) {
         marks = getMapMark(config, this.metadata);
         signals = getMapSignals();
         this.spec.signals = signals;
@@ -1242,9 +1231,9 @@ function getMapMark(config, metadata){
                 "update": {
                     "x": {"signal": "tooltipSignal.x", "offset": -5},
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
-                    "width": {"value": config.toolTip.width},
-                    "height": {"value": config.toolTip.height},
-                    "fill": {"value": config.toolTip.color}
+                    "width": {"value": 100},
+                    "height": {"value": 20},
+                    "fill": {"value": config.tooltip.color}
                 }
             },
             "marks": [
@@ -1437,11 +1426,7 @@ number.prototype.insert = function(data) {
     };
 
     var scales =  [xScale, yScale, rScale, cScale];
-
-    var axes =  [
-        {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-        {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-    ];
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
 
@@ -1457,7 +1442,7 @@ number.prototype.insert = function(data) {
 
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip != false){
+      if(this.config.tooltip.enabled){
          createTooltip(div);
          this.view = chart({el:div}).renderer(this.config.renderer).update();
          bindTooltip(div,this.view,this.config,this.metadata);
@@ -1601,6 +1586,20 @@ scatter.prototype.getSpec = function() {
 
 
 function getScatterMark(config, metadata){
+    var fill;
+    var size;
+
+    if (config.color == -1) {
+        fill = {"value": config.markColor};
+    } else {
+        fill = {"scale": "color", "field": metadata.names[config.color]};
+    }
+
+    if (config.size == -1) {
+        size = {"value": config.markSize * 50};
+    } else {
+        size = {"scale":"size","field":metadata.names[config.size]};
+    }
 
     var mark = {
 
@@ -1610,8 +1609,8 @@ function getScatterMark(config, metadata){
                 "update": {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                    "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fill": fill,
+                    "size": size,
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {
@@ -1826,9 +1825,12 @@ function checkConfig(config, metadata){
         ledgendTextFontSize: 12,
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
         hoverType: "symbol",
-        tooltip: true,
-        toolTip: {"height" : 35, "width" : 120, "color":"#e5f2ff", "x": 0, "y":-30},
-        dateFormat: "%x %X"
+        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+        dateFormat: "%x %X",
+        xTicks: 0,
+        yTicks: 0,
+        xFormat: "",
+        yFormat: ""
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2009,53 +2011,78 @@ function createTooltip(div) {
 function bindTooltip(div, view, config, metadata){
 
     view.on("mouseover", function(event, item) {
-      if (item != null) { 
-        var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
+      if (item != null && item.mark.marktype == config.tooltip.type) { 
+        var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
         var tooltipContent = "";
-        
-
-        if (metadata.names[config.x] != null) {
+    
+        if (item.datum[metadata.names[config.x]]!= null) {
           var content;
 
-          if (metadata.types[config.x]== "time") {
-            var dFormat =  d3.time.format(config.dateFormat);
-            content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
-          } else {
-            content = item.datum[metadata.names[config.x]];
-          }
+        //Default tooltip content if tooltip content is not defined
+        if (config.tooltip.content == null) {
+              if (metadata.types[config.x]== "time") {
+                var dFormat =  d3.time.format(config.dateFormat);
+                content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+              } else {
+                content = item.datum[metadata.names[config.x]];
+              }
 
-          tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
+              tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
+
+            if (item.datum[metadata.names[config.y]] != null) {
+                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" 
+                }
+            
+            } else {
+                //check all specified column and add them as tooltip content
+                for (var i = 0; i < config.tooltip.content.length; i++) {
+                    if (metadata.types[metadata.names.indexOf(config.tooltip.content[i])]=== "time") {
+                        var dFormat =  d3.time.format(config.dateFormat);
+                        content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                    } else {
+                        content = item.datum[config.tooltip.content[i]];
+                    }
+
+                    if (config.tooltip.label != false) {
+                        tooltipContent += "<b>"+ config.tooltip.content[i] +"</b> : "+content+"<br/>" ;
+                    } else {
+                        tooltipContent += content+"<br/>" ;
+                    }
+                };
+
         }
 
-        if (metadata.names[config.y] != null) {
-          tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" ;
-        }
+       
+        } 
 
-        tooltipSpan.innerHTML = tooltipContent;
-        tooltipSpan.style.padding = "5px 5px 5px 5px";
+
+        if (tooltipContent != "") {
+            tooltipDiv.innerHTML = tooltipContent;
+            tooltipDiv.style.padding = "5px 5px 5px 5px";
+        }
 
         window.onmousemove = function (e) {
-          tooltipSpan.style.top = (e.clientY + 15) + 'px';
-          tooltipSpan.style.left = (e.clientX + 10) + 'px';
-          tooltipSpan.style.zIndex  = 1000;
-          tooltipSpan.style.backgroundColor = config.toolTip.color;
-          tooltipSpan.style.position = "fixed";
+          tooltipDiv.style.top = (e.clientY + 15) + 'px';
+          tooltipDiv.style.left = (e.clientX + 10) + 'px';
+          tooltipDiv.style.zIndex  = 1000;
+          tooltipDiv.style.backgroundColor = config.tooltip.color;
+          tooltipDiv.style.position = "fixed";
 
-          if (tooltipSpan.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
-            tooltipSpan.style.left = (e.clientX - tooltipSpan.offsetWidth) + 'px';
+          if (tooltipDiv.offsetWidth +  e.clientX - (cumulativeOffset(document.getElementById(div.replace("#", ""))).left + config.padding.left)  >  document.getElementById(div.replace("#", "")).offsetWidth) {
+            tooltipDiv.style.left = (e.clientX - tooltipDiv.offsetWidth) + 'px';
           }
 
           if (e.clientY - (cumulativeOffset(document.getElementById(div.replace("#", ""))).top + 500) >  document.getElementById(div.replace("#", "")).offsetHeight) {
-            tooltipSpan.style.top = (e.clientY - 400) + 'px';
+            tooltipDiv.style.top = (e.clientY - 400) + 'px';
           }
         
         }; 
       }
     })
     .on("mouseout", function(event, item) {
-      var tooltipSpan = document.getElementById(div.replace("#", "")+"-tooltip");
-      tooltipSpan.style.padding = "0px 0px 0px 0px";
-      tooltipSpan.innerHTML = "";
+      var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
+      tooltipDiv.style.padding = "0px 0px 0px 0px";
+      tooltipDiv.innerHTML = "";
     }).update();
 }
 
@@ -2073,3 +2100,25 @@ function cumulativeOffset(element) {
         left: left
     };
 };
+
+function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var axes =  [
+      { "type": xAxesType, 
+        "scale": xScale,
+        "grid": config.grid, 
+        "format" : config.xFormat, 
+        "ticks" : config.xTicks, 
+        "title": config.xTitle
+      },
+      {
+        "type": yAxesType, 
+        "scale": yScale, 
+        "grid": config.grid, 
+        "format" : config.yFormat, 
+        "ticks" : config.yTicks, 
+        "title": config.yTitle
+      }
+    ];
+
+    return axes;
+}
