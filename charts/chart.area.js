@@ -26,10 +26,7 @@ var area = function(dataTable, config) {
       
       var scales =  [xScale, yScale]; 
 
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -48,17 +45,19 @@ var area = function(dataTable, config) {
 area.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
+      if(this.config.tooltip.enabled){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
 
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata);
-        }
-
-       if (callbacks != null) {
+      if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
           }
-       }
+      }
 
     }).bind(this);
 
@@ -75,7 +74,7 @@ area.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
 area.prototype.insert = function(data) {

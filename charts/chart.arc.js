@@ -8,7 +8,15 @@ var arc = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
-      dataTable[0].transform = [{"type": "pie", "field": this.metadata.names[config.x]}];
+      dataTable[0].transform = [{
+                                  "type": "pie",
+                                   "field": this.metadata.names[config.x]
+                                },
+                                {
+                                  "type": "formula",
+                                  "field": "percentage",
+                                  "expr": "datum."+this.metadata.names[config.x]+" / 360 * 100"
+                                }];
       
       var scales =  []; 
 
@@ -25,7 +33,12 @@ var arc = function(dataTable, config) {
                       };
       scales.push(colorScale);
       marks.push(getPieMark(config, this.metadata));
-      marks.push(getPieText(config, this.metadata));
+
+      if (config.percentage) {
+        marks.push(getPieText(config, this.metadata));
+      }
+
+      
       var legendTitle = "Legend";
 
       if (config.title != "table") {
@@ -58,7 +71,14 @@ var arc = function(dataTable, config) {
 arc.prototype.draw = function(div, callbacks) {
 
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
+      if(this.config.tooltip.enabled){
+        this.config.tooltip.type = "arc";
+        createTooltip(div);
+        this.view = chart({el:div}).renderer(this.config.renderer).update();
+        bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
 
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
@@ -164,7 +184,7 @@ function getPieText(config, metadata){
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "text": {"field": metadata.names[config.x], "mult":0.5},
+                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
 
                             }
                           }

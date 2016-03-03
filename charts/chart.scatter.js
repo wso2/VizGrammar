@@ -35,16 +35,12 @@ var scatter = function(dataTable, config) {
     var cScale = {
         "name": "color",
         "type": "linear",
-        "range": [config.minColor,config.maxColor],
+        "range": config.colorScale,
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
 
     var scales =  [xScale, yScale, rScale, cScale];
-
-    var axes =  [
-        {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-        {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-    ];
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
 
@@ -60,12 +56,13 @@ var scatter = function(dataTable, config) {
 
 scatter.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
-
-        if(this.config.tooltip != false){
-            bindTooltip(div,"symbol",this.view,this.config,this.metadata,["x","y","size"]);
-        }
-
+      if(this.config.tooltip.enabled){
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
        if (callbacks != null) {
           for (var i = 0; i<callbacks.length; i++) {
             this.view.on(callbacks[i].type, callbacks[i].callback);
@@ -203,6 +200,20 @@ scatter.prototype.getSpec = function() {
 
 
 function getScatterMark(config, metadata){
+    var fill;
+    var size;
+
+    if (config.color == -1) {
+        fill = {"value": config.markColor};
+    } else {
+        fill = {"scale": "color", "field": metadata.names[config.color]};
+    }
+
+    if (config.size == -1) {
+        size = {"value": config.markSize * 50};
+    } else {
+        size = {"scale":"size","field":metadata.names[config.size]};
+    }
 
     var mark = {
 
@@ -212,8 +223,8 @@ function getScatterMark(config, metadata){
                 "update": {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                    "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fill": fill,
+                    "size": size,
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {

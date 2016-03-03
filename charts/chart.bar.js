@@ -7,33 +7,32 @@ var bar = function(dataTable, config) {
       var yColumn;
       var yDomain;
 
+      var xRange;
+      var yRange;
+      var xAxesType;
+      var yAxesType;
+
       config = checkConfig(config, this.metadata);
       this.config = config;
       dataTable[0].name= config.title;
+
+      if (config.orientation == "left") {
+        xRange = "height";
+        yRange = "width";
+        xAxesType = "y";
+        yAxesType = "x";
+      } else {
+        xRange = "width";
+        yRange = "height";
+        xAxesType = "x";
+        yAxesType = "y";
+      }
       
       if (config.color != -1) {
-        var aggregateData = {
-            "name": "stack",
-            "source": config.title,
-            "transform": [
-              {
-                "type": "aggregate",
-                "groupby": [this.metadata.names[config.x]],
-                "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
-              }
-            ]
-          };
-
-          var legendTitle = "Legend";
-
+        var legendTitle = "Legend";
       if (config.title != "table") {
           legendTitle = config.title;
       }
-
-
-
-        dataTable.push(aggregateData);
-
         if (config.colorDomain == null) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
@@ -51,7 +50,7 @@ var bar = function(dataTable, config) {
                       {
                       "fill": "color",
                       "title": "Legend",
-                      "offset": 0,
+                      "offset": 10,
                       "properties": {
                         "symbols": {
                           "fillOpacity": {"value": 0.5},
@@ -61,10 +60,30 @@ var bar = function(dataTable, config) {
                     }
                     ];
 
-          this.spec.legends = legends;
-          yColumn = "sum_"+ this.metadata.names[config.y];
-          yDomain = "stack";
 
+          if (config.mode == "stack") {
+            var aggregateData = {
+              "name": "stack",
+              "source": config.title,
+              "transform": [
+                {
+                  "type": "aggregate",
+                  "groupby": [this.metadata.names[config.x]],
+                  "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
+                }
+              ]
+            };
+
+            dataTable.push(aggregateData);
+            yColumn = "sum_"+ this.metadata.names[config.y];
+            yDomain = "stack";
+
+        } else {
+            yColumn = this.metadata.names[config.y];
+            yDomain = config.title;
+        }
+        
+        this.spec.legends = legends;
       } else {
         yColumn = this.metadata.names[config.y];
         yDomain = config.title;
@@ -73,29 +92,30 @@ var bar = function(dataTable, config) {
       var xScale = {
               "name": "x",
               "type": "ordinal",
-              "range": "width",
+              "range": xRange,
               "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
               };
+
+    if (config.mode == "group") {
+        xScale.padding = 0.2;
+      }
 
       var yScale = {
           "name": "y",
           "type": this.metadata.types[config.y],
-          "range": "height",
+          "range": yRange,
           "domain": {"data": yDomain, "field": yColumn}
           };
       
       scales.push(xScale);
       scales.push(yScale);
 
-
-
-      var axes =  [
-                    {"type": "x", "scale": "x","grid": config.grid,  "title": config.xTitle},
-                    {"type": "y", "scale": "y", "grid": config.grid,  "title": config.yTitle}
-                  ];
+      var axes =  getXYAxes(config, xAxesType, "x", yAxesType, "y");
 
       if (config.color != -1 && config.mode == "stack") {
         marks.push(getStackBarMark(config, this.metadata));
+      } else if (config.color != -1 && config.mode == "group") {
+        marks.push(getGroupBarMark(config, this.metadata));
       } else {
         marks.push(getBarMark(config, this.metadata));
       }
@@ -113,17 +133,21 @@ var bar = function(dataTable, config) {
 
 bar.prototype.draw = function(div, callbacks) {
     var viewUpdateFunction = (function(chart) {
-       this.view = chart({el:div}).renderer(this.config.renderer).update();
 
-        if(this.config.tooltip != false){
-            bindTooltip(div,"rect",this.view,this.config,this.metadata);
+      if(this.config.tooltip.enabled){
+         this.config.tooltip.type = "rect";
+         createTooltip(div);
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+         bindTooltip(div,this.view,this.config,this.metadata);
+      } else {
+         this.view = chart({el:div}).renderer(this.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          this.view.on(callbacks[i].type, callbacks[i].callback);
         }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
+      }
 
     }).bind(this);
 
@@ -227,8 +251,13 @@ bar.prototype.insert = function(data) {
             }
         }
     }
-    this.view.update({duration: 200});
 
+    //Group does not support duration update animation
+    if (this.config.mode == "group") {
+      this.view.update();
+    } else {
+      this.view.update({duration: 200});
+    }
 };
 
 bar.prototype.getSpec = function() {
@@ -237,20 +266,32 @@ bar.prototype.getSpec = function() {
 
 
 function getBarMark(config, metadata){
+  var markContent;
+  if (config.orientation == "left") {
+    markContent = {
+                    "y": {"scale": "x", "field": metadata.names[config.x]},
+                    "height": {"scale": "x", "band": true, "offset": -1},
+                    "x": {"scale": "y", "field": metadata.names[config.y]},
+                    "x2": {"scale": "y", "value": 0},
+                    "fill": {"value": config.markColor},
+                    "fillOpacity": {"value": 1}
+                  };
+  } else {
+    markContent = {
+                    "x": {"scale": "x", "field": metadata.names[config.x]},
+                    "width": {"scale": "x", "band": true, "offset": -1},
+                    "y": {"scale": "y", "field": metadata.names[config.y]},
+                    "y2": {"scale": "y", "value": 0},
+                    "fill": {"value": config.markColor},
+                    "fillOpacity": {"value": 1}
+                  };
+  }
 
   var mark = {
                   "type": "rect",
                   "from": {"data": config.title},
                   "properties": {
-                    "update": {
-
-                      "x": {"scale": "x", "field": metadata.names[config.x]},
-                      "width": {"scale": "x", "band": true, "offset": -1},
-                      "y": {"scale": "y", "field": metadata.names[config.y]},
-                      "y2": {"scale": "y", "value": 0},
-                      "fill": {"value": "steelblue"},
-                       "fillOpacity": {"value": 1}
-                    },
+                    "update": markContent,
                     "hover": {
                       "fillOpacity": {"value": 0.5}
                     }
@@ -263,33 +304,152 @@ function getBarMark(config, metadata){
 
 function getStackBarMark(config, metadata){
 
-  var mark =      {
-      "type": "rect",
-      "from": {
-        "data": "table",
-        "transform": [
-          { "type": "stack", 
-            "groupby": [metadata.names[config.x]], 
-            "sortby": [metadata.names[config.color]], 
-            "field":metadata.names[config.y]}
-        ]
-      },
-      "properties": {
-        "update": {
-          "x": {"scale": "x", "field": metadata.names[config.x]},
-          "width": {"scale": "x", "band": true, "offset": -1},
-          "y": {"scale": "y", "field": "layout_start"},
-          "y2": {"scale": "y", "field": "layout_end"},
-          "fill": {"scale": "color", "field": metadata.names[config.color]},
-           "fillOpacity": {"value": 1}
+  var markContent;
+  if (config.orientation == "left") {
+    mark = {
+        "type": "rect",
+        "from": {
+          "data": config.title,
+          "transform": [
+            { "type": "stack", 
+              "groupby": [metadata.names[config.x]], 
+              "sortby": [metadata.names[config.color]], 
+              "field":metadata.names[config.y]}
+          ]
         },
-        "hover": {
-          "fillOpacity": {"value": 0.5}
+        "properties": {
+          "update": {
+            "y": {"scale": "x", "field": metadata.names[config.x]},
+            "height": {"scale": "x", "band": true, "offset": -1},
+            "x": {"scale": "y", "field": "layout_start"},
+            "x2": {"scale": "y", "field": "layout_end"},
+            "fill": {"scale": "color", "field": metadata.names[config.color]},
+            "fillOpacity": {"value": 1}
+          },
+          "hover": {
+            "fillOpacity": {"value": 0.5}
+          }
         }
-      }
-    };
+      };
+  } else {
+    mark = {
+        "type": "rect",
+        "from": {
+          "data": config.title,
+          "transform": [
+            { "type": "stack", 
+              "groupby": [metadata.names[config.x]], 
+              "sortby": [metadata.names[config.color]], 
+              "field":metadata.names[config.y]}
+          ]
+        },
+        "properties": {
+          "update": {
+            "x": {"scale": "x", "field": metadata.names[config.x]},
+            "width": {"scale": "x", "band": true, "offset": -1},
+            "y": {"scale": "y", "field": "layout_start"},
+            "y2": {"scale": "y", "field": "layout_end"},
+            "fill": {"scale": "color", "field": metadata.names[config.color]},
+            "fillOpacity": {"value": 1}
+          },
+          "hover": {
+            "fillOpacity": {"value": 0.5}
+          }
+        }
+      };
+  }
+
+
       
 
+  return mark;
+}
+
+function getGroupBarMark(config, metadata){
+  var mark;
+  if (config.orientation == "left") {
+      mark =  {
+          "type": "group",
+          "from": {
+            "data": config.title,
+            "transform": [{"type":"facet", "groupby": [metadata.names[config.x]]}]
+          },
+          "properties": {
+            "update": {
+              "y": {"scale": "x", "field": "key"},
+              "height": {"scale": "x", "band": true}
+            }
+          },
+          "scales": [
+            {
+              "name": "pos",
+              "type": "ordinal",
+              "range": "height",
+              "domain": {"field": metadata.names[config.color]}
+            }
+          ],
+          "marks": [
+          {
+              "name": "bars",
+              "type": "rect",
+              "properties": {
+                "update": {
+                  "y": {"scale": "pos", "field": metadata.names[config.color]},
+                  "height": {"scale": "pos", "band": true},
+                  "x": {"scale": "y", "field": metadata.names[config.y]},
+                  "x2": {"scale": "y", "value": 0},
+                  "fill": {"scale": "color", "field": metadata.names[config.color]},
+                  "fillOpacity": {"value": 1}
+                },
+                "hover": {
+                  "fillOpacity": {"value": 0.5}
+                }
+              }
+            }
+          ]
+        };
+  } else {
+      mark =  {
+          "type": "group",
+          "from": {
+            "data": config.title,
+            "transform": [{"type":"facet", "groupby": [metadata.names[config.x]]}]
+          },
+          "properties": {
+            "update": {
+              "x": {"scale": "x", "field": "key"},
+              "width": {"scale": "x", "band": true}
+            }
+          },
+          "scales": [
+            {
+              "name": "pos",
+              "type": "ordinal",
+              "range": "width",
+              "domain": {"field": metadata.names[config.color]}
+            }
+          ],
+          "marks": [
+          {
+              "name": "bars",
+              "type": "rect",
+              "properties": {
+                "update": {
+                  "x": {"scale": "pos", "field": metadata.names[config.color]},
+                  "width": {"scale": "pos", "band": true},
+                  "y": {"scale": "y", "field": metadata.names[config.y]},
+                  "y2": {"scale": "y", "value": 0},
+                  "fill": {"scale": "color", "field": metadata.names[config.color]},
+                  "fillOpacity": {"value": 1}
+                },
+                "hover": {
+                  "fillOpacity": {"value": 0.5}
+                }
+              }
+            }
+          ]
+        };
+  }
   return mark;
 }
 

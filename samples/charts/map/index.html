@@ -28,12 +28,14 @@
     <link rel="stylesheet" href="../../css/bootstrap.min.css">
     
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/VizGrammar.css">
     <link rel="stylesheet" href="../../css/custom.css">
     
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
-    <script src="../../../dist/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammarSettings.js"></script>
     
 </head>
 <body>
@@ -244,9 +246,10 @@
     var configWorld = {
         type: "map",
         x : "Country",
+        renderer : "canvas",
         charts : [{type: "map",  y : "Inflation", mapType : "world"}],
-        width: 400,
-        height: 200
+        width: 550,
+        height: 300
     };
 
     var worlHelperInfoJsonUrl = "../../jsonMapFiles/countryInfo.json";
@@ -286,9 +289,10 @@
     var configUsa = {
         type: "map",
         x : "County",
+        renderer : "canvas",
         charts : [{type: "map",  y : "Inflation", mapType : "usa"}],
-        width: 400,
-        height: 200
+        width: 500,
+        height: 300
     };
 
     configUsa.helperUrl = usaHelperInfoJsonUrl;
@@ -320,9 +324,10 @@
     var configEurope = {
         type: "map",
         x : "Country",
+        renderer : "canvas",
         charts : [{type: "map",  y : "Inflation", mapType : "europe"}],
-        width: 400,
-        height: 200
+        width: 500,
+        height: 300
     };
 
     configEurope.helperUrl = worlHelperInfoJsonUrl;
@@ -346,7 +351,7 @@
     <!-- footer -->
     <footer class="footer">
         <div class="container">
-            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script>.</p>
+            <p>VizGrammar.js v1.0.0 | &copy; <script>document.write(new Date().getFullYear());</script> WSO2 Inc.</p>
         </div>
     </footer>
 

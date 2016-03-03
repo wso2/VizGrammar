@@ -12,8 +12,6 @@ var map = function(dataTable, config) {
     config = checkConfig(config, this.metadata);
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
-    config.toolTip.height = 20;
-    config.toolTip.width = 100;
 
     for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
@@ -36,7 +34,7 @@ var map = function(dataTable, config) {
         }
     ];
 
-    if (config.tooltip) {
+    if (config.tooltip.enabled) {
         marks = getMapMark(config, this.metadata);
         signals = getMapSignals();
         this.spec.signals = signals;
@@ -52,7 +50,7 @@ var map = function(dataTable, config) {
         "domain": {"data": "geoData","field": "zipped.v"},
         "domainMin": 0.0,
         "zero": false,
-        "range":  ["#FFEDBC", "#f83600"]
+        "range":  config.colorScale
     };
 
     var scales =  [cScale];
@@ -223,9 +221,9 @@ function getMapMark(config, metadata){
                 "update": {
                     "x": {"signal": "tooltipSignal.x", "offset": -5},
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
-                    "width": {"value": config.toolTip.width},
-                    "height": {"value": config.toolTip.height},
-                    "fill": {"value": config.toolTip.color}
+                    "width": {"value": 100},
+                    "height": {"value": 20},
+                    "fill": {"value": config.tooltip.color}
                 }
             },
             "marks": [
