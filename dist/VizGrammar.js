@@ -1022,8 +1022,6 @@ function getLineMark(config, metadata){
     config = checkConfig(config, this.metadata);
     this.config = config;
     this.config.geoInfoJson = geoInfoJson;
-    config.toolTip.height = 20;
-    config.toolTip.width = 100;
 
     for (i = 0; i < dataTable[0].values.length; i++) {
         for (var key in dataTable[0].values[i]) {
@@ -1233,9 +1231,9 @@ function getMapMark(config, metadata){
                 "update": {
                     "x": {"signal": "tooltipSignal.x", "offset": -5},
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
-                    "width": {"value": config.toolTip.width},
-                    "height": {"value": config.toolTip.height},
-                    "fill": {"value": config.toolTip.color}
+                    "width": {"value": 100},
+                    "height": {"value": 20},
+                    "fill": {"value": config.tooltip.color}
                 }
             },
             "marks": [
@@ -1588,6 +1586,20 @@ scatter.prototype.getSpec = function() {
 
 
 function getScatterMark(config, metadata){
+    var fill;
+    var size;
+
+    if (config.color == -1) {
+        fill = {"value": config.markColor};
+    } else {
+        fill = {"scale": "color", "field": metadata.names[config.color]};
+    }
+
+    if (config.size == -1) {
+        size = {"value": config.markSize * 50};
+    } else {
+        size = {"scale":"size","field":metadata.names[config.size]};
+    }
 
     var mark = {
 
@@ -1597,8 +1609,8 @@ function getScatterMark(config, metadata){
                 "update": {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                    "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fill": fill,
+                    "size": size,
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {
