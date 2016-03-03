@@ -200,6 +200,20 @@ scatter.prototype.getSpec = function() {
 
 
 function getScatterMark(config, metadata){
+    var fill;
+    var size;
+
+    if (config.color == -1) {
+        fill = {"value": config.markColor};
+    } else {
+        fill = {"scale": "color", "field": metadata.names[config.color]};
+    }
+
+    if (config.size == -1) {
+        size = {"value": config.markSize * 50};
+    } else {
+        size = {"scale":"size","field":metadata.names[config.size]};
+    }
 
     var mark = {
 
@@ -209,8 +223,8 @@ function getScatterMark(config, metadata){
                 "update": {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                    "fill": {"scale": "color", "field": metadata.names[config.color]},
-                    "size": {"scale":"size","field":metadata.names[config.size]},
+                    "fill": fill,
+                    "size": size,
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {
