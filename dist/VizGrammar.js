@@ -35,7 +35,7 @@ var arc = function(dataTable, config) {
       
       var scales =  []; 
 
-      if (config.colorDomain == null) {
+      if (config.colorDomain == -1) {
          config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
       }
 
@@ -234,9 +234,54 @@ var area = function(dataTable, config) {
                 "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
                 };
       
-      var scales =  [xScale, yScale]; 
+      var scales =  [xScale, yScale];
 
-      var axes =  getXYAxes(config, "x", "x", "y", "y");
+    if (config.color != -1) {
+
+        if (config.colorDomain == -1) {
+            config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+        }
+
+        var colorScale = {
+            "name": "color",
+            "type": "ordinal",
+            "domain": config.colorDomain,
+            "range": config.colorScale
+        };
+        scales.push(colorScale);
+
+        var legendTitle = "Legend";
+
+        if (config.title != "table") {
+            legendTitle = config.title;
+        }
+
+        var legends = [
+            {
+                "fill": "color",
+                "title": "Legend",
+                "offset": 0,
+                "properties": {
+                    "symbols": {
+                        "stroke": {"value": "transparent"}
+                    },
+                    "title": {
+                        "fill": {"value": config.legendTitleColor},
+                        "fontSize": {"value": config.legendTitleFontSize}
+                    },
+                    "labels": {
+                        "fill": {"value": config.legendTextColor},
+                        "fontSize": {"value": config.ledgendTextFontSize}
+                    }
+                }
+            }
+        ];
+
+        this.spec.legends = legends;
+    }
+
+
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -310,26 +355,57 @@ area.prototype.getSpec = function() {
 
 
 function getAreaMark(config, metadata){
-        var mark = {
-                        "type": "area",
-                        "from": {"data": config.title},
-                        "properties": {
-                          "update": {
 
+    var mark;
+    if (config.color != -1) {
+        mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+            },
+            "marks": [
+                {
+                    "type": "area",
+                    "properties": {
+                        "update": {
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "y2": {"scale": "y", "value": 0},
-                            "fill": { "value": config.markColor},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "fillOpacity": {"value": 1}
-                          },
-                          "hover": {
-                            "fillOpacity": {"value": 0.5}
-                          }
+                            "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                            "strokeOpacity": {"value": 0.5}
                         }
-                    };
+                    }
+                }
+            ]
+        };
+    }else{
+        mark = {
+            "type": "area",
+            "from": {"data": config.title},
+            "properties": {
+                "update": {
 
-        return mark;
+                    "x": {"scale": "x", "field": metadata.names[config.x]},
+                    "y": {"scale": "y", "field": metadata.names[config.y]},
+                    "y2": {"scale": "y", "value": 0},
+                    "fill": { "value": config.markColor},
+                    "strokeWidth": {"value": 2},
+                    "fillOpacity": {"value": 1}
+                },
+                "hover": {
+                    "fillOpacity": {"value": 0.5}
+                }
+            }
+        };
+    }
+
+
+    return mark;
 }
 
 ;
@@ -367,7 +443,7 @@ var bar = function(dataTable, config) {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -840,7 +916,7 @@ vizg.prototype.getSpec = function() {
 
       if (config.color != -1) {
 
-          if (config.colorDomain == null) {
+          if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -1420,7 +1496,7 @@ number.prototype.insert = function(data) {
 
     var cScale = {
         "name": "color",
-        "type": "linear",
+        "type": this.metadata.types[config.color],
         "range": config.colorScale,
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
@@ -1723,9 +1799,7 @@ table.prototype.setupData = function (dataset, config) {
                       .attr('bgcolor',
                         function(d) { 
                             var column = d.key  || d.column;
-                            if (typeof d.value == "string") {
 
-                            } else if (config.color == "*" || column == allColumns[config.color]){
                                 var color;
                                 if (typeof config.colorScale == "string") {
                                   color = window["d3"]["scale"][config.colorScale]().range();
@@ -1739,6 +1813,26 @@ table.prototype.setupData = function (dataset, config) {
                                     colorIndex = i;
                                 }
                             }
+
+                            if (typeof d.value == "string") {
+
+                                      var colorDomain;
+
+                               if (config.colorDomain == -1) {
+                                colorDomain = [d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
+                                              d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
+
+                               } else {
+                                  colorDomain = config.colorDomain
+                               }
+
+                                var colorScale = d3.scale.ordinal()
+                                                .range(config.colorScale)
+                                                .domain(colorDomain);
+                                return colorScale(d.value); 
+
+                            } else if (config.color == "*" || column == allColumns[config.color]){
+
                                 var colorScale = d3.scale.linear()
                                                 .range(['#f2f2f2', color[colorIndex]])
                                                 .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
@@ -1814,7 +1908,8 @@ function checkConfig(config, metadata){
         zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
@@ -1830,7 +1925,9 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+        xAxisAngle:false,
+        yAxisAngle:false
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2102,13 +2199,37 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var xProp =  "";
+    var yProp =  "";
+    
+    if (config.xAxisAngle) {
+        xProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
+    if (config.yAxisAngle) {
+        yProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
     var axes =  [
       { "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
         "ticks" : config.xTicks, 
-        "title": config.xTitle
+        "title": config.xTitle,
+        "properties": xProp
       },
       {
         "type": yAxesType, 
@@ -2116,7 +2237,8 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
         "grid": config.grid, 
         "format" : config.yFormat, 
         "ticks" : config.yTicks, 
-        "title": config.yTitle
+        "title": config.yTitle,
+        "properties": yProp
       }
     ];
 

@@ -24,9 +24,54 @@ var area = function(dataTable, config) {
                 "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
                 };
       
-      var scales =  [xScale, yScale]; 
+      var scales =  [xScale, yScale];
 
-      var axes =  getXYAxes(config, "x", "x", "y", "y");
+    if (config.color != -1) {
+
+        if (config.colorDomain == -1) {
+            config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+        }
+
+        var colorScale = {
+            "name": "color",
+            "type": "ordinal",
+            "domain": config.colorDomain,
+            "range": config.colorScale
+        };
+        scales.push(colorScale);
+
+        var legendTitle = "Legend";
+
+        if (config.title != "table") {
+            legendTitle = config.title;
+        }
+
+        var legends = [
+            {
+                "fill": "color",
+                "title": "Legend",
+                "offset": 0,
+                "properties": {
+                    "symbols": {
+                        "stroke": {"value": "transparent"}
+                    },
+                    "title": {
+                        "fill": {"value": config.legendTitleColor},
+                        "fontSize": {"value": config.legendTitleFontSize}
+                    },
+                    "labels": {
+                        "fill": {"value": config.legendTextColor},
+                        "fontSize": {"value": config.ledgendTextFontSize}
+                    }
+                }
+            }
+        ];
+
+        this.spec.legends = legends;
+    }
+
+
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -100,25 +145,56 @@ area.prototype.getSpec = function() {
 
 
 function getAreaMark(config, metadata){
-        var mark = {
-                        "type": "area",
-                        "from": {"data": config.title},
-                        "properties": {
-                          "update": {
 
+    var mark;
+    if (config.color != -1) {
+        mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+            },
+            "marks": [
+                {
+                    "type": "area",
+                    "properties": {
+                        "update": {
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "y2": {"scale": "y", "value": 0},
-                            "fill": { "value": config.markColor},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "fillOpacity": {"value": 1}
-                          },
-                          "hover": {
-                            "fillOpacity": {"value": 0.5}
-                          }
+                            "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                            "strokeOpacity": {"value": 0.5}
                         }
-                    };
+                    }
+                }
+            ]
+        };
+    }else{
+        mark = {
+            "type": "area",
+            "from": {"data": config.title},
+            "properties": {
+                "update": {
 
-        return mark;
+                    "x": {"scale": "x", "field": metadata.names[config.x]},
+                    "y": {"scale": "y", "field": metadata.names[config.y]},
+                    "y2": {"scale": "y", "value": 0},
+                    "fill": { "value": config.markColor},
+                    "strokeWidth": {"value": 2},
+                    "fillOpacity": {"value": 1}
+                },
+                "hover": {
+                    "fillOpacity": {"value": 0.5}
+                }
+            }
+        };
+    }
+
+
+    return mark;
 }
 
