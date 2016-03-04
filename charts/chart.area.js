@@ -28,7 +28,7 @@ var area = function(dataTable, config) {
 
     if (config.color != -1) {
 
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
             config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
         }
 

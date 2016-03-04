@@ -36,7 +36,8 @@ function checkConfig(config, metadata){
         zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
