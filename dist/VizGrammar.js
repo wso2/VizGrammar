@@ -1906,7 +1906,9 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+        xAxisAngle:false,
+        yAxisAngle:false
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2178,13 +2180,37 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var xProp =  "";
+    var yProp =  "";
+    
+    if (config.xAxisAngle) {
+        xProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
+    if (config.yAxisAngle) {
+        yProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
     var axes =  [
       { "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
         "ticks" : config.xTicks, 
-        "title": config.xTitle
+        "title": config.xTitle,
+        "properties": xProp
       },
       {
         "type": yAxesType, 
@@ -2192,7 +2218,8 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
         "grid": config.grid, 
         "format" : config.yFormat, 
         "ticks" : config.yTicks, 
-        "title": config.yTitle
+        "title": config.yTitle,
+        "properties": yProp
       }
     ];
 
