@@ -185,11 +185,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    var match;
-                    if (color == -1) {
-                      match =  d[xAxis] == data[i][xAxis]; 
+                    if (color == null) {
+                      return d[xAxis] == data[i][xAxis]; 
                     } else {
-                      match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                      return d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                     }
                   },
                 yAxis,
@@ -233,11 +232,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                  var match;
-                  if (color == -1) {
-                    match =  d[xAxis] == data[i][xAxis]; 
+                  if (color == null) {
+                    return  d[xAxis] == data[i][xAxis]; 
                   } else {
-                    match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                    return  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                   }
                 },
                 yAxis,
