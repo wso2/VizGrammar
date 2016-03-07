@@ -35,7 +35,7 @@ var arc = function(dataTable, config) {
       
       var scales =  []; 
 
-      if (config.colorDomain == null) {
+      if (config.colorDomain == -1) {
          config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
       }
 
@@ -238,7 +238,7 @@ var area = function(dataTable, config) {
 
     if (config.color != -1) {
 
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
             config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
         }
 
@@ -443,7 +443,7 @@ var bar = function(dataTable, config) {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -916,7 +916,7 @@ vizg.prototype.getSpec = function() {
 
       if (config.color != -1) {
 
-          if (config.colorDomain == null) {
+          if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -1496,7 +1496,7 @@ number.prototype.insert = function(data) {
 
     var cScale = {
         "name": "color",
-        "type": "linear",
+        "type": this.metadata.types[config.color],
         "range": config.colorScale,
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
@@ -1799,9 +1799,7 @@ table.prototype.setupData = function (dataset, config) {
                       .attr('bgcolor',
                         function(d) { 
                             var column = d.key  || d.column;
-                            if (typeof d.value == "string") {
 
-                            } else if (config.color == "*" || column == allColumns[config.color]){
                                 var color;
                                 if (typeof config.colorScale == "string") {
                                   color = window["d3"]["scale"][config.colorScale]().range();
@@ -1815,6 +1813,26 @@ table.prototype.setupData = function (dataset, config) {
                                     colorIndex = i;
                                 }
                             }
+
+                            if (typeof d.value == "string") {
+
+                                      var colorDomain;
+
+                               if (config.colorDomain == -1) {
+                                colorDomain = [d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
+                                              d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
+
+                               } else {
+                                  colorDomain = config.colorDomain
+                               }
+
+                                var colorScale = d3.scale.ordinal()
+                                                .range(config.colorScale)
+                                                .domain(colorDomain);
+                                return colorScale(d.value); 
+
+                            } else if (config.color == "*" || column == allColumns[config.color]){
+
                                 var colorScale = d3.scale.linear()
                                                 .range(['#f2f2f2', color[colorIndex]])
                                                 .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
@@ -1890,7 +1908,8 @@ function checkConfig(config, metadata){
         zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,

@@ -33,7 +33,7 @@ var bar = function(dataTable, config) {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
