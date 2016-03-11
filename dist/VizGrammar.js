@@ -421,6 +421,7 @@ var bar = function(dataTable, config) {
       var yRange;
       var xAxesType;
       var yAxesType;
+      var signals = [];
 
       config = checkConfig(config, this.metadata);
       this.config = config;
@@ -516,6 +517,8 @@ var bar = function(dataTable, config) {
           "range": yRange,
           "domain": {"data": yDomain, "field": yColumn}
           };
+
+
       
       scales.push(xScale);
       scales.push(yScale);
@@ -530,6 +533,11 @@ var bar = function(dataTable, config) {
         marks.push(getBarMark(config, this.metadata));
       }
 
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
+
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -537,31 +545,13 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 
       var specc = JSON.stringify(this.spec);
 };
 
 bar.prototype.draw = function(div, callbacks) {
-    var viewUpdateFunction = (function(chart) {
-
-      if(this.config.tooltip.enabled){
-         this.config.tooltip.type = "rect";
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-      if (callbacks != null) {
-        for (var i = 0; i<callbacks.length; i++) {
-          this.view.on(callbacks[i].type, callbacks[i].callback);
-        }
-      }
-
-    }).bind(this);
-
-    if(this.config.maxLength != -1){
+  if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
         if(dataset.length >= this.config.maxLength){
@@ -574,7 +564,7 @@ bar.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 };
 
 bar.prototype.insert = function(data) {
@@ -888,6 +878,7 @@ vizg.prototype.getSpec = function() {
 };;var line = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var signals = [];
       this.spec = {};
 
       config = checkConfig(config, this.metadata);
@@ -933,6 +924,11 @@ vizg.prototype.getSpec = function() {
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
 
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
+
       if (config.color != -1) {
 
       var legendTitle = "Legend";
@@ -972,28 +968,11 @@ vizg.prototype.getSpec = function() {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
       
 };
 
 line.prototype.draw = function(div, callbacks) {
-
-    var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip.enabled){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
-
-    }).bind(this);
-
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
@@ -1007,7 +986,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
-    vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 
 };
 
@@ -2241,4 +2220,81 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     ];
 
     return axes;
+}
+
+function getRangeSignals(config, signals) {
+    signals.push({
+            "name": "range_start",
+            "streams": [{
+              "type": "mousedown", 
+              "expr": "eventX()", 
+              "scale": {"name": "x", "invert": true}
+            }]
+          });
+          signals.push(    {
+            "name": "range_end",
+            "streams": [{
+              "type": "mousedown, [mousedown, window:mouseup] > window:mousemove",
+              "expr": "clamp(eventX(), 0, "+config.width+")",
+              "scale": {"name": "x", "invert": true}
+            }]
+    });
+    return signals;
+}
+
+function getRangeMark(config, marks) {
+      marks.push( {
+          "type": "rect",
+          "properties":{
+            "enter":{
+              "y": {"value": 0},
+              "height": {"value":config.height},
+              "fill": {"value": "black"},
+              "fillOpacity": {"value":0.3}
+            },
+            "update":{
+              "x": {"scale": "x", "signal": "range_start"},
+              "x2": {"scale": "x", "signal": "range_end"}
+            }
+          }
+        });
+
+     return marks;
+}
+
+function drawChart(div, obj, callbacks) {
+    var viewUpdateFunction = (function(chart) {
+      if(obj.config.tooltip.enabled){
+         obj.config.tooltip.type = "rect";
+         createTooltip(div);
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+         bindTooltip(div,obj.view,obj.config,obj.metadata);
+      } else {
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          if (callbacks[i].type == "range") {
+              var range_start;
+              var range_end;
+              var callback = callbacks[i].callback;
+                if (config.range) {
+                  obj.view.onSignal("range_start", function(signalName, signalValue){
+                  range_start = signalValue;
+                  });
+
+                  obj.view.onSignal("range_end", function(signalName, signalValue){
+                  range_end = signalValue;
+                  callback(range_start, range_end);
+               });
+              }
+          } else {
+            obj.view.on(callbacks[i].type, callbacks[i].callback);
+          }          
+        }
+      }
+    }).bind(obj);
+
+    vg.parse.spec(obj.spec, viewUpdateFunction);
 }

@@ -1,6 +1,7 @@
 var line = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var signals = [];
       this.spec = {};
 
       config = checkConfig(config, this.metadata);
@@ -46,6 +47,11 @@ var line = function(dataTable, config) {
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
 
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
+
       if (config.color != -1) {
 
       var legendTitle = "Legend";
@@ -85,28 +91,11 @@ var line = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
       
 };
 
 line.prototype.draw = function(div, callbacks) {
-
-    var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip.enabled){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
-
-    }).bind(this);
-
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
@@ -120,7 +109,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
-    vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 
 };
 
