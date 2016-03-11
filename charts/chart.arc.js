@@ -20,7 +20,7 @@ var arc = function(dataTable, config) {
       
       var scales =  []; 
 
-      if (config.colorDomain == null) {
+      if (config.colorDomain == -1) {
          config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
       }
 

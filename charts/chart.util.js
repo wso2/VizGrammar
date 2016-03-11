@@ -36,7 +36,8 @@ function checkConfig(config, metadata){
         zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
@@ -52,7 +53,9 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+        xAxisAngle:false,
+        yAxisAngle:false
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -324,13 +327,37 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var xProp =  "";
+    var yProp =  "";
+    
+    if (config.xAxisAngle) {
+        xProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
+    if (config.yAxisAngle) {
+        yProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
     var axes =  [
       { "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
         "ticks" : config.xTicks, 
-        "title": config.xTitle
+        "title": config.xTitle,
+        "properties": xProp
       },
       {
         "type": yAxesType, 
@@ -338,9 +365,87 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
         "grid": config.grid, 
         "format" : config.yFormat, 
         "ticks" : config.yTicks, 
-        "title": config.yTitle
+        "title": config.yTitle,
+        "properties": yProp
       }
     ];
 
     return axes;
+}
+
+function getRangeSignals(config, signals) {
+    signals.push({
+            "name": "range_start",
+            "streams": [{
+              "type": "mousedown", 
+              "expr": "eventX()", 
+              "scale": {"name": "x", "invert": true}
+            }]
+          });
+          signals.push(    {
+            "name": "range_end",
+            "streams": [{
+              "type": "mousedown, [mousedown, window:mouseup] > window:mousemove",
+              "expr": "clamp(eventX(), 0, "+config.width+")",
+              "scale": {"name": "x", "invert": true}
+            }]
+    });
+    return signals;
+}
+
+function getRangeMark(config, marks) {
+      marks.push( {
+          "type": "rect",
+          "properties":{
+            "enter":{
+              "y": {"value": 0},
+              "height": {"value":config.height},
+              "fill": {"value": "black"},
+              "fillOpacity": {"value":0.3}
+            },
+            "update":{
+              "x": {"scale": "x", "signal": "range_start"},
+              "x2": {"scale": "x", "signal": "range_end"}
+            }
+          }
+        });
+
+     return marks;
+}
+
+function drawChart(div, obj, callbacks) {
+    var viewUpdateFunction = (function(chart) {
+      if(obj.config.tooltip.enabled){
+         obj.config.tooltip.type = "rect";
+         createTooltip(div);
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+         bindTooltip(div,obj.view,obj.config,obj.metadata);
+      } else {
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          if (callbacks[i].type == "range") {
+              var range_start;
+              var range_end;
+              var callback = callbacks[i].callback;
+                if (config.range) {
+                  obj.view.onSignal("range_start", function(signalName, signalValue){
+                  range_start = signalValue;
+                  });
+
+                  obj.view.onSignal("range_end", function(signalName, signalValue){
+                  range_end = signalValue;
+                  callback(range_start, range_end);
+               });
+              }
+          } else {
+            obj.view.on(callbacks[i].type, callbacks[i].callback);
+          }          
+        }
+      }
+    }).bind(obj);
+
+    vg.parse.spec(obj.spec, viewUpdateFunction);
 }

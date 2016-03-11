@@ -35,7 +35,7 @@ var arc = function(dataTable, config) {
       
       var scales =  []; 
 
-      if (config.colorDomain == null) {
+      if (config.colorDomain == -1) {
          config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
       }
 
@@ -234,9 +234,54 @@ var area = function(dataTable, config) {
                 "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
                 };
       
-      var scales =  [xScale, yScale]; 
+      var scales =  [xScale, yScale];
 
-      var axes =  getXYAxes(config, "x", "x", "y", "y");
+    if (config.color != -1) {
+
+        if (config.colorDomain == -1) {
+            config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
+        }
+
+        var colorScale = {
+            "name": "color",
+            "type": "ordinal",
+            "domain": config.colorDomain,
+            "range": config.colorScale
+        };
+        scales.push(colorScale);
+
+        var legendTitle = "Legend";
+
+        if (config.title != "table") {
+            legendTitle = config.title;
+        }
+
+        var legends = [
+            {
+                "fill": "color",
+                "title": "Legend",
+                "offset": 0,
+                "properties": {
+                    "symbols": {
+                        "stroke": {"value": "transparent"}
+                    },
+                    "title": {
+                        "fill": {"value": config.legendTitleColor},
+                        "fontSize": {"value": config.legendTitleFontSize}
+                    },
+                    "labels": {
+                        "fill": {"value": config.legendTextColor},
+                        "fontSize": {"value": config.ledgendTextFontSize}
+                    }
+                }
+            }
+        ];
+
+        this.spec.legends = legends;
+    }
+
+
+    var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
       config.fillOpacity  = 0;
@@ -310,26 +355,57 @@ area.prototype.getSpec = function() {
 
 
 function getAreaMark(config, metadata){
-        var mark = {
-                        "type": "area",
-                        "from": {"data": config.title},
-                        "properties": {
-                          "update": {
 
+    var mark;
+    if (config.color != -1) {
+        mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [{"type": "facet", "groupby": [metadata.names[config.color]]}]
+            },
+            "marks": [
+                {
+                    "type": "area",
+                    "properties": {
+                        "update": {
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "y2": {"scale": "y", "value": 0},
-                            "fill": { "value": config.markColor},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "fillOpacity": {"value": 1}
-                          },
-                          "hover": {
-                            "fillOpacity": {"value": 0.5}
-                          }
+                            "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                            "strokeOpacity": {"value": 0.5}
                         }
-                    };
+                    }
+                }
+            ]
+        };
+    }else{
+        mark = {
+            "type": "area",
+            "from": {"data": config.title},
+            "properties": {
+                "update": {
 
-        return mark;
+                    "x": {"scale": "x", "field": metadata.names[config.x]},
+                    "y": {"scale": "y", "field": metadata.names[config.y]},
+                    "y2": {"scale": "y", "value": 0},
+                    "fill": { "value": config.markColor},
+                    "strokeWidth": {"value": 2},
+                    "fillOpacity": {"value": 1}
+                },
+                "hover": {
+                    "fillOpacity": {"value": 0.5}
+                }
+            }
+        };
+    }
+
+
+    return mark;
 }
 
 ;
@@ -345,6 +421,7 @@ var bar = function(dataTable, config) {
       var yRange;
       var xAxesType;
       var yAxesType;
+      var signals = [];
 
       config = checkConfig(config, this.metadata);
       this.config = config;
@@ -367,7 +444,7 @@ var bar = function(dataTable, config) {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-        if (config.colorDomain == null) {
+        if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -440,6 +517,8 @@ var bar = function(dataTable, config) {
           "range": yRange,
           "domain": {"data": yDomain, "field": yColumn}
           };
+
+
       
       scales.push(xScale);
       scales.push(yScale);
@@ -454,6 +533,11 @@ var bar = function(dataTable, config) {
         marks.push(getBarMark(config, this.metadata));
       }
 
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
+
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -461,31 +545,13 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 
       var specc = JSON.stringify(this.spec);
 };
 
 bar.prototype.draw = function(div, callbacks) {
-    var viewUpdateFunction = (function(chart) {
-
-      if(this.config.tooltip.enabled){
-         this.config.tooltip.type = "rect";
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-      if (callbacks != null) {
-        for (var i = 0; i<callbacks.length; i++) {
-          this.view.on(callbacks[i].type, callbacks[i].callback);
-        }
-      }
-
-    }).bind(this);
-
-    if(this.config.maxLength != -1){
+  if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
         if(dataset.length >= this.config.maxLength){
@@ -498,7 +564,7 @@ bar.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 };
 
 bar.prototype.insert = function(data) {
@@ -519,11 +585,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    var match;
-                    if (color == -1) {
-                      match =  d[xAxis] == data[i][xAxis]; 
+                    if (color == null) {
+                      return d[xAxis] == data[i][xAxis]; 
                     } else {
-                      match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                      return d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                     }
                   },
                 yAxis,
@@ -567,11 +632,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                  var match;
-                  if (color == -1) {
-                    match =  d[xAxis] == data[i][xAxis]; 
+                  if (color == null) {
+                    return  d[xAxis] == data[i][xAxis]; 
                   } else {
-                    match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                    return  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                   }
                 },
                 yAxis,
@@ -814,6 +878,7 @@ vizg.prototype.getSpec = function() {
 };;var line = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var signals = [];
       this.spec = {};
 
       config = checkConfig(config, this.metadata);
@@ -840,7 +905,7 @@ vizg.prototype.getSpec = function() {
 
       if (config.color != -1) {
 
-          if (config.colorDomain == null) {
+          if (config.colorDomain == -1) {
               config.colorDomain = {"data":  config.title, "field": this.metadata.names[config.color]};
           }
 
@@ -858,6 +923,11 @@ vizg.prototype.getSpec = function() {
       marks.push(getLineMark(config, this.metadata));
       config.markSize = 20;
       marks.push(getSymbolMark(config, this.metadata));
+
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
 
       if (config.color != -1) {
 
@@ -898,28 +968,11 @@ vizg.prototype.getSpec = function() {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
       
 };
 
 line.prototype.draw = function(div, callbacks) {
-
-    var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip.enabled){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-       if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-       }
-
-    }).bind(this);
-
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
@@ -933,7 +986,7 @@ line.prototype.draw = function(div, callbacks) {
         }
     }
 
-    vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 
 };
 
@@ -1420,7 +1473,7 @@ number.prototype.insert = function(data) {
 
     var cScale = {
         "name": "color",
-        "type": "linear",
+        "type": this.metadata.types[config.color],
         "range": config.colorScale,
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
@@ -1723,9 +1776,7 @@ table.prototype.setupData = function (dataset, config) {
                       .attr('bgcolor',
                         function(d) { 
                             var column = d.key  || d.column;
-                            if (typeof d.value == "string") {
 
-                            } else if (config.color == "*" || column == allColumns[config.color]){
                                 var color;
                                 if (typeof config.colorScale == "string") {
                                   color = window["d3"]["scale"][config.colorScale]().range();
@@ -1739,6 +1790,26 @@ table.prototype.setupData = function (dataset, config) {
                                     colorIndex = i;
                                 }
                             }
+
+                            if (typeof d.value == "string") {
+
+                                      var colorDomain;
+
+                               if (config.colorDomain == -1) {
+                                colorDomain = [d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
+                                              d3.max(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; })]
+
+                               } else {
+                                  colorDomain = config.colorDomain
+                               }
+
+                                var colorScale = d3.scale.ordinal()
+                                                .range(config.colorScale)
+                                                .domain(colorDomain);
+                                return colorScale(d.value); 
+
+                            } else if (config.color == "*" || column == allColumns[config.color]){
+
                                 var colorScale = d3.scale.linear()
                                                 .range(['#f2f2f2', color[colorIndex]])
                                                 .domain([d3.min(d3.select('#tableChart-'+config.title) .selectAll('tr') .data(), function(d) { return d[column]; }), 
@@ -1814,7 +1885,8 @@ function checkConfig(config, metadata){
         zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
@@ -1830,7 +1902,9 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+        xAxisAngle:false,
+        yAxisAngle:false
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2102,13 +2176,37 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
+    var xProp =  "";
+    var yProp =  "";
+    
+    if (config.xAxisAngle) {
+        xProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
+    if (config.yAxisAngle) {
+        yProp =     {
+                       "labels": {
+                         "angle": {"value": 45},
+                         "align": {"value": "left"},
+                         "baseline": {"value": "middle"}
+                       }
+                     };
+    }
+
     var axes =  [
       { "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
         "ticks" : config.xTicks, 
-        "title": config.xTitle
+        "title": config.xTitle,
+        "properties": xProp
       },
       {
         "type": yAxesType, 
@@ -2116,9 +2214,87 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
         "grid": config.grid, 
         "format" : config.yFormat, 
         "ticks" : config.yTicks, 
-        "title": config.yTitle
+        "title": config.yTitle,
+        "properties": yProp
       }
     ];
 
     return axes;
+}
+
+function getRangeSignals(config, signals) {
+    signals.push({
+            "name": "range_start",
+            "streams": [{
+              "type": "mousedown", 
+              "expr": "eventX()", 
+              "scale": {"name": "x", "invert": true}
+            }]
+          });
+          signals.push(    {
+            "name": "range_end",
+            "streams": [{
+              "type": "mousedown, [mousedown, window:mouseup] > window:mousemove",
+              "expr": "clamp(eventX(), 0, "+config.width+")",
+              "scale": {"name": "x", "invert": true}
+            }]
+    });
+    return signals;
+}
+
+function getRangeMark(config, marks) {
+      marks.push( {
+          "type": "rect",
+          "properties":{
+            "enter":{
+              "y": {"value": 0},
+              "height": {"value":config.height},
+              "fill": {"value": "black"},
+              "fillOpacity": {"value":0.3}
+            },
+            "update":{
+              "x": {"scale": "x", "signal": "range_start"},
+              "x2": {"scale": "x", "signal": "range_end"}
+            }
+          }
+        });
+
+     return marks;
+}
+
+function drawChart(div, obj, callbacks) {
+    var viewUpdateFunction = (function(chart) {
+      if(obj.config.tooltip.enabled){
+         obj.config.tooltip.type = "rect";
+         createTooltip(div);
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+         bindTooltip(div,obj.view,obj.config,obj.metadata);
+      } else {
+         obj.view = chart({el:div}).renderer(obj.config.renderer).update();
+      }
+
+      if (callbacks != null) {
+        for (var i = 0; i<callbacks.length; i++) {
+          if (callbacks[i].type == "range") {
+              var range_start;
+              var range_end;
+              var callback = callbacks[i].callback;
+                if (config.range) {
+                  obj.view.onSignal("range_start", function(signalName, signalValue){
+                  range_start = signalValue;
+                  });
+
+                  obj.view.onSignal("range_end", function(signalName, signalValue){
+                  range_end = signalValue;
+                  callback(range_start, range_end);
+               });
+              }
+          } else {
+            obj.view.on(callbacks[i].type, callbacks[i].callback);
+          }          
+        }
+      }
+    }).bind(obj);
+
+    vg.parse.spec(obj.spec, viewUpdateFunction);
 }
