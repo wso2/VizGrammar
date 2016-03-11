@@ -73,6 +73,7 @@
                 </div>
                 <div class="panel-body">
                     <div id="dChart"></div>
+                    <div id="dChartContent"></div>
                 </div>
 
             </div>
@@ -108,17 +109,24 @@
         var config = {
           x : "rpm",
           charts : [
-            {type: "line",  y : "torque", color: "EngineType"}
+            {type: "line", range:"true",  y : "torque", color: "EngineType"}
           ],
-          maxLength: 10,
+          maxLength: 50,
           width: 500,
           height: 200
         }
 
+        var callbackmethod = function(start, end) { 
+             var div = document.getElementById("dChartContent");
+                  div.innerHTML = "<p> Start : "+start+"</p>"
+                  +  "<p> End : "+end+"</p>";
+
+        };
+
         var lineChart = new vizg(data, config); 
         var spec = lineChart.getSpec();
 
-        lineChart.draw("#dChart");
+        lineChart.draw("#dChart", [{type:"range", callback:callbackmethod}]);
 
         var configSingle = {
             type: "line",

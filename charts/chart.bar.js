@@ -11,6 +11,7 @@ var bar = function(dataTable, config) {
       var yRange;
       var xAxesType;
       var yAxesType;
+      var signals = [];
 
       config = checkConfig(config, this.metadata);
       this.config = config;
@@ -106,6 +107,8 @@ var bar = function(dataTable, config) {
           "range": yRange,
           "domain": {"data": yDomain, "field": yColumn}
           };
+
+
       
       scales.push(xScale);
       scales.push(yScale);
@@ -120,6 +123,11 @@ var bar = function(dataTable, config) {
         marks.push(getBarMark(config, this.metadata));
       }
 
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
+
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -127,31 +135,13 @@ var bar = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 
       var specc = JSON.stringify(this.spec);
 };
 
 bar.prototype.draw = function(div, callbacks) {
-    var viewUpdateFunction = (function(chart) {
-
-      if(this.config.tooltip.enabled){
-         this.config.tooltip.type = "rect";
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-      if (callbacks != null) {
-        for (var i = 0; i<callbacks.length; i++) {
-          this.view.on(callbacks[i].type, callbacks[i].callback);
-        }
-      }
-
-    }).bind(this);
-
-    if(this.config.maxLength != -1){
+  if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
         var maxValue = this.config.maxLength;
         if(dataset.length >= this.config.maxLength){
@@ -164,7 +154,7 @@ bar.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    drawChart(div, this, callbacks);
 };
 
 bar.prototype.insert = function(data) {
@@ -185,11 +175,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                    var match;
-                    if (color == -1) {
-                      match =  d[xAxis] == data[i][xAxis]; 
+                    if (color == null) {
+                      return d[xAxis] == data[i][xAxis]; 
                     } else {
-                      match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                      return d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                     }
                   },
                 yAxis,
@@ -233,11 +222,10 @@ bar.prototype.insert = function(data) {
         for (i = 0; i < data.length; i++) {
             var isValueMatched = false;
             this.view.data(this.config.title).update(function(d) {
-                  var match;
-                  if (color == -1) {
-                    match =  d[xAxis] == data[i][xAxis]; 
+                  if (color == null) {
+                    return  d[xAxis] == data[i][xAxis]; 
                   } else {
-                    match =  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
+                    return  d[xAxis] == data[i][xAxis] &&  d[color] == data[i][color];
                   }
                 },
                 yAxis,
