@@ -2279,7 +2279,7 @@ function drawChart(div, obj, callbacks) {
               var range_start;
               var range_end;
               var callback = callbacks[i].callback;
-                if (config.range) {
+                if (obj.config.range) {
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });
