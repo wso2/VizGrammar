@@ -1895,7 +1895,15 @@ function checkConfig(config, metadata){
         xFormat: "",
         yFormat: "",
         xAxisAngle:false,
-        yAxisAngle:false
+        yAxisAngle:false,
+
+        axesColor:"#222",
+        axesSize:1,
+        axesFontSize:10,
+        titleFontSize:12,
+        titleFontColor:"#222"
+
+
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2167,15 +2175,47 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
-    var xProp =  "";
-    var yProp =  "";
+    var xProp = {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
+    var yProp =  {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
     
     if (config.xAxisAngle) {
-        xProp =     {
+        xProp.labels = {
                        "labels": {
-                         "angle": {"value": 45},
-                         "align": {"value": "left"},
-                         "baseline": {"value": "middle"}
+                          "fill": {"value": "orange"},
+                          "fontSize": {"value": 12},
+                          "angle": {"value": 45},
+                          "align": {"value": "left"},
+                          "baseline": {"value": "middle"}
                        }
                      };
     }
