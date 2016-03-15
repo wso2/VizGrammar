@@ -554,7 +554,7 @@ bar.prototype.draw = function(div, callbacks) {
             this.spec.data[0].values = allowedDataSet;
         }
     }
-
+    this.config.tooltip.type = "rect";
     drawChart(div, this, callbacks);
 };
 
@@ -2296,7 +2296,6 @@ function getRangeMark(config, marks) {
 function drawChart(div, obj, callbacks) {
     var viewUpdateFunction = (function(chart) {
       if(obj.config.tooltip.enabled){
-         obj.config.tooltip.type = "rect";
          createTooltip(div);
          obj.view = chart({el:div}).renderer(obj.config.renderer).update();
          bindTooltip(div,obj.view,obj.config,obj.metadata);

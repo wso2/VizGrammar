@@ -153,7 +153,7 @@ bar.prototype.draw = function(div, callbacks) {
             this.spec.data[0].values = allowedDataSet;
         }
     }
-
+    this.config.tooltip.type = "rect";
     drawChart(div, this, callbacks);
 };
 
