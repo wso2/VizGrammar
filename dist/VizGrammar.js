@@ -212,6 +212,7 @@ function getPieText(config, metadata){
 var area = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var signals = [];
       this.spec = {};
 
       config = checkConfig(config, this.metadata);
@@ -287,6 +288,11 @@ var area = function(dataTable, config) {
       config.fillOpacity  = 0;
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
+
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -295,26 +301,10 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 area.prototype.draw = function(div, callbacks) {
-
-    var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip.enabled){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-      if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-      }
-
-    }).bind(this);
 
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
@@ -329,7 +319,8 @@ area.prototype.draw = function(div, callbacks) {
         }
     }
 
-    vg.parse.spec(this.spec, viewUpdateFunction);
+     drawChart(div, this, callbacks);
+
 };
 
 area.prototype.insert = function(data) {
@@ -563,7 +554,7 @@ bar.prototype.draw = function(div, callbacks) {
             this.spec.data[0].values = allowedDataSet;
         }
     }
-
+    this.config.tooltip.type = "rect";
     drawChart(div, this, callbacks);
 };
 
@@ -1904,7 +1895,15 @@ function checkConfig(config, metadata){
         xFormat: "",
         yFormat: "",
         xAxisAngle:false,
-        yAxisAngle:false
+        yAxisAngle:false,
+
+        axesColor:"#222",
+        axesSize:1,
+        axesFontSize:10,
+        titleFontSize:12,
+        titleFontColor:"#222"
+
+
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -2176,15 +2175,47 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
-    var xProp =  "";
-    var yProp =  "";
+    var xProp = {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
+    var yProp =  {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
     
     if (config.xAxisAngle) {
-        xProp =     {
+        xProp.labels = {
                        "labels": {
-                         "angle": {"value": 45},
-                         "align": {"value": "left"},
-                         "baseline": {"value": "middle"}
+                          "fill": {"value": "orange"},
+                          "fontSize": {"value": 12},
+                          "angle": {"value": 45},
+                          "align": {"value": "left"},
+                          "baseline": {"value": "middle"}
                        }
                      };
     }
@@ -2265,7 +2296,6 @@ function getRangeMark(config, marks) {
 function drawChart(div, obj, callbacks) {
     var viewUpdateFunction = (function(chart) {
       if(obj.config.tooltip.enabled){
-         obj.config.tooltip.type = "rect";
          createTooltip(div);
          obj.view = chart({el:div}).renderer(obj.config.renderer).update();
          bindTooltip(div,obj.view,obj.config,obj.metadata);
@@ -2279,7 +2309,7 @@ function drawChart(div, obj, callbacks) {
               var range_start;
               var range_end;
               var callback = callbacks[i].callback;
-                if (config.range) {
+                if (obj.config.range) {
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });

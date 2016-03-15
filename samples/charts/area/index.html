@@ -73,6 +73,7 @@
                 </div>
                 <div class="panel-body">
                     <div id="dChart"></div>
+                    <div id="dChartContent"></div>
                 </div>
 
             </div>
@@ -212,15 +213,22 @@
           ];
 
 
+        var callbackmethod = function(start, end) { 
+             var div = document.getElementById("dChartContent");
+                  div.innerHTML = "<p> Start : "+start+"</p>"
+                  +  "<p> End : "+end+"</p>";
+        };
+
+
         var config = {
-            charts : [{type: "area",  x : "rpm", y : "torque"}],
+            charts : [{type: "area", range:true, x : "rpm", y : "torque"}],
             maxLength: 10,
             width: 500,
             height: 250
           }
 
         var lineChart = new vizg(data, config);
-        lineChart.draw("#dChart");
+        lineChart.draw("#dChart", [{type:"range", callback:callbackmethod}]);
 
         var iterations = 1000;
         (function insertLoop (i) {      
