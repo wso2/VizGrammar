@@ -1823,6 +1823,8 @@ function checkConfig(config, metadata){
         renderer: "svg", 
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
         dateFormat: "%x %X",
+        range:false,
+        rangeColor:"#222",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -2228,7 +2230,7 @@ function getRangeMark(config, marks) {
             "enter":{
               "y": {"value": 0},
               "height": {"value":config.height},
-              "fill": {"value": "black"},
+              "fill": {"value": config.rangeColor},
               "fillOpacity": {"value":0.3}
             },
             "update":{
