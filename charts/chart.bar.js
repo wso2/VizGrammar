@@ -47,19 +47,6 @@ var bar = function(dataTable, config) {
 
           scales.push(colorScale);
 
-              var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 10,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
 
 
           if (config.mode == "stack") {
@@ -84,7 +71,9 @@ var bar = function(dataTable, config) {
             yDomain = config.title;
         }
         
-        this.spec.legends = legends;
+        if (this.config.legend) {
+          this.spec.legends = getLegend(this.config);
+        }
       } else {
         yColumn = this.metadata.names[config.y];
         yDomain = config.title;

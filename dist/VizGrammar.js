@@ -60,21 +60,10 @@ var arc = function(dataTable, config) {
           legendTitle = config.title;
       }
 
-      var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 20,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
-
-      this.spec.legends = legends;
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
+      
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.data = dataTable;
@@ -257,28 +246,9 @@ var area = function(dataTable, config) {
             legendTitle = config.title;
         }
 
-        var legends = [
-            {
-                "fill": "color",
-                "title": "Legend",
-                "offset": 0,
-                "properties": {
-                    "symbols": {
-                        "stroke": {"value": "transparent"}
-                    },
-                    "title": {
-                        "fill": {"value": config.legendTitleColor},
-                        "fontSize": {"value": config.legendTitleFontSize}
-                    },
-                    "labels": {
-                        "fill": {"value": config.legendTextColor},
-                        "fontSize": {"value": config.ledgendTextFontSize}
-                    }
-                }
-            }
-        ];
-
-        this.spec.legends = legends;
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
     }
 
 
@@ -448,19 +418,6 @@ var bar = function(dataTable, config) {
 
           scales.push(colorScale);
 
-              var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 10,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
 
 
           if (config.mode == "stack") {
@@ -485,7 +442,9 @@ var bar = function(dataTable, config) {
             yDomain = config.title;
         }
         
-        this.spec.legends = legends;
+        if (this.config.legend) {
+          this.spec.legends = getLegend(this.config);
+        }
       } else {
         yColumn = this.metadata.names[config.y];
         yDomain = config.title;
@@ -927,29 +886,11 @@ vizg.prototype.getSpec = function() {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-
-      var legends = [
-                {
-                  "fill": "color",
-                  "title": "Legend",
-                  "offset": 0,
-                  "properties": {
-                        "symbols": {
-                            "stroke": {"value": "transparent"}
-                        },
-                        "title": {
-                            "fill": {"value": config.legendTitleColor},
-                            "fontSize": {"value": config.legendTitleFontSize}
-                        },
-                        "labels": {
-                            "fill": {"value": config.legendTextColor},
-                            "fontSize": {"value": config.ledgendTextFontSize}
-                          }
-                    }
-                }
-            ];
-
-            this.spec.legends = legends;
+      
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
+       
       }
       
       this.spec.width = config.width;
@@ -1870,38 +1811,45 @@ function checkConfig(config, metadata){
 
     var defaults = {
         title: "table",
-        xTitle: config.x,
-        yTitle: config.y,
-        grid: true,
-        zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", 
         colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
-        renderer: "svg", //string: canvas or svg
+        //string: canvas or svg
+        renderer: "svg", 
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        dateFormat: "%x %X",
+
+        //Tool Configs
+        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+
+        //Legend Configs
+        legend:true,
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
         ledgendTextFontSize: 12,
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
-        hoverType: "symbol",
-        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
-        dateFormat: "%x %X",
-        xTicks: 0,
-        yTicks: 0,
-        xFormat: "",
-        yFormat: "",
+
+        //Axes Configs
+        xTitle: config.x,
+        yTitle: config.y,
         xAxisAngle:false,
         yAxisAngle:false,
-
         axesColor:"#222",
         axesSize:1,
         axesFontSize:10,
         titleFontSize:12,
-        titleFontColor:"#222"
+        titleFontColor:"#222",
+        grid: true,
+        zero: false,
+        xTicks: 0,
+        yTicks: 0,
+        xFormat: "",
+        yFormat: ""
 
 
     };
@@ -2291,6 +2239,31 @@ function getRangeMark(config, marks) {
         });
 
      return marks;
+}
+
+function getLegend(config) {
+  var legends = [
+          {
+            "fill": "color",
+            "title": "Legend",
+            "offset": 0,
+            "properties": {
+                  "symbols": {
+                      "stroke": {"value": "transparent"}
+                  },
+                  "title": {
+                      "fill": {"value": config.legendTitleColor},
+                      "fontSize": {"value": config.legendTitleFontSize}
+                  },
+                  "labels": {
+                      "fill": {"value": config.legendTextColor},
+                      "fontSize": {"value": config.ledgendTextFontSize}
+                    }
+              }
+          }
+      ];
+
+    return legends;
 }
 
 function drawChart(div, obj, callbacks) {

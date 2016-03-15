@@ -45,21 +45,10 @@ var arc = function(dataTable, config) {
           legendTitle = config.title;
       }
 
-      var legends = [
-                      {
-                      "fill": "color",
-                      "title": "Legend",
-                      "offset": 20,
-                      "properties": {
-                        "symbols": {
-                          "fillOpacity": {"value": 0.5},
-                          "stroke": {"value": "transparent"}
-                        }
-                      }
-                    }
-                    ];
-
-      this.spec.legends = legends;
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
+      
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.data = dataTable;
