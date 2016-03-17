@@ -146,7 +146,7 @@ arc.prototype.getSpec = function() {
 function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
-          var innerRadius = config.width/5;
+          var innerRadius = config.width / 5 * config.innerRadius;
         } else {
           var innerRadius = 0;
         }
@@ -1819,6 +1819,7 @@ function checkConfig(config, metadata){
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
+        innerRadius:1,
         //string: canvas or svg
         renderer: "svg", 
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},

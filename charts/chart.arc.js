@@ -131,7 +131,7 @@ arc.prototype.getSpec = function() {
 function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
-          var innerRadius = config.width/5;
+          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
         } else {
           var innerRadius = 0;
         }

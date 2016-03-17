@@ -38,6 +38,7 @@ function checkConfig(config, metadata){
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
+        innerRadius:1,
         //string: canvas or svg
         renderer: "svg", 
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
