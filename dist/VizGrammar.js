@@ -30,7 +30,7 @@ var arc = function(dataTable, config) {
                                 {
                                   "type": "formula",
                                   "field": "percentage",
-                                  "expr": "datum."+this.metadata.names[config.x]+" / 360 * 100"
+                                  "expr": "datum."+this.metadata.names[config.x]+" "
                                 }];
       
       var scales =  []; 
@@ -47,12 +47,16 @@ var arc = function(dataTable, config) {
                     "range": config.colorScale
                       };
       scales.push(colorScale);
-      marks.push(getPieMark(config, this.metadata));
 
-      if (config.percentage) {
-        marks.push(getPieText(config, this.metadata));
+
+      if (config.percentage && 
+        (config.mode == "pie" || config.mode == "donut")) {
+         marks.push(getPieText(config, this.metadata));
+      } else if (config.percentage) {
+         marks.push(getPieMidText(config, this.metadata));;
       }
 
+      marks.push(getPieMark(config, this.metadata));
       
       var legendTitle = "Legend";
 
@@ -105,7 +109,7 @@ arc.prototype.draw = function(div, callbacks) {
         }
     }
 
- 		vg.parse.spec(this.spec, viewUpdateFunction);
+    vg.parse.spec(this.spec, viewUpdateFunction);
 };
 
 arc.prototype.insert = function(data) {
@@ -147,8 +151,11 @@ function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
           var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
-        } else {
+        } else if (config.mode == "pie") {
           var innerRadius = 0;
+        } else {
+          config.innerRadius += 0.5;
+          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
         }
 
         var mark =  {
@@ -174,6 +181,29 @@ function getPieMark(config, metadata){
 
         return mark;
 };
+function getPieMidText(config, metadata){
+        var mark =      {
+                          "type": "text",
+                          "from": {"data": config.title},
+                          "properties": {
+                            "update": {
+                              "x": {"field": {"group": "width"}, "mult": 0.5},
+                              "y": {"field": {"group": "height"}, "mult": 0.5},
+                             "radius": { "value": 0},
+                              "theta": {"field": "layout_mid"},
+                              "fill": {"scale": "color", "field": metadata.names[config.color]},
+                              "align": {"value": "center"},
+                              "baseline": {"value": "middle"},
+                              "fontSize":{"value": config.textSize},
+                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
+
+                            }
+                          }
+                        };
+
+        return mark;
+};
+
 
 function getPieText(config, metadata){
         var mark =      {
@@ -196,7 +226,6 @@ function getPieText(config, metadata){
 
         return mark;
 };
-
 ;
 var area = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
@@ -1819,7 +1848,7 @@ function checkConfig(config, metadata){
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
-        innerRadius:1,
+        innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
         padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
