@@ -51,9 +51,14 @@ var arc = function(dataTable, config) {
 
       if (config.percentage && 
         (config.mode == "pie" || config.mode == "donut")) {
-         marks.push(getPieText(config, this.metadata));
+        marks.push(getPieText(config, this.metadata));
       } else if (config.percentage) {
-         marks.push(getPieMidText(config, this.metadata));;
+        dataTable.push(    
+            {
+          "name": "arc",
+          "values": [{"type": "YES"}]
+        });
+        marks.push(getPieMidText(config, this.metadata));;
       }
 
       marks.push(getPieMark(config, this.metadata));
@@ -189,15 +194,21 @@ function getPieMidText(config, metadata){
                             "update": {
                               "x": {"field": {"group": "width"}, "mult": 0.5},
                               "y": {"field": {"group": "height"}, "mult": 0.5},
-                             "radius": { "value": 0},
+                              "radius": { "value": 0},
                               "theta": {"field": "layout_mid"},
-                              "fill": {"scale": "color", "field": metadata.names[config.color]},
+                              "fill": [
+                                      {
+                                        "test": "indata('arc', datum.EngineType, 'type')",
+                                        "scale": "color", "field": metadata.names[config.color]
+                                      },
+                                      {}
+                                    ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "fontSize":{"value": config.textSize},
+                              "fontSize":{"value": config.width/7},
                               "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
 
-                            }
+                             }
                           }
                         };
 
