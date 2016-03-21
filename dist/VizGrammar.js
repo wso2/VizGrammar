@@ -146,7 +146,7 @@ arc.prototype.getSpec = function() {
 function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
-          var innerRadius = config.width / 5 * config.innerRadius;
+          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
         } else {
           var innerRadius = 0;
         }
@@ -2160,25 +2160,15 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
                  }};
     
     if (config.xAxisAngle) {
-        xProp.labels = {
-                       "labels": {
-                          "fill": {"value": "orange"},
-                          "fontSize": {"value": 12},
-                          "angle": {"value": 45},
-                          "align": {"value": "left"},
-                          "baseline": {"value": "middle"}
-                       }
-                     };
+        xProp.labels.angle = {"value": 45};
+        xProp.labels.align = {"value": "left"};
+        xProp.labels.baseline = {"value": "middle"};
     }
 
     if (config.yAxisAngle) {
-        yProp =     {
-                       "labels": {
-                         "angle": {"value": 45},
-                         "align": {"value": "left"},
-                         "baseline": {"value": "middle"}
-                       }
-                     };
+        yProp.labels.angle = {"value": 45};
+        yProp.labels.align = {"value": "left"};
+        yProp.labels.baseline = {"value": "middle"};
     }
 
     var axes =  [
