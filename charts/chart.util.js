@@ -30,32 +30,50 @@ function checkConfig(config, metadata){
 
     var defaults = {
         title: "table",
-        xTitle: config.x,
-        yTitle: config.y,
-        grid: true,
-        zero: false,
         mapType: -1,
         mode: "stack",
-        colorScale: "category10", //color hex array or string: category10, 10c, category20, category20b, category20c,
+        //color hex array or string: category10, 10c, category20, category20b, category20c
+        colorScale: "category10", 
         colorDomain: -1,
         maxLength: -1,
         markSize: 2,
         fillOpacity: 1,
-        renderer: "svg", //string: canvas or svg
+        innerRadius:0,
+        //string: canvas or svg
+        renderer: "svg", 
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        dateFormat: "%x %X",
+        range:false,
+        rangeColor:"#222",
+
+        //Tool Configs
+        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+
+        //Legend Configs
+        legend:true,
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
         ledgendTextFontSize: 12,
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
-        hoverType: "symbol",
-        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
-        dateFormat: "%x %X",
+
+        //Axes Configs
+        xTitle: config.x,
+        yTitle: config.y,
+        xAxisAngle:false,
+        yAxisAngle:false,
+        axesColor:"#222",
+        axesSize:1,
+        axesFontSize:10,
+        titleFontSize:12,
+        titleFontColor:"#222",
+        grid: true,
+        zero: false,
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: "",
-        xAxisAngle:false,
-        yAxisAngle:false
+        yFormat: ""
+
+
     };
     
     if (typeof vizgSettings != 'undefined'){
@@ -327,27 +345,49 @@ function cumulativeOffset(element) {
 };
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
-    var xProp =  "";
-    var yProp =  "";
+    var xProp = {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
+    var yProp =  {"ticks": {
+                   "stroke": {"value": config.axesColor}, 
+                   "strokeWidth":{"value":config.axesSize}
+                 },
+                 "labels": {
+                   "fill": {"value": config.axesColor},
+                    "fontSize": {"value": config.axesFontSize}
+                 },
+                 "title": {
+                   "fontSize": {"value": config.titleFontSize},
+                    "fill": {"value": config.titleFontColor}
+                 },
+                 "axis": {
+                   "stroke": {"value": config.axesColor},
+                   "strokeWidth": {"value": config.axesSize}
+                 }};
     
     if (config.xAxisAngle) {
-        xProp =     {
-                       "labels": {
-                         "angle": {"value": 45},
-                         "align": {"value": "left"},
-                         "baseline": {"value": "middle"}
-                       }
-                     };
+        xProp.labels.angle = {"value": 45};
+        xProp.labels.align = {"value": "left"};
+        xProp.labels.baseline = {"value": "middle"};
     }
 
     if (config.yAxisAngle) {
-        yProp =     {
-                       "labels": {
-                         "angle": {"value": 45},
-                         "align": {"value": "left"},
-                         "baseline": {"value": "middle"}
-                       }
-                     };
+        yProp.labels.angle = {"value": 45};
+        yProp.labels.align = {"value": "left"};
+        yProp.labels.baseline = {"value": "middle"};
     }
 
     var axes =  [
@@ -400,7 +440,7 @@ function getRangeMark(config, marks) {
             "enter":{
               "y": {"value": 0},
               "height": {"value":config.height},
-              "fill": {"value": "black"},
+              "fill": {"value": config.rangeColor},
               "fillOpacity": {"value":0.3}
             },
             "update":{
@@ -413,10 +453,34 @@ function getRangeMark(config, marks) {
      return marks;
 }
 
+function getLegend(config) {
+  var legends = [
+          {
+            "fill": "color",
+            "title": "Legend",
+            "offset": 0,
+            "properties": {
+                  "symbols": {
+                      "stroke": {"value": "transparent"}
+                  },
+                  "title": {
+                      "fill": {"value": config.legendTitleColor},
+                      "fontSize": {"value": config.legendTitleFontSize}
+                  },
+                  "labels": {
+                      "fill": {"value": config.legendTextColor},
+                      "fontSize": {"value": config.ledgendTextFontSize}
+                    }
+              }
+          }
+      ];
+
+    return legends;
+}
+
 function drawChart(div, obj, callbacks) {
     var viewUpdateFunction = (function(chart) {
       if(obj.config.tooltip.enabled){
-         obj.config.tooltip.type = "rect";
          createTooltip(div);
          obj.view = chart({el:div}).renderer(obj.config.renderer).update();
          bindTooltip(div,obj.view,obj.config,obj.metadata);
@@ -430,7 +494,7 @@ function drawChart(div, obj, callbacks) {
               var range_start;
               var range_end;
               var callback = callbacks[i].callback;
-                if (config.range) {
+                if (obj.config.range) {
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });
