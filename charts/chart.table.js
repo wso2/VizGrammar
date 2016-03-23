@@ -22,13 +22,13 @@ table.prototype.draw = function(div) {
               .data(this.config.columnTitles)
           .enter()
               .append('th')
-              .text(function (d) { return d });
+              .html(function (d) { return d });
 
       table.append('tbody').attr("id", "tableChart-"+this.config.title);
       this.setupData(this.data, this.config);
 
       table.selectAll("thead th")
-      .text(function(column) {
+      .html(function(column) {
           return column.charAt(0).toUpperCase() + column.substr(1);
       });
   
@@ -136,7 +136,7 @@ table.prototype.setupData = function (dataset, config) {
     
 
     td.select('span')
-        .text(function(d) {
+        .html(function(d) {
             return d.value
         })
     //Remove data items when it hits maxLength 
