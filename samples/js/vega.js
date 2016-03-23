@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vg = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = {
-  version: '2.3.1',
+  version: '2.5.2',
   dataflow: require('vega-dataflow'),
   parse: require('./src/parse/'),
   scene: {
@@ -8,6 +8,7 @@ module.exports = {
     Builder: require('./src/scene/Builder'),
     Encoder: require('./src/scene/Encoder'),
     GroupBuilder: require('./src/scene/GroupBuilder'),
+    visit: require('./src/scene/visit')
   },
   transforms: require('./src/transforms'),
   Transform: require('./src/transforms/Transform'),
@@ -15,526 +16,50 @@ module.exports = {
   Parameter: require('./src/transforms/Parameter'),
   schema: require('./src/core/schema'),
   config: require('./src/core/config'),
-  util:  require('datalib'),
+  util: require('./src/util'),
+  logging: require('vega-logging'),
   debug: require('vega-logging').debug
 };
-},{"./src/core/config":90,"./src/core/schema":91,"./src/parse/":97,"./src/scene/Bounder":109,"./src/scene/Builder":110,"./src/scene/Encoder":111,"./src/scene/GroupBuilder":112,"./src/transforms":144,"./src/transforms/BatchTransform":119,"./src/transforms/Parameter":135,"./src/transforms/Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],2:[function(require,module,exports){
+},{"./src/core/config":91,"./src/core/schema":92,"./src/parse/":97,"./src/scene/Bounder":109,"./src/scene/Builder":110,"./src/scene/Encoder":111,"./src/scene/GroupBuilder":112,"./src/scene/visit":117,"./src/transforms":145,"./src/transforms/BatchTransform":119,"./src/transforms/Parameter":135,"./src/transforms/Transform":140,"./src/util":148,"vega-dataflow":41,"vega-logging":48}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
-// Word cloud layout by Jason Davies, https://www.jasondavies.com/wordcloud/
-// Algorithm due to Jonathan Feinberg, http://static.mrfeinberg.com/bv_ch03.pdf
-
-var dispatch = require("d3-dispatch").dispatch;
-
-var cloudRadians = Math.PI / 180,
-    cw = 1 << 11 >> 5,
-    ch = 1 << 11;
-
-module.exports = function() {
-  var size = [256, 256],
-      text = cloudText,
-      font = cloudFont,
-      fontSize = cloudFontSize,
-      fontStyle = cloudFontNormal,
-      fontWeight = cloudFontNormal,
-      rotate = cloudRotate,
-      padding = cloudPadding,
-      spiral = archimedeanSpiral,
-      words = [],
-      timeInterval = Infinity,
-      event = dispatch("word", "end"),
-      timer = null,
-      random = Math.random,
-      cloud = {},
-      canvas = cloudCanvas;
-
-  cloud.canvas = function(_) {
-    return arguments.length ? (canvas = functor(_), cloud) : canvas;
-  };
-
-  cloud.start = function() {
-    var contextAndRatio = getContext(canvas()),
-        board = zeroArray((size[0] >> 5) * size[1]),
-        bounds = null,
-        n = words.length,
-        i = -1,
-        tags = [],
-        data = words.map(function(d, i) {
-          d.text = text.call(this, d, i);
-          d.font = font.call(this, d, i);
-          d.style = fontStyle.call(this, d, i);
-          d.weight = fontWeight.call(this, d, i);
-          d.rotate = rotate.call(this, d, i);
-          d.size = ~~fontSize.call(this, d, i);
-          d.padding = padding.call(this, d, i);
-          return d;
-        }).sort(function(a, b) { return b.size - a.size; });
-
-    if (timer) clearInterval(timer);
-    timer = setInterval(step, 0);
-    step();
-
-    return cloud;
-
-    function step() {
-      var start = Date.now();
-      while (Date.now() - start < timeInterval && ++i < n && timer) {
-        var d = data[i];
-        d.x = (size[0] * (random() + .5)) >> 1;
-        d.y = (size[1] * (random() + .5)) >> 1;
-        cloudSprite(contextAndRatio, d, data, i);
-        if (d.hasText && place(board, d, bounds)) {
-          tags.push(d);
-          event.word(d);
-          if (bounds) cloudBounds(bounds, d);
-          else bounds = [{x: d.x + d.x0, y: d.y + d.y0}, {x: d.x + d.x1, y: d.y + d.y1}];
-          // Temporary hack
-          d.x -= size[0] >> 1;
-          d.y -= size[1] >> 1;
-        }
-      }
-      if (i >= n) {
-        cloud.stop();
-        event.end(tags, bounds);
-      }
-    }
-  }
-
-  cloud.stop = function() {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-    return cloud;
-  };
-
-  function getContext(canvas) {
-    canvas.width = canvas.height = 1;
-    var ratio = Math.sqrt(canvas.getContext("2d").getImageData(0, 0, 1, 1).data.length >> 2);
-    canvas.width = (cw << 5) / ratio;
-    canvas.height = ch / ratio;
-
-    var context = canvas.getContext("2d");
-    context.fillStyle = context.strokeStyle = "red";
-    context.textAlign = "center";
-
-    return {context: context, ratio: ratio};
-  }
-
-  function place(board, tag, bounds) {
-    var perimeter = [{x: 0, y: 0}, {x: size[0], y: size[1]}],
-        startX = tag.x,
-        startY = tag.y,
-        maxDelta = Math.sqrt(size[0] * size[0] + size[1] * size[1]),
-        s = spiral(size),
-        dt = random() < .5 ? 1 : -1,
-        t = -dt,
-        dxdy,
-        dx,
-        dy;
-
-    while (dxdy = s(t += dt)) {
-      dx = ~~dxdy[0];
-      dy = ~~dxdy[1];
-
-      if (Math.min(Math.abs(dx), Math.abs(dy)) >= maxDelta) break;
-
-      tag.x = startX + dx;
-      tag.y = startY + dy;
-
-      if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
-          tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1]) continue;
-      // TODO only check for collisions within current bounds.
-      if (!bounds || !cloudCollide(tag, board, size[0])) {
-        if (!bounds || collideRects(tag, bounds)) {
-          var sprite = tag.sprite,
-              w = tag.width >> 5,
-              sw = size[0] >> 5,
-              lx = tag.x - (w << 4),
-              sx = lx & 0x7f,
-              msx = 32 - sx,
-              h = tag.y1 - tag.y0,
-              x = (tag.y + tag.y0) * sw + (lx >> 5),
-              last;
-          for (var j = 0; j < h; j++) {
-            last = 0;
-            for (var i = 0; i <= w; i++) {
-              board[x + i] |= (last << msx) | (i < w ? (last = sprite[j * w + i]) >>> sx : 0);
-            }
-            x += sw;
-          }
-          delete tag.sprite;
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  cloud.timeInterval = function(_) {
-    return arguments.length ? (timeInterval = _ == null ? Infinity : _, cloud) : timeInterval;
-  };
-
-  cloud.words = function(_) {
-    return arguments.length ? (words = _, cloud) : words;
-  };
-
-  cloud.size = function(_) {
-    return arguments.length ? (size = [+_[0], +_[1]], cloud) : size;
-  };
-
-  cloud.font = function(_) {
-    return arguments.length ? (font = functor(_), cloud) : font;
-  };
-
-  cloud.fontStyle = function(_) {
-    return arguments.length ? (fontStyle = functor(_), cloud) : fontStyle;
-  };
-
-  cloud.fontWeight = function(_) {
-    return arguments.length ? (fontWeight = functor(_), cloud) : fontWeight;
-  };
-
-  cloud.rotate = function(_) {
-    return arguments.length ? (rotate = functor(_), cloud) : rotate;
-  };
-
-  cloud.text = function(_) {
-    return arguments.length ? (text = functor(_), cloud) : text;
-  };
-
-  cloud.spiral = function(_) {
-    return arguments.length ? (spiral = spirals[_] || _, cloud) : spiral;
-  };
-
-  cloud.fontSize = function(_) {
-    return arguments.length ? (fontSize = functor(_), cloud) : fontSize;
-  };
-
-  cloud.padding = function(_) {
-    return arguments.length ? (padding = functor(_), cloud) : padding;
-  };
-
-  cloud.random = function(_) {
-    return arguments.length ? (random = _, cloud) : random;
-  };
-
-  cloud.on = function() {
-    var value = event.on.apply(event, arguments);
-    return value === event ? cloud : value;
-  };
-
-  return cloud;
-};
-
-function cloudText(d) {
-  return d.text;
-}
-
-function cloudFont() {
-  return "serif";
-}
-
-function cloudFontNormal() {
-  return "normal";
-}
-
-function cloudFontSize(d) {
-  return Math.sqrt(d.value);
-}
-
-function cloudRotate() {
-  return (~~(Math.random() * 6) - 3) * 30;
-}
-
-function cloudPadding() {
-  return 1;
-}
-
-// Fetches a monochrome sprite bitmap for the specified text.
-// Load in batches for speed.
-function cloudSprite(contextAndRatio, d, data, di) {
-  if (d.sprite) return;
-  var c = contextAndRatio.context,
-      ratio = contextAndRatio.ratio;
-
-  c.clearRect(0, 0, (cw << 5) / ratio, ch / ratio);
-  var x = 0,
-      y = 0,
-      maxh = 0,
-      n = data.length;
-  --di;
-  while (++di < n) {
-    d = data[di];
-    c.save();
-    c.font = d.style + " " + d.weight + " " + ~~((d.size + 1) / ratio) + "px " + d.font;
-    var w = c.measureText(d.text + "m").width * ratio,
-        h = d.size << 1;
-    if (d.rotate) {
-      var sr = Math.sin(d.rotate * cloudRadians),
-          cr = Math.cos(d.rotate * cloudRadians),
-          wcr = w * cr,
-          wsr = w * sr,
-          hcr = h * cr,
-          hsr = h * sr;
-      w = (Math.max(Math.abs(wcr + hsr), Math.abs(wcr - hsr)) + 0x1f) >> 5 << 5;
-      h = ~~Math.max(Math.abs(wsr + hcr), Math.abs(wsr - hcr));
-    } else {
-      w = (w + 0x1f) >> 5 << 5;
-    }
-    if (h > maxh) maxh = h;
-    if (x + w >= (cw << 5)) {
-      x = 0;
-      y += maxh;
-      maxh = 0;
-    }
-    if (y + h >= ch) break;
-    c.translate((x + (w >> 1)) / ratio, (y + (h >> 1)) / ratio);
-    if (d.rotate) c.rotate(d.rotate * cloudRadians);
-    c.fillText(d.text, 0, 0);
-    if (d.padding) c.lineWidth = 2 * d.padding, c.strokeText(d.text, 0, 0);
-    c.restore();
-    d.width = w;
-    d.height = h;
-    d.xoff = x;
-    d.yoff = y;
-    d.x1 = w >> 1;
-    d.y1 = h >> 1;
-    d.x0 = -d.x1;
-    d.y0 = -d.y1;
-    d.hasText = true;
-    x += w;
-  }
-  var pixels = c.getImageData(0, 0, (cw << 5) / ratio, ch / ratio).data,
-      sprite = [];
-  while (--di >= 0) {
-    d = data[di];
-    if (!d.hasText) continue;
-    var w = d.width,
-        w32 = w >> 5,
-        h = d.y1 - d.y0;
-    // Zero the buffer
-    for (var i = 0; i < h * w32; i++) sprite[i] = 0;
-    x = d.xoff;
-    if (x == null) return;
-    y = d.yoff;
-    var seen = 0,
-        seenRow = -1;
-    for (var j = 0; j < h; j++) {
-      for (var i = 0; i < w; i++) {
-        var k = w32 * j + (i >> 5),
-            m = pixels[((y + j) * (cw << 5) + (x + i)) << 2] ? 1 << (31 - (i % 32)) : 0;
-        sprite[k] |= m;
-        seen |= m;
-      }
-      if (seen) seenRow = j;
-      else {
-        d.y0++;
-        h--;
-        j--;
-        y++;
-      }
-    }
-    d.y1 = d.y0 + seenRow;
-    d.sprite = sprite.slice(0, (d.y1 - d.y0) * w32);
-  }
-}
-
-// Use mask-based collision detection.
-function cloudCollide(tag, board, sw) {
-  sw >>= 5;
-  var sprite = tag.sprite,
-      w = tag.width >> 5,
-      lx = tag.x - (w << 4),
-      sx = lx & 0x7f,
-      msx = 32 - sx,
-      h = tag.y1 - tag.y0,
-      x = (tag.y + tag.y0) * sw + (lx >> 5),
-      last;
-  for (var j = 0; j < h; j++) {
-    last = 0;
-    for (var i = 0; i <= w; i++) {
-      if (((last << msx) | (i < w ? (last = sprite[j * w + i]) >>> sx : 0))
-          & board[x + i]) return true;
-    }
-    x += sw;
-  }
-  return false;
-}
-
-function cloudBounds(bounds, d) {
-  var b0 = bounds[0],
-      b1 = bounds[1];
-  if (d.x + d.x0 < b0.x) b0.x = d.x + d.x0;
-  if (d.y + d.y0 < b0.y) b0.y = d.y + d.y0;
-  if (d.x + d.x1 > b1.x) b1.x = d.x + d.x1;
-  if (d.y + d.y1 > b1.y) b1.y = d.y + d.y1;
-}
-
-function collideRects(a, b) {
-  return a.x + a.x1 > b[0].x && a.x + a.x0 < b[1].x && a.y + a.y1 > b[0].y && a.y + a.y0 < b[1].y;
-}
-
-function archimedeanSpiral(size) {
-  var e = size[0] / size[1];
-  return function(t) {
-    return [e * (t *= .1) * Math.cos(t), t * Math.sin(t)];
-  };
-}
-
-function rectangularSpiral(size) {
-  var dy = 4,
-      dx = dy * size[0] / size[1],
-      x = 0,
-      y = 0;
-  return function(t) {
-    var sign = t < 0 ? -1 : 1;
-    // See triangular numbers: T_n = n * (n + 1) / 2.
-    switch ((Math.sqrt(1 + 4 * sign * t) - sign) & 3) {
-      case 0:  x += dx; break;
-      case 1:  y += dy; break;
-      case 2:  x -= dx; break;
-      default: y -= dy; break;
-    }
-    return [x, y];
-  };
-}
-
-// TODO reuse arrays?
-function zeroArray(n) {
-  var a = [],
-      i = -1;
-  while (++i < n) a[i] = 0;
-  return a;
-}
-
-function cloudCanvas() {
-  return document.createElement("canvas");
-}
-
-function functor(d) {
-  return typeof d === "function" ? d : function() { return d; };
-}
-
-var spirals = {
-  archimedean: archimedeanSpiral,
-  rectangular: rectangularSpiral
-};
-
-},{"d3-dispatch":4}],4:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-dispatch', ['exports'], factory) :
-  factory((global.d3_dispatch = {}));
-}(this, function (exports) { 'use strict';
-
-  function dispatch() {
-    return new Dispatch(arguments);
-  }
-
-  function Dispatch(types) {
-    var i = -1,
-        n = types.length,
-        callbacksByType = {},
-        callbackByName = {},
-        type,
-        that = this;
-
-    that.on = function(type, callback) {
-      type = parseType(type);
-
-      // Return the current callback, if any.
-      if (arguments.length < 2) {
-        return (callback = callbackByName[type.name]) && callback.value;
-      }
-
-      // If a type was specified…
-      if (type.type) {
-        var callbacks = callbacksByType[type.type],
-            callback0 = callbackByName[type.name],
-            i;
-
-        // Remove the current callback, if any, using copy-on-remove.
-        if (callback0) {
-          callback0.value = null;
-          i = callbacks.indexOf(callback0);
-          callbacksByType[type.type] = callbacks = callbacks.slice(0, i).concat(callbacks.slice(i + 1));
-          delete callbackByName[type.name];
-        }
-
-        // Add the new callback, if any.
-        if (callback) {
-          callback = {value: callback};
-          callbackByName[type.name] = callback;
-          callbacks.push(callback);
-        }
-      }
-
-      // Otherwise, if a null callback was specified, remove all callbacks with the given name.
-      else if (callback == null) {
-        for (var otherType in callbacksByType) {
-          if (callback = callbackByName[otherType + type.name]) {
-            callback.value = null;
-            var callbacks = callbacksByType[otherType], i = callbacks.indexOf(callback);
-            callbacksByType[otherType] = callbacks.slice(0, i).concat(callbacks.slice(i + 1));
-            delete callbackByName[callback.name];
-          }
-        }
-      }
-
-      return that;
-    };
-
-    while (++i < n) {
-      type = types[i] + "";
-      if (!type || (type in that)) throw new Error("illegal or duplicate type: " + type);
-      callbacksByType[type] = [];
-      that[type] = applier(type);
-    }
-
-    function parseType(type) {
-      var i = (type += "").indexOf("."), name = type;
-      if (i >= 0) type = type.slice(0, i); else name += ".";
-      if (type && !callbacksByType.hasOwnProperty(type)) throw new Error("unknown type: " + type);
-      return {type: type, name: name};
-    }
-
-    function applier(type) {
-      return function() {
-        var callbacks = callbacksByType[type], // Defensive reference; copy-on-remove.
-            callback,
-            callbackValue,
-            i = -1,
-            n = callbacks.length;
-
-        while (++i < n) {
-          if (callbackValue = (callback = callbacks[i]).value) {
-            callbackValue.apply(this, arguments);
-          }
-        }
-
-        return that;
-      };
-    }
-  }
-
-  dispatch.prototype = Dispatch.prototype;
-
-  var version = "0.2.4";
-
-  exports.version = version;
-  exports.dispatch = dispatch;
-
-}));
-},{}],5:[function(require,module,exports){
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-dsv', ['exports'], factory) :
-  factory((global.d3_dsv = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_dsv = {})));
 }(this, function (exports) { 'use strict';
 
   function dsv(delimiter) {
     return new Dsv(delimiter);
+  }
+
+  function objectConverter(columns) {
+    return new Function("d", "return {" + columns.map(function(name, i) {
+      return JSON.stringify(name) + ": d[" + i + "]";
+    }).join(",") + "}");
+  }
+
+  function customConverter(columns, f) {
+    var object = objectConverter(columns);
+    return function(row, i) {
+      return f(object(row), i, columns);
+    };
+  }
+
+  // Compute unique columns in order of discovery.
+  function inferColumns(rows) {
+    var columnSet = Object.create(null),
+        columns = [];
+
+    rows.forEach(function(row) {
+      for (var column in row) {
+        if (!(column in columnSet)) {
+          columns.push(columnSet[column] = column);
+        }
+      }
+    });
+
+    return columns;
   }
 
   function Dsv(delimiter) {
@@ -542,14 +67,12 @@ var spirals = {
         delimiterCode = delimiter.charCodeAt(0);
 
     this.parse = function(text, f) {
-      var o;
-      return this.parseRows(text, function(row, i) {
-        if (o) return o(row, i - 1);
-        var a = new Function("d", "return {" + row.map(function(name, i) {
-          return JSON.stringify(name) + ": d[" + i + "]";
-        }).join(",") + "}");
-        o = f ? function(row, i) { return f(a(row), i); } : a;
+      var convert, columns, rows = this.parseRows(text, function(row, i) {
+        if (convert) return convert(row, i - 1);
+        columns = row, convert = f ? customConverter(row, f) : objectConverter(row);
       });
+      rows.columns = columns;
+      return rows;
     };
 
     this.parseRows = function(text, f) {
@@ -567,7 +90,7 @@ var spirals = {
         if (eol) return eol = false, EOL; // special case: end of line
 
         // special case: quotes
-        var j = I;
+        var j = I, c;
         if (text.charCodeAt(j) === 34) {
           var i = j;
           while (i++ < N) {
@@ -577,7 +100,7 @@ var spirals = {
             }
           }
           I = i + 2;
-          var c = text.charCodeAt(i + 1);
+          c = text.charCodeAt(i + 1);
           if (c === 13) {
             eol = true;
             if (text.charCodeAt(i + 2) === 10) ++I;
@@ -589,7 +112,8 @@ var spirals = {
 
         // common case: find next delimiter or newline
         while (I < N) {
-          var c = text.charCodeAt(I++), k = 1;
+          var k = 1;
+          c = text.charCodeAt(I++);
           if (c === 10) eol = true; // \n
           else if (c === 13) { eol = true; if (text.charCodeAt(I) === 10) ++I, ++k; } // \r|\r\n
           else if (c !== delimiterCode) continue;
@@ -613,22 +137,11 @@ var spirals = {
       return rows;
     }
 
-    this.format = function(rows) {
-      if (Array.isArray(rows[0])) return this.formatRows(rows); // deprecated; use formatRows
-      var fieldSet = Object.create(null), fields = [];
-
-      // Compute unique fields in order of discovery.
-      rows.forEach(function(row) {
-        for (var field in row) {
-          if (!((field += "") in fieldSet)) {
-            fields.push(fieldSet[field] = field);
-          }
-        }
-      });
-
-      return [fields.map(formatValue).join(delimiter)].concat(rows.map(function(row) {
-        return fields.map(function(field) {
-          return formatValue(row[field]);
+    this.format = function(rows, columns) {
+      if (columns == null) columns = inferColumns(rows);
+      return [columns.map(formatValue).join(delimiter)].concat(rows.map(function(row) {
+        return columns.map(function(column) {
+          return formatValue(row[column]);
         }).join(delimiter);
       })).join("\n");
     };
@@ -644,14 +157,14 @@ var spirals = {
     function formatValue(text) {
       return reFormat.test(text) ? "\"" + text.replace(/\"/g, "\"\"") + "\"" : text;
     }
-  };
+  }
 
   dsv.prototype = Dsv.prototype;
 
   var csv = dsv(",");
   var tsv = dsv("\t");
 
-  var version = "0.1.9";
+  var version = "0.1.14";
 
   exports.version = version;
   exports.dsv = dsv;
@@ -659,166 +172,12 @@ var spirals = {
   exports.tsv = tsv;
 
 }));
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define('d3-format', ['exports'], factory) :
   factory((global.d3_format = {}));
 }(this, function (exports) { 'use strict';
-
-  var zhCn = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["¥", ""]
-  };
-
-  var svSe = {
-    decimal: ",",
-    thousands: "\xa0",
-    grouping: [3],
-    currency: ["", "SEK"]
-  };
-
-  var ruRu = {
-    decimal: ",",
-    thousands: "\xa0",
-    grouping: [3],
-    currency: ["", "\xa0руб."]
-  };
-
-  var ptBr = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["R$", ""]
-  };
-
-  var plPl = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "zł"]
-  };
-
-  var nlNl = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["€\xa0", ""]
-  };
-
-  var mkMk = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "\xa0ден."]
-  };
-
-  var koKr = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["₩", ""]
-  };
-
-  var jaJp = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["", "円"]
-  };
-
-  var itIt = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["€", ""]
-  };
-
-  var huHu = {
-    decimal: ",",
-    thousands: "\xa0",
-    grouping: [3],
-    currency: ["", "\xa0Ft"]
-  };
-
-  var heIl = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["₪", ""]
-  };
-
-  var frFr = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "\xa0€"]
-  };
-
-  var frCa = {
-    decimal: ",",
-    thousands: "\xa0",
-    grouping: [3],
-    currency: ["", "$"]
-  };
-
-  var fiFi = {
-    decimal: ",",
-    thousands: "\xa0",
-    grouping: [3],
-    currency: ["", "\xa0€"]
-  };
-
-  var esEs = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "\xa0€"]
-  };
-
-  var enUs = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["$", ""]
-  };
-
-  var enGb = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["£", ""]
-  };
-
-  var enCa = {
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    currency: ["$", ""]
-  };
-
-  var deDe = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "\xa0€"]
-  };
-
-  var deCh = {
-    decimal: ",",
-    thousands: "'",
-    grouping: [3],
-    currency: ["", "\xa0CHF"]
-  };
-
-  var caEs = {
-    decimal: ",",
-    thousands: ".",
-    grouping: [3],
-    currency: ["", "\xa0€"]
-  };
 
   // Computes the decimal coefficient and exponent of the specified number x with
   // significant digits p, where x is positive and p is in [1, 21] or undefined.
@@ -1097,6 +456,167 @@ var spirals = {
     };
   };
 
+  var defaultLocale = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["$", ""]
+  });
+
+  var caES = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "\xa0€"]
+  });
+
+  var csCZ = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "\xa0Kč"],
+  });
+
+  var deCH = locale({
+    decimal: ",",
+    thousands: "'",
+    grouping: [3],
+    currency: ["", "\xa0CHF"]
+  });
+
+  var deDE = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "\xa0€"]
+  });
+
+  var enCA = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["$", ""]
+  });
+
+  var enGB = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["£", ""]
+  });
+
+  var esES = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "\xa0€"]
+  });
+
+  var fiFI = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "\xa0€"]
+  });
+
+  var frCA = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "$"]
+  });
+
+  var frFR = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "\xa0€"]
+  });
+
+  var heIL = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["₪", ""]
+  });
+
+  var huHU = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "\xa0Ft"]
+  });
+
+  var itIT = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["€", ""]
+  });
+
+  var jaJP = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["", "円"]
+  });
+
+  var koKR = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["₩", ""]
+  });
+
+  var mkMK = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "\xa0ден."]
+  });
+
+  var nlNL = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["€\xa0", ""]
+  });
+
+  var plPL = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["", "zł"]
+  });
+
+  var ptBR = locale({
+    decimal: ",",
+    thousands: ".",
+    grouping: [3],
+    currency: ["R$", ""]
+  });
+
+  var ruRU = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "\xa0руб."]
+  });
+
+  var svSE = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "SEK"]
+  });
+
+  var zhCN = locale({
+    decimal: ".",
+    thousands: ",",
+    grouping: [3],
+    currency: ["¥", ""]
+  });
+
   function precisionFixed(step) {
     return Math.max(0, -exponent(Math.abs(step)));
   };
@@ -1106,306 +626,54 @@ var spirals = {
   };
 
   function precisionRound(step, max) {
-    return Math.max(0, exponent(Math.abs(max)) - exponent(Math.abs(step))) + 1;
+    step = Math.abs(step), max = Math.abs(max) - step;
+    return Math.max(0, exponent(max) - exponent(step)) + 1;
   };
 
-  var localeDefinitions = {
-    "ca-ES": caEs,
-    "de-CH": deCh,
-    "de-DE": deDe,
-    "en-CA": enCa,
-    "en-GB": enGb,
-    "en-US": enUs,
-    "es-ES": esEs,
-    "fi-FI": fiFi,
-    "fr-CA": frCa,
-    "fr-FR": frFr,
-    "he-IL": heIl,
-    "hu-HU": huHu,
-    "it-IT": itIt,
-    "ja-JP": jaJp,
-    "ko-KR": koKr,
-    "mk-MK": mkMk,
-    "nl-NL": nlNl,
-    "pl-PL": plPl,
-    "pt-BR": ptBr,
-    "ru-RU": ruRu,
-    "sv-SE": svSe,
-    "zh-CN": zhCn
-  };
-
-  var defaultLocale = locale(enUs);
   var format = defaultLocale.format;
   var formatPrefix = defaultLocale.formatPrefix;
 
-  function localeFormat(definition) {
-    if (typeof definition === "string") {
-      if (!localeDefinitions.hasOwnProperty(definition)) return null;
-      definition = localeDefinitions[definition];
-    }
-    return locale(definition);
-  };
-
-  var version = "0.3.6";
+  var version = "0.4.2";
 
   exports.version = version;
   exports.format = format;
   exports.formatPrefix = formatPrefix;
-  exports.localeFormat = localeFormat;
+  exports.locale = locale;
+  exports.localeCaEs = caES;
+  exports.localeCsCz = csCZ;
+  exports.localeDeCh = deCH;
+  exports.localeDeDe = deDE;
+  exports.localeEnCa = enCA;
+  exports.localeEnGb = enGB;
+  exports.localeEnUs = defaultLocale;
+  exports.localeEsEs = esES;
+  exports.localeFiFi = fiFI;
+  exports.localeFrCa = frCA;
+  exports.localeFrFr = frFR;
+  exports.localeHeIl = heIL;
+  exports.localeHuHu = huHU;
+  exports.localeItIt = itIT;
+  exports.localeJaJp = jaJP;
+  exports.localeKoKr = koKR;
+  exports.localeMkMk = mkMK;
+  exports.localeNlNl = nlNL;
+  exports.localePlPl = plPL;
+  exports.localePtBr = ptBR;
+  exports.localeRuRu = ruRU;
+  exports.localeSvSe = svSE;
+  exports.localeZhCn = zhCN;
   exports.formatSpecifier = formatSpecifier;
   exports.precisionFixed = precisionFixed;
   exports.precisionPrefix = precisionPrefix;
   exports.precisionRound = precisionRound;
 
 }));
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
   typeof define === 'function' && define.amd ? define('d3-time-format', ['exports', 'd3-time'], factory) :
   factory((global.d3_time_format = {}),global.d3_time);
 }(this, function (exports,d3Time) { 'use strict';
-
-  var zhCn = {
-    dateTime: "%a %b %e %X %Y",
-    date: "%Y/%-m/%-d",
-    time: "%H:%M:%S",
-    periods: ["上午", "下午"],
-    days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
-    shortDays: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
-    months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
-    shortMonths: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
-  };
-
-  var svSe = {
-    dateTime: "%A den %d %B %Y %X",
-    date: "%Y-%m-%d",
-    time: "%H:%M:%S",
-    periods: ["fm", "em"],
-    days: ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"],
-    shortDays: ["Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"],
-    months: ["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"],
-    shortMonths: ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"]
-  };
-
-  var ruRu = {
-    dateTime: "%A, %e %B %Y г. %X",
-    date: "%d.%m.%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"],
-    shortDays: ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
-    months: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
-    shortMonths: ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
-  };
-
-  var ptBr = {
-    dateTime: "%A, %e de %B de %Y. %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
-    shortDays: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
-    months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-    shortMonths: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-  };
-
-  var plPl = {
-    dateTime: "%A, %e %B %Y, %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota"],
-    shortDays: ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."],
-    months: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
-    shortMonths: ["Stycz.", "Luty", "Marz.", "Kwie.", "Maj", "Czerw.", "Lipc.", "Sierp.", "Wrz.", "Paźdz.", "Listop.", "Grudz."]/* In Polish language abbraviated months are not commonly used so there is a dispute about the proper abbraviations. */
-  };
-
-  var nlNl = {
-    dateTime: "%a %e %B %Y %T",
-    date: "%d-%m-%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"],
-    shortDays: ["zo", "ma", "di", "wo", "do", "vr", "za"],
-    months: ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"],
-    shortMonths: ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
-  };
-
-  var mkMk = {
-    dateTime: "%A, %e %B %Y г. %X",
-    date: "%d.%m.%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["недела", "понеделник", "вторник", "среда", "четврток", "петок", "сабота"],
-    shortDays: ["нед", "пон", "вто", "сре", "чет", "пет", "саб"],
-    months: ["јануари", "февруари", "март", "април", "мај", "јуни", "јули", "август", "септември", "октомври", "ноември", "декември"],
-    shortMonths: ["јан", "фев", "мар", "апр", "мај", "јун", "јул", "авг", "сеп", "окт", "ное", "дек"]
-  };
-
-  var koKr = {
-    dateTime: "%Y/%m/%d %a %X",
-    date: "%Y/%m/%d",
-    time: "%H:%M:%S",
-    periods: ["오전", "오후"],
-    days: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"],
-    shortDays: ["일", "월", "화", "수", "목", "금", "토"],
-    months: ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"],
-    shortMonths: ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
-  };
-
-  var jaJp = {
-    dateTime: "%Y %b %e %a %X",
-    date: "%Y/%m/%d",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
-    shortDays: ["日", "月", "火", "水", "木", "金", "土"],
-    months: ["睦月", "如月", "弥生", "卯月", "皐月", "水無月", "文月", "葉月", "長月", "神無月", "霜月", "師走"],
-    shortMonths: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
-  };
-
-  var itIt = {
-    dateTime: "%A %e %B %Y, %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
-    shortDays: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
-    months: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
-    shortMonths: ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
-  };
-
-  var huHu = {
-    dateTime: "%Y. %B %-e., %A %X",
-    date: "%Y. %m. %d.",
-    time: "%H:%M:%S",
-    periods: ["de.", "du."], // unused
-    days: ["vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"],
-    shortDays: ["V", "H", "K", "Sze", "Cs", "P", "Szo"],
-    months: ["január", "február", "március", "április", "május", "június", "július", "augusztus", "szeptember", "október", "november", "december"],
-    shortMonths: ["jan.", "feb.", "már.", "ápr.", "máj.", "jún.", "júl.", "aug.", "szept.", "okt.", "nov.", "dec."]
-  };
-
-  var heIl = {
-    dateTime: "%A, %e ב%B %Y %X",
-    date: "%d.%m.%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
-    shortDays: ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"],
-    months: ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"],
-    shortMonths: ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"]
-  };
-
-  var frFr = {
-    dateTime: "%A, le %e %B %Y, %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
-    shortDays: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
-    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
-    shortMonths: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
-  };
-
-  var frCa = {
-    dateTime: "%a %e %b %Y %X",
-    date: "%Y-%m-%d",
-    time: "%H:%M:%S",
-    periods: ["", ""],
-    days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
-    shortDays: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
-    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
-    shortMonths: ["jan", "fév", "mar", "avr", "mai", "jui", "jul", "aoû", "sep", "oct", "nov", "déc"]
-  };
-
-  var fiFi = {
-    dateTime: "%A, %-d. %Bta %Y klo %X",
-    date: "%-d.%-m.%Y",
-    time: "%H:%M:%S",
-    periods: ["a.m.", "p.m."],
-    days: ["sunnuntai", "maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai"],
-    shortDays: ["Su", "Ma", "Ti", "Ke", "To", "Pe", "La"],
-    months: ["tammikuu", "helmikuu", "maaliskuu", "huhtikuu", "toukokuu", "kesäkuu", "heinäkuu", "elokuu", "syyskuu", "lokakuu", "marraskuu", "joulukuu"],
-    shortMonths: ["Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä", "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"]
-  };
-
-  var esEs = {
-    dateTime: "%A, %e de %B de %Y, %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
-    shortDays: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
-    months: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
-    shortMonths: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
-  };
-
-  var locale$1 = {
-    dateTime: "%a %b %e %X %Y",
-    date: "%m/%d/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  };
-
-  var enGb = {
-    dateTime: "%a %e %b %X %Y",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  };
-
-  var enCa = {
-    dateTime: "%a %b %e %X %Y",
-    date: "%Y-%m-%d",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  };
-
-  var deDe = {
-    dateTime: "%A, der %e. %B %Y, %X",
-    date: "%d.%m.%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
-    shortDays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
-    months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
-    shortMonths: ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
-  };
-
-  var deCh = {
-    dateTime: "%A, der %e. %B %Y, %X",
-    date: "%d.%m.%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"], // unused
-    days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
-    shortDays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
-    months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
-    shortMonths: ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
-  };
-
-  var caEs = {
-    dateTime: "%A, %e de %B de %Y, %X",
-    date: "%d/%m/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["diumenge", "dilluns", "dimarts", "dimecres", "dijous", "divendres", "dissabte"],
-    shortDays: ["dg.", "dl.", "dt.", "dc.", "dj.", "dv.", "ds."],
-    months: ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"],
-    shortMonths: ["gen.", "febr.", "març", "abr.", "maig", "juny", "jul.", "ag.", "set.", "oct.", "nov.", "des."]
-  };
 
   function localDate(d) {
     if (0 <= d.y && d.y < 100) {
@@ -1429,7 +697,7 @@ var spirals = {
     return {y: y, m: 0, d: 1, H: 0, M: 0, S: 0, L: 0};
   }
 
-  function locale(locale) {
+  function locale$1(locale) {
     var locale_dateTime = locale.dateTime,
         locale_date = locale.date,
         locale_time = locale.time,
@@ -1439,7 +707,8 @@ var spirals = {
         locale_months = locale.months,
         locale_shortMonths = locale.shortMonths;
 
-    var periodLookup = formatLookup(locale_periods),
+    var periodRe = formatRe(locale_periods),
+        periodLookup = formatLookup(locale_periods),
         weekdayRe = formatRe(locale_weekdays),
         weekdayLookup = formatLookup(locale_weekdays),
         shortWeekdayRe = formatRe(locale_shortWeekdays),
@@ -1548,11 +817,14 @@ var spirals = {
             pad,
             format;
 
+        if (!(date instanceof Date)) date = new Date(+date);
+
         while (++i < n) {
           if (specifier.charCodeAt(i) === 37) {
             string.push(specifier.slice(j, i));
             if ((pad = pads[c = specifier.charAt(++i)]) != null) c = specifier.charAt(++i);
-            if (format = formats[c]) c = format(date, pad == null ? (c === "e" ? " " : "0") : pad);
+            else pad = c === "e" ? " " : "0";
+            if (format = formats[c]) c = format(date, pad);
             string.push(c);
             j = i + 1;
           }
@@ -1566,33 +838,29 @@ var spirals = {
     function newParse(specifier, newDate) {
       return function(string) {
         var d = newYear(1900),
-            i = parseSpecifier(d, specifier, string, 0);
+            i = parseSpecifier(d, specifier, string += "", 0);
         if (i != string.length) return null;
 
         // The am-pm flag is 0 for AM, and 1 for PM.
         if ("p" in d) d.H = d.H % 12 + d.p * 12;
 
+        // Convert day-of-week and week-of-year to day-of-year.
+        if ("W" in d || "U" in d) {
+          if (!("w" in d)) d.w = "W" in d ? 1 : 0;
+          var day = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
+          d.m = 0;
+          d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day + 5) % 7 : d.w + d.U * 7 - (day + 6) % 7;
+        }
+
         // If a time zone is specified, all fields are interpreted as UTC and then
         // offset according to the specified time zone.
         if ("Z" in d) {
-          if ("w" in d && ("W" in d || "U" in d)) {
-            var day = utcDate(newYear(d.y)).getUTCDay();
-            if ("W" in d) d.U = d.W, d.w = (d.w + 6) % 7, --day;
-            d.m = 0;
-            d.d = d.w + d.U * 7 - (day + 6) % 7;
-          }
           d.H += d.Z / 100 | 0;
           d.M += d.Z % 100;
           return utcDate(d);
         }
 
         // Otherwise, all fields are in local time.
-        if ("w" in d && ("W" in d || "U" in d)) {
-          var day = newDate(newYear(d.y)).getDay();
-          if ("W" in d) d.U = d.W, d.w = (d.w + 6) % 7, --day;
-          d.m = 0;
-          d.d = d.w + d.U * 7 - (day + 6) % 7;
-        }
         return newDate(d);
       };
     }
@@ -1617,6 +885,11 @@ var spirals = {
       }
 
       return j;
+    }
+
+    function parsePeriod(d, string, i) {
+      var n = periodRe.exec(string.slice(i));
+      return n ? (d.p = periodLookup[n[0].toLowerCase()], i + n[0].length) : -1;
     }
 
     function parseShortWeekday(d, string, i) {
@@ -1649,11 +922,6 @@ var spirals = {
 
     function parseLocaleTime(d, string, i) {
       return parseSpecifier(d, locale_time, string, i);
-    }
-
-    function parsePeriod(d, string, i) {
-      var n = periodLookup[string.slice(i, i += 2).toLowerCase()];
-      return n == null ? -1 : (d.p = n, i);
     }
 
     function formatShortWeekday(d) {
@@ -1764,13 +1032,7 @@ var spirals = {
 
   function parseZone(d, string, i) {
     var n = /^(Z)|([+-]\d\d)(?:\:?(\d\d))?/.exec(string.slice(i, i + 6));
-    if (n) {
-      d.Z = n[1] ? 0              // 'Z' for UTC
-          : n[3] ? -(n[2] + n[3]) // sign differs from getTimezoneOffset!
-                 : -n[2] * 100;
-      return i + n[0].length;
-    }
-    return -1;
+    return n ? (d.Z = n[1] ? 0 : -(n[2] + (n[3] || "00")), i + n[0].length) : -1;
   }
 
   function parseMonthNumber(d, string, i) {
@@ -1932,6 +1194,248 @@ var spirals = {
     return "%";
   }
 
+  var locale = locale$1({
+    dateTime: "%a %b %e %X %Y",
+    date: "%m/%d/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  });
+
+  var caES = locale$1({
+    dateTime: "%A, %e de %B de %Y, %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["diumenge", "dilluns", "dimarts", "dimecres", "dijous", "divendres", "dissabte"],
+    shortDays: ["dg.", "dl.", "dt.", "dc.", "dj.", "dv.", "ds."],
+    months: ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"],
+    shortMonths: ["gen.", "febr.", "març", "abr.", "maig", "juny", "jul.", "ag.", "set.", "oct.", "nov.", "des."]
+  });
+
+  var deCH = locale$1({
+    dateTime: "%A, der %e. %B %Y, %X",
+    date: "%d.%m.%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+    shortDays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+    months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+    shortMonths: ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+  });
+
+  var deDE = locale$1({
+    dateTime: "%A, der %e. %B %Y, %X",
+    date: "%d.%m.%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+    shortDays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+    months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+    shortMonths: ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+  });
+
+  var enCA = locale$1({
+    dateTime: "%a %b %e %X %Y",
+    date: "%Y-%m-%d",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  });
+
+  var enGB = locale$1({
+    dateTime: "%a %e %b %X %Y",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  });
+
+  var esES = locale$1({
+    dateTime: "%A, %e de %B de %Y, %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+    shortDays: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+    months: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+    shortMonths: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+  });
+
+  var fiFI = locale$1({
+    dateTime: "%A, %-d. %Bta %Y klo %X",
+    date: "%-d.%-m.%Y",
+    time: "%H:%M:%S",
+    periods: ["a.m.", "p.m."],
+    days: ["sunnuntai", "maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai"],
+    shortDays: ["Su", "Ma", "Ti", "Ke", "To", "Pe", "La"],
+    months: ["tammikuu", "helmikuu", "maaliskuu", "huhtikuu", "toukokuu", "kesäkuu", "heinäkuu", "elokuu", "syyskuu", "lokakuu", "marraskuu", "joulukuu"],
+    shortMonths: ["Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä", "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"]
+  });
+
+  var frCA = locale$1({
+    dateTime: "%a %e %b %Y %X",
+    date: "%Y-%m-%d",
+    time: "%H:%M:%S",
+    periods: ["", ""],
+    days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+    shortDays: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
+    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+    shortMonths: ["jan", "fév", "mar", "avr", "mai", "jui", "jul", "aoû", "sep", "oct", "nov", "déc"]
+  });
+
+  var frFR = locale$1({
+    dateTime: "%A, le %e %B %Y, %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+    shortDays: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+    shortMonths: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+  });
+
+  var heIL = locale$1({
+    dateTime: "%A, %e ב%B %Y %X",
+    date: "%d.%m.%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
+    shortDays: ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"],
+    months: ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"],
+    shortMonths: ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"]
+  });
+
+  var huHU = locale$1({
+    dateTime: "%Y. %B %-e., %A %X",
+    date: "%Y. %m. %d.",
+    time: "%H:%M:%S",
+    periods: ["de.", "du."], // unused
+    days: ["vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"],
+    shortDays: ["V", "H", "K", "Sze", "Cs", "P", "Szo"],
+    months: ["január", "február", "március", "április", "május", "június", "július", "augusztus", "szeptember", "október", "november", "december"],
+    shortMonths: ["jan.", "feb.", "már.", "ápr.", "máj.", "jún.", "júl.", "aug.", "szept.", "okt.", "nov.", "dec."]
+  });
+
+  var itIT = locale$1({
+    dateTime: "%A %e %B %Y, %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
+    shortDays: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+    months: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
+    shortMonths: ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+  });
+
+  var jaJP = locale$1({
+    dateTime: "%Y %b %e %a %X",
+    date: "%Y/%m/%d",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+    shortDays: ["日", "月", "火", "水", "木", "金", "土"],
+    months: ["睦月", "如月", "弥生", "卯月", "皐月", "水無月", "文月", "葉月", "長月", "神無月", "霜月", "師走"],
+    shortMonths: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+  });
+
+  var koKR = locale$1({
+    dateTime: "%Y/%m/%d %a %X",
+    date: "%Y/%m/%d",
+    time: "%H:%M:%S",
+    periods: ["오전", "오후"],
+    days: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"],
+    shortDays: ["일", "월", "화", "수", "목", "금", "토"],
+    months: ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"],
+    shortMonths: ["1월", "2월", "3월", "4���", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
+  });
+
+  var mkMK = locale$1({
+    dateTime: "%A, %e %B %Y г. %X",
+    date: "%d.%m.%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["недела", "понеделник", "вторник", "среда", "четврток", "петок", "сабота"],
+    shortDays: ["нед", "пон", "вто", "сре", "чет", "пет", "саб"],
+    months: ["јануари", "февруари", "март", "април", "мај", "јуни", "јули", "август", "септември", "октомври", "ноември", "декември"],
+    shortMonths: ["јан", "фев", "мар", "апр", "мај", "јун", "јул", "авг", "сеп", "окт", "ное", "дек"]
+  });
+
+  var nlNL = locale$1({
+    dateTime: "%a %e %B %Y %T",
+    date: "%d-%m-%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"],
+    shortDays: ["zo", "ma", "di", "wo", "do", "vr", "za"],
+    months: ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"],
+    shortMonths: ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
+  });
+
+  var plPL = locale$1({
+    dateTime: "%A, %e %B %Y, %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"], // unused
+    days: ["Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Pi��tek", "Sobota"],
+    shortDays: ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."],
+    months: ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"],
+    shortMonths: ["Stycz.", "Luty", "Marz.", "Kwie.", "Maj", "Czerw.", "Lipc.", "Sierp.", "Wrz.", "Paźdz.", "Listop.", "Grudz."]/* In Polish language abbraviated months are not commonly used so there is a dispute about the proper abbraviations. */
+  });
+
+  var ptBR = locale$1({
+    dateTime: "%A, %e de %B de %Y. %X",
+    date: "%d/%m/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
+    shortDays: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+    months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+    shortMonths: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+  });
+
+  var ruRU = locale$1({
+    dateTime: "%A, %e %B %Y г. %X",
+    date: "%d.%m.%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"],
+    shortDays: ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+    months: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+    shortMonths: ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
+  });
+
+  var svSE = locale$1({
+    dateTime: "%A den %d %B %Y %X",
+    date: "%Y-%m-%d",
+    time: "%H:%M:%S",
+    periods: ["fm", "em"],
+    days: ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"],
+    shortDays: ["Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"],
+    months: ["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"],
+    shortMonths: ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"]
+  });
+
+  var zhCN = locale$1({
+    dateTime: "%a %b %e %X %Y",
+    date: "%Y/%-m/%-d",
+    time: "%H:%M:%S",
+    periods: ["上午", "下午"],
+    days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+    shortDays: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+    months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+    shortMonths: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+  });
+
   var isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ";
 
   function formatIsoNative(date) {
@@ -1949,55 +1453,43 @@ var spirals = {
 
   var formatIso = Date.prototype.toISOString && +new Date("2000-01-01T00:00:00.000Z")
       ? formatIsoNative
-      : locale$1.utcFormat(isoSpecifier);
+      : locale.utcFormat(isoSpecifier);
 
-  var localeDefinitions = {
-    "ca-ES": caEs,
-    "de-CH": deCh,
-    "de-DE": deDe,
-    "en-CA": enCa,
-    "en-GB": enGb,
-    "en-US": locale$1,
-    "es-ES": esEs,
-    "fi-FI": fiFi,
-    "fr-CA": frCa,
-    "fr-FR": frFr,
-    "he-IL": heIl,
-    "hu-HU": huHu,
-    "it-IT": itIt,
-    "ja-JP": jaJp,
-    "ko-KR": koKr,
-    "mk-MK": mkMk,
-    "nl-NL": nlNl,
-    "pl-PL": plPl,
-    "pt-BR": ptBr,
-    "ru-RU": ruRu,
-    "sv-SE": svSe,
-    "zh-CN": zhCn
-  };
+  var format = locale.format;
+  var utcFormat = locale.utcFormat;
 
-  var defaultLocale = locale(locale$1);
-  var format = defaultLocale.format;
-  var utcFormat = defaultLocale.utcFormat;
-
-  function localeFormat(definition) {
-    if (typeof definition === "string") {
-      if (!localeDefinitions.hasOwnProperty(definition)) return null;
-      definition = localeDefinitions[definition];
-    }
-    return locale(definition);
-  };
-
-  var version = "0.1.5";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.format = format;
   exports.utcFormat = utcFormat;
-  exports.localeFormat = localeFormat;
+  exports.locale = locale$1;
+  exports.localeCaEs = caES;
+  exports.localeDeCh = deCH;
+  exports.localeDeDe = deDE;
+  exports.localeEnCa = enCA;
+  exports.localeEnGb = enGB;
+  exports.localeEnUs = locale;
+  exports.localeEsEs = esES;
+  exports.localeFiFi = fiFI;
+  exports.localeFrCa = frCA;
+  exports.localeFrFr = frFR;
+  exports.localeHeIl = heIL;
+  exports.localeHuHu = huHU;
+  exports.localeItIt = itIT;
+  exports.localeJaJp = jaJP;
+  exports.localeKoKr = koKR;
+  exports.localeMkMk = mkMK;
+  exports.localeNlNl = nlNL;
+  exports.localePlPl = plPL;
+  exports.localePtBr = ptBR;
+  exports.localeRuRu = ruRU;
+  exports.localeSvSe = svSE;
+  exports.localeZhCn = zhCN;
   exports.isoFormat = formatIso;
 
 }));
-},{"d3-time":8}],8:[function(require,module,exports){
+},{"d3-time":6}],6:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define('d3-time', ['exports'], factory) :
@@ -2006,7 +1498,7 @@ var spirals = {
 
   var t0 = new Date;
   var t1 = new Date;
-  function newInterval(floori, offseti, count) {
+  function newInterval(floori, offseti, count, field) {
 
     function interval(date) {
       return floori(date = new Date(+date)), date;
@@ -2049,11 +1541,22 @@ var spirals = {
       });
     };
 
-    if (count) interval.count = function(start, end) {
-      t0.setTime(+start), t1.setTime(+end);
-      floori(t0), floori(t1);
-      return Math.floor(count(t0, t1));
-    };
+    if (count) {
+      interval.count = function(start, end) {
+        t0.setTime(+start), t1.setTime(+end);
+        floori(t0), floori(t1);
+        return Math.floor(count(t0, t1));
+      };
+
+      interval.every = function(step) {
+        step = Math.floor(step);
+        return !isFinite(step) || !(step > 0) ? null
+            : !(step > 1) ? interval
+            : interval.filter(field
+                ? function(d) { return field(d) % step === 0; }
+                : function(d) { return interval.count(0, d) % step === 0; });
+      };
+    }
 
     return interval;
   };
@@ -2066,12 +1569,28 @@ var spirals = {
     return end - start;
   });
 
+  // An optimized implementation for this simple case.
+  millisecond.every = function(k) {
+    k = Math.floor(k);
+    if (!isFinite(k) || !(k > 0)) return null;
+    if (!(k > 1)) return millisecond;
+    return newInterval(function(date) {
+      date.setTime(Math.floor(date / k) * k);
+    }, function(date, step) {
+      date.setTime(+date + step * k);
+    }, function(start, end) {
+      return (end - start) / k;
+    });
+  };
+
   var second = newInterval(function(date) {
     date.setMilliseconds(0);
   }, function(date, step) {
     date.setTime(+date + step * 1e3);
   }, function(start, end) {
     return (end - start) / 1e3;
+  }, function(date) {
+    return date.getSeconds();
   });
 
   var minute = newInterval(function(date) {
@@ -2080,6 +1599,8 @@ var spirals = {
     date.setTime(+date + step * 6e4);
   }, function(start, end) {
     return (end - start) / 6e4;
+  }, function(date) {
+    return date.getMinutes();
   });
 
   var hour = newInterval(function(date) {
@@ -2088,6 +1609,8 @@ var spirals = {
     date.setTime(+date + step * 36e5);
   }, function(start, end) {
     return (end - start) / 36e5;
+  }, function(date) {
+    return date.getHours();
   });
 
   var day = newInterval(function(date) {
@@ -2096,6 +1619,8 @@ var spirals = {
     date.setDate(date.getDate() + step);
   }, function(start, end) {
     return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * 6e4) / 864e5;
+  }, function(date) {
+    return date.getDate() - 1;
   });
 
   function weekday(i) {
@@ -2124,6 +1649,8 @@ var spirals = {
     date.setMonth(date.getMonth() + step);
   }, function(start, end) {
     return end.getMonth() - start.getMonth() + (end.getFullYear() - start.getFullYear()) * 12;
+  }, function(date) {
+    return date.getMonth();
   });
 
   var year = newInterval(function(date) {
@@ -2133,6 +1660,8 @@ var spirals = {
     date.setFullYear(date.getFullYear() + step);
   }, function(start, end) {
     return end.getFullYear() - start.getFullYear();
+  }, function(date) {
+    return date.getFullYear();
   });
 
   var utcSecond = newInterval(function(date) {
@@ -2141,6 +1670,8 @@ var spirals = {
     date.setTime(+date + step * 1e3);
   }, function(start, end) {
     return (end - start) / 1e3;
+  }, function(date) {
+    return date.getUTCSeconds();
   });
 
   var utcMinute = newInterval(function(date) {
@@ -2149,6 +1680,8 @@ var spirals = {
     date.setTime(+date + step * 6e4);
   }, function(start, end) {
     return (end - start) / 6e4;
+  }, function(date) {
+    return date.getUTCMinutes();
   });
 
   var utcHour = newInterval(function(date) {
@@ -2157,6 +1690,8 @@ var spirals = {
     date.setTime(+date + step * 36e5);
   }, function(start, end) {
     return (end - start) / 36e5;
+  }, function(date) {
+    return date.getUTCHours();
   });
 
   var utcDay = newInterval(function(date) {
@@ -2165,6 +1700,8 @@ var spirals = {
     date.setUTCDate(date.getUTCDate() + step);
   }, function(start, end) {
     return (end - start) / 864e5;
+  }, function(date) {
+    return date.getUTCDate() - 1;
   });
 
   function utcWeekday(i) {
@@ -2193,6 +1730,8 @@ var spirals = {
     date.setUTCMonth(date.getUTCMonth() + step);
   }, function(start, end) {
     return end.getUTCMonth() - start.getUTCMonth() + (end.getUTCFullYear() - start.getUTCFullYear()) * 12;
+  }, function(date) {
+    return date.getUTCMonth();
   });
 
   var utcYear = newInterval(function(date) {
@@ -2202,6 +1741,8 @@ var spirals = {
     date.setUTCFullYear(date.getUTCFullYear() + step);
   }, function(start, end) {
     return end.getUTCFullYear() - start.getUTCFullYear();
+  }, function(date) {
+    return date.getUTCFullYear();
   });
 
   var milliseconds = millisecond.range;
@@ -2237,7 +1778,7 @@ var spirals = {
   var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  var version = "0.0.7";
+  var version = "0.1.1";
 
   exports.version = version;
   exports.milliseconds = milliseconds;
@@ -2303,7 +1844,30 @@ var spirals = {
   exports.interval = newInterval;
 
 }));
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+var util = require('./util'),
+    time = require('./time'),
+    utc = time.utc;
+
+var u = module.exports;
+
+u.$year   = util.$func('year', time.year.unit);
+u.$month  = util.$func('month', time.months.unit);
+u.$date   = util.$func('date', time.dates.unit);
+u.$day    = util.$func('day', time.weekdays.unit);
+u.$hour   = util.$func('hour', time.hours.unit);
+u.$minute = util.$func('minute', time.minutes.unit);
+u.$second = util.$func('second', time.seconds.unit);
+
+u.$utcYear   = util.$func('utcYear', utc.year.unit);
+u.$utcMonth  = util.$func('utcMonth', utc.months.unit);
+u.$utcDate   = util.$func('utcDate', utc.dates.unit);
+u.$utcDay    = util.$func('utcDay', utc.weekdays.unit);
+u.$utcHour   = util.$func('utcHour', utc.hours.unit);
+u.$utcMinute = util.$func('utcMinute', utc.minutes.unit);
+u.$utcSecond = util.$func('utcSecond', utc.seconds.unit);
+
+},{"./time":29,"./util":30}],8:[function(require,module,exports){
 var util = require('../util'),
     Measures = require('./measures'),
     Collector = require('./collector');
@@ -2507,6 +2071,11 @@ proto._mod = function(curr, prev) {
   if (this._on_mod) this._on_mod(curr, prev, cell0, cell1);
 };
 
+proto._markMod = function(x) {
+  var cell0 = this._cell(x);
+  cell0.flag |= Flags.MOD_CELL;
+};
+
 proto.result = function() {
   var result = [],
       aggr = this._aggr,
@@ -2612,7 +2181,7 @@ proto._consolidate = function() {
 
 module.exports = Aggregator;
 
-},{"../util":31,"./collector":10,"./measures":12}],10:[function(require,module,exports){
+},{"../util":30,"./collector":9,"./measures":11}],9:[function(require,module,exports){
 var util = require('../util');
 var stats = require('../stats');
 
@@ -2700,12 +2269,12 @@ proto.argmax = function(get) {
 
 proto.min = function(get) {
   var m = this.extent(get)[0];
-  return m ? get(m) : +Infinity;
+  return m != null ? get(m) : +Infinity;
 };
 
 proto.max = function(get) {
   var m = this.extent(get)[1];
-  return m ? get(m) : -Infinity;
+  return m != null ? get(m) : -Infinity;
 };
 
 proto.quartile = function(get) {
@@ -2730,7 +2299,7 @@ proto.q3 = function(get) {
 
 module.exports = Collector;
 
-},{"../stats":28,"../util":31}],11:[function(require,module,exports){
+},{"../stats":27,"../util":30}],10:[function(require,module,exports){
 var util = require('../util');
 var Aggregator = require('./aggregator');
 
@@ -2745,7 +2314,7 @@ module.exports = function() {
     .summarize({'*':'values'});
 };
 
-},{"../util":31,"./aggregator":9}],12:[function(require,module,exports){
+},{"../util":30,"./aggregator":8}],11:[function(require,module,exports){
 var util = require('../util');
 
 var types = {
@@ -2928,7 +2497,7 @@ function create(agg, stream, accessor, mutator) {
 types.create = create;
 module.exports = types;
 
-},{"../stats":28,"../util":31}],13:[function(require,module,exports){
+},{"../stats":27,"../util":30}],12:[function(require,module,exports){
 var util = require('../util'),
     time = require('../time'),
     EPSILON = 1e-15;
@@ -2965,7 +2534,7 @@ function bins(opt) {
     );
 
     // increase step size if too many bins
-    do { step *= base; } while (Math.ceil(span/step) > maxb);
+    while (Math.ceil(span/step) > maxb) { step *= base; }
 
     // decrease step size if allowed
     for (i=0; i<div.length; ++i) {
@@ -3043,7 +2612,7 @@ bins.date = function(opt) {
 
 module.exports = bins;
 
-},{"../time":30,"../util":31}],14:[function(require,module,exports){
+},{"../time":29,"../util":30}],13:[function(require,module,exports){
 var bins = require('./bins'),
     gen  = require('../generate'),
     type = require('../import/type'),
@@ -3129,24 +2698,120 @@ module.exports = {
   histogram: histogram
 };
 
-},{"../generate":16,"../import/type":25,"../stats":28,"../util":31,"./bins":13}],15:[function(require,module,exports){
-var d3_time = require('d3-time'),
+},{"../generate":16,"../import/type":25,"../stats":27,"../util":30,"./bins":12}],14:[function(require,module,exports){
+var util = require('./util'),
+    type = require('./import/type'),
+    stats = require('./stats'),
+    template = require('./template');
+
+module.exports = {
+  table:   formatTable,  // format a data table
+  summary: formatSummary // format a data table summary
+};
+
+var FMT = {
+  'date':    '|time:"%m/%d/%Y %H:%M:%S"',
+  'number':  '|number:".4f"',
+  'integer': '|number:"d"'
+};
+
+var POS = {
+  'number':  'left',
+  'integer': 'left'
+};
+
+function formatTable(data, opt) {
+  opt = util.extend({separator:' ', minwidth: 8, maxwidth: 15}, opt);
+  var fields = opt.fields || util.keys(data[0]),
+      types = type.all(data);
+
+  if (opt.start || opt.limit) {
+    var a = opt.start || 0,
+        b = opt.limit ? a + opt.limit : data.length;
+    data = data.slice(a, b);
+  }
+
+  // determine char width of fields
+  var lens = fields.map(function(name) {
+    var format = FMT[types[name]] || '',
+        t = template('{{' + name + format + '}}'),
+        l = stats.max(data, function(x) { return t(x).length; });
+    l = Math.max(Math.min(name.length, opt.minwidth), l);
+    return opt.maxwidth > 0 ? Math.min(l, opt.maxwidth) : l;
+  });
+
+  // print header row
+  var head = fields.map(function(name, i) {
+    return util.truncate(util.pad(name, lens[i], 'center'), lens[i]);
+  }).join(opt.separator);
+
+  // build template function for each row
+  var tmpl = template(fields.map(function(name, i) {
+    return '{{' +
+      name +
+      (FMT[types[name]] || '') +
+      ('|pad:' + lens[i] + ',' + (POS[types[name]] || 'right')) +
+      ('|truncate:' + lens[i]) +
+    '}}';
+  }).join(opt.separator));
+
+  // print table
+  return head + "\n" + data.map(tmpl).join('\n');
+}
+
+function formatSummary(s) {
+  s = s ? s.__summary__ ? s : stats.summary(s) : this;
+  var str = [], i, n;
+  for (i=0, n=s.length; i<n; ++i) {
+    str.push('-- ' + s[i].field + ' --');
+    if (s[i].type === 'string' || s[i].distinct < 10) {
+      str.push(printCategoricalProfile(s[i]));
+    } else {
+      str.push(printQuantitativeProfile(s[i]));
+    }
+    str.push('');
+  }
+  return str.join('\n');
+}
+
+function printQuantitativeProfile(p) {
+  return [
+    'valid:    ' + p.valid,
+    'missing:  ' + p.missing,
+    'distinct: ' + p.distinct,
+    'min:      ' + p.min,
+    'max:      ' + p.max,
+    'median:   ' + p.median,
+    'mean:     ' + p.mean,
+    'stdev:    ' + p.stdev,
+    'modeskew: ' + p.modeskew
+  ].join('\n');
+}
+
+function printCategoricalProfile(p) {
+  var list = [
+    'valid:    ' + p.valid,
+    'missing:  ' + p.missing,
+    'distinct: ' + p.distinct,
+    'top values: '
+  ];
+  var u = p.unique;
+  var top = util.keys(u)
+    .sort(function(a,b) { return u[b] - u[a]; })
+    .slice(0, 6)
+    .map(function(v) { return ' \'' + v + '\' (' + u[v] + ')'; });
+  return list.concat(top).join('\n');
+}
+},{"./import/type":25,"./stats":27,"./template":28,"./util":30}],15:[function(require,module,exports){
+var util = require('./util'),
+    d3_time = require('d3-time'),
     d3_timeF = require('d3-time-format'),
     d3_numberF = require('d3-format'),
     numberF = d3_numberF, // defaults to EN-US
-    timeF = d3_timeF;     // defaults to EN-US
+    timeF = d3_timeF,     // defaults to EN-US
+    tmpDate = new Date(2000, 0, 1),
+    monthFull, monthAbbr, dayFull, dayAbbr;
 
-function numberLocale(l) {
-  var f = d3_numberF.localeFormat(l);
-  if (f == null) throw Error('Unrecognized locale: ' + l);
-  numberF = f;
-}
-
-function timeLocale(l) {
-  var f = d3_timeF.localeFormat(l);
-  if (f == null) throw Error('Unrecognized locale: ' + l);
-  timeF = f;
-}
 
 module.exports = {
   // Update number formatter to use provided locale configuration.
@@ -3166,17 +2831,46 @@ module.exports = {
 
   // automatic formatting functions
   auto: {
-    number:   numberAutoFormat,
+    number:   autoNumberFormat,
+    linear:   linearNumberFormat,
     time:     function() { return timeAutoFormat(); },
     utc:      function() { return utcAutoFormat(); }
-  }
+  },
+
+  month: monthFormat, // format month name from integer code
+  day:   dayFormat    // format week day name from integer code
 };
+
+// -- Locales ----
+
+// transform 'en-US' style locale string to match d3-format v0.4+ convention
+function localeRef(l) {
+  return l.length > 4 && 'locale' + (
+    l[0].toUpperCase() + l[1].toLowerCase() +
+    l[3].toUpperCase() + l[4].toLowerCase()
+  );
+}
+
+function numberLocale(l) {
+  var f = util.isString(l) ? d3_numberF[localeRef(l)] : d3_numberF.locale(l);
+  if (f == null) throw Error('Unrecognized locale: ' + l);
+  numberF = f;
+}
+
+function timeLocale(l) {
+  var f = util.isString(l) ? d3_timeF[localeRef(l)] : d3_timeF.locale(l);
+  if (f == null) throw Error('Unrecognized locale: ' + l);
+  timeF = f;
+  monthFull = monthAbbr = dayFull = dayAbbr = null;
+}
+
+// -- Number Formatting ----
 
 var e10 = Math.sqrt(50),
     e5 = Math.sqrt(10),
     e2 = Math.sqrt(2);
 
-function intervals(domain, count) {
+function linearRange(domain, count) {
   if (!domain.length) domain = [0];
   if (count == null) count = 10;
 
@@ -3202,46 +2896,72 @@ function intervals(domain, count) {
   ];
 }
 
-function significantDigits(domain) {
-  return domain.map(function(x) {
-    // determine significant digits based on exponential format
-    var s = x.toExponential(),
-        e = s.indexOf('e'),
-        d = s.indexOf('.');
-    return d < 0 ? 1 : (e-d);
-  }).reduce(function(max, p) {
-    // return the maximum sig digit count
-    return Math.max(max, p);
-  }, 0);
+function trimZero(f, decimal) {
+  return function(x) {
+    var s = f(x),
+        n = s.indexOf(decimal);
+    if (n < 0) return s;
+
+    var idx = rightmostDigit(s, n),
+        end = idx < s.length ? s.slice(idx) : '';
+
+    while (--idx > n) {
+      if (s[idx] !== '0') { ++idx; break; }
+    }
+    return s.slice(0, idx) + end;
+  };
 }
 
-function numberAutoFormat(domain, count, f) {
-  var range = intervals(domain, count);
-  if (f == null) {
-    f = ',.' + d3_numberF.precisionFixed(range[2]) + 'f';
-  } else {
-    switch (f = d3_numberF.formatSpecifier(f), f.type) {
-      case 's': {
-        if (f.precision == null) f.precision = significantDigits(domain);
-        return numberF.format(f);
-      }
-      case '':
-      case 'e':
-      case 'g':
-      case 'p':
-      case 'r': {
-        if (f.precision == null) f.precision = d3_numberF.precisionRound(range[2], Math.max(Math.abs(range[0]), Math.abs(range[1]))) - (f.type === 'e');
-        break;
-      }
-      case 'f':
-      case '%': {
-        if (f.precision == null) f.precision = d3_numberF.precisionFixed(range[2]) - (f.type === '%') * 2;
-        break;
-      }
+function rightmostDigit(s, n) {
+  var i = s.lastIndexOf('e'), c;
+  if (i > 0) return i;
+  for (i=s.length; --i > n;) {
+    c = s.charCodeAt(i);
+    if (c >= 48 && c <= 57) return i+1; // is digit
+  }
+}
+
+function autoNumberFormat(f) {
+  var decimal = numberF.format('.1f')(1)[1]; // get decimal char
+  if (f == null) f = ',';
+  f = d3_numberF.formatSpecifier(f);
+  if (f.precision == null) f.precision = 12;
+  switch (f.type) {
+    case '%': f.precision -= 2; break;
+    case 'e': f.precision -= 1; break;
+  }
+  return trimZero(numberF.format(f), decimal);
+}
+
+function linearNumberFormat(domain, count, f) {
+  var range = linearRange(domain, count);
+
+  if (f == null) f = ',f';
+
+  switch (f = d3_numberF.formatSpecifier(f), f.type) {
+    case 's': {
+      var value = Math.max(Math.abs(range[0]), Math.abs(range[1]));
+      if (f.precision == null) f.precision = d3_numberF.precisionPrefix(range[2], value);
+      return numberF.formatPrefix(f, value);
+    }
+    case '':
+    case 'e':
+    case 'g':
+    case 'p':
+    case 'r': {
+      if (f.precision == null) f.precision = d3_numberF.precisionRound(range[2], Math.max(Math.abs(range[0]), Math.abs(range[1]))) - (f.type === 'e');
+      break;
+    }
+    case 'f':
+    case '%': {
+      if (f.precision == null) f.precision = d3_numberF.precisionFixed(range[2]) - 2 * (f.type === '%');
+      break;
     }
   }
   return numberF.format(f);
 }
+
+// -- Datetime Formatting ----
 
 function timeAutoFormat() {
   var f = timeF.format,
@@ -3291,8 +3011,22 @@ function utcAutoFormat() {
   };
 }
 
-},{"d3-format":6,"d3-time":8,"d3-time-format":7}],16:[function(require,module,exports){
-var gen = module.exports = {};
+function monthFormat(month, abbreviate) {
+  var f = abbreviate ?
+    (monthAbbr || (monthAbbr = timeF.format('%b'))) :
+    (monthFull || (monthFull = timeF.format('%B')));
+  return (tmpDate.setMonth(month), f(tmpDate));
+}
+
+function dayFormat(day, abbreviate) {
+  var f = abbreviate ?
+    (dayAbbr || (dayAbbr = timeF.format('%a'))) :
+    (dayFull || (dayFull = timeF.format('%A')));
+  return (tmpDate.setMonth(0), tmpDate.setDate(2 + day), f(tmpDate));
+}
+},{"./util":30,"d3-format":4,"d3-time":6,"d3-time-format":5}],16:[function(require,module,exports){
+var util = require('./util'),
+    gen = module.exports;
 
 gen.repeat = function(val, n) {
   var a = Array(n), i;
@@ -3330,7 +3064,18 @@ gen.random.uniform = function(min, max) {
   var f = function() {
     return min + d * Math.random();
   };
-  f.samples = function(n) { return gen.zeros(n).map(f); };
+  f.samples = function(n) {
+    return gen.zeros(n).map(f);
+  };
+  f.pdf = function(x) {
+    return (x >= min && x <= max) ? 1/d : 0;
+  };
+  f.cdf = function(x) {
+    return x < min ? 0 : x > max ? 1 : (x - min) / d;
+  };
+  f.icdf = function(p) {
+    return (p >= 0 && p <= 1) ? min + p*d : NaN;
+  };
   return f;
 };
 
@@ -3343,7 +3088,19 @@ gen.random.integer = function(a, b) {
   var f = function() {
     return a + Math.floor(d * Math.random());
   };
-  f.samples = function(n) { return gen.zeros(n).map(f); };
+  f.samples = function(n) {
+    return gen.zeros(n).map(f);
+  };
+  f.pdf = function(x) {
+    return (x === Math.floor(x) && x >= a && x < b) ? 1/d : 0;
+  };
+  f.cdf = function(x) {
+    var v = Math.floor(x);
+    return v < a ? 0 : v >= b ? 1 : (v - a + 1) / d;
+  };
+  f.icdf = function(p) {
+    return (p >= 0 && p <= 1) ? a - 1 + Math.floor(p*d) : NaN;
+  };
   return f;
 };
 
@@ -3367,11 +3124,78 @@ gen.random.normal = function(mean, stdev) {
     next = mean + y*c*stdev;
     return mean + x*c*stdev;
   };
-  f.samples = function(n) { return gen.zeros(n).map(f); };
+  f.samples = function(n) {
+    return gen.zeros(n).map(f);
+  };
+  f.pdf = function(x) {
+    var exp = Math.exp(Math.pow(x-mean, 2) / (-2 * Math.pow(stdev, 2)));
+    return (1 / (stdev * Math.sqrt(2*Math.PI))) * exp;
+  };
+  f.cdf = function(x) {
+    // Approximation from West (2009)
+    // Better Approximations to Cumulative Normal Functions
+    var cd,
+        z = (x - mean) / stdev,
+        Z = Math.abs(z);
+    if (Z > 37) {
+      cd = 0;
+    } else {
+      var sum, exp = Math.exp(-Z*Z/2);
+      if (Z < 7.07106781186547) {
+        sum = 3.52624965998911e-02 * Z + 0.700383064443688;
+        sum = sum * Z + 6.37396220353165;
+        sum = sum * Z + 33.912866078383;
+        sum = sum * Z + 112.079291497871;
+        sum = sum * Z + 221.213596169931;
+        sum = sum * Z + 220.206867912376;
+        cd = exp * sum;
+        sum = 8.83883476483184e-02 * Z + 1.75566716318264;
+        sum = sum * Z + 16.064177579207;
+        sum = sum * Z + 86.7807322029461;
+        sum = sum * Z + 296.564248779674;
+        sum = sum * Z + 637.333633378831;
+        sum = sum * Z + 793.826512519948;
+        sum = sum * Z + 440.413735824752;
+        cd = cd / sum;
+      } else {
+        sum = Z + 0.65;
+        sum = Z + 4 / sum;
+        sum = Z + 3 / sum;
+        sum = Z + 2 / sum;
+        sum = Z + 1 / sum;
+        cd = exp / sum / 2.506628274631;
+      }
+    }
+    return z > 0 ? 1 - cd : cd;
+  };
+  f.icdf = function(p) {
+    // Approximation of Probit function using inverse error function.
+    if (p <= 0 || p >= 1) return NaN;
+    var x = 2*p - 1,
+        v = (8 * (Math.PI - 3)) / (3 * Math.PI * (4-Math.PI)),
+        a = (2 / (Math.PI*v)) + (Math.log(1 - Math.pow(x,2)) / 2),
+        b = Math.log(1 - (x*x)) / v,
+        s = (x > 0 ? 1 : -1) * Math.sqrt(Math.sqrt((a*a) - b) - a);
+    return mean + stdev * Math.SQRT2 * s;
+  };
   return f;
 };
 
-},{}],17:[function(require,module,exports){
+gen.random.bootstrap = function(domain, smooth) {
+  // Generates a bootstrap sample from a set of observations.
+  // Smooth bootstrapping adds random zero-centered noise to the samples.
+  var val = domain.filter(util.isValid),
+      len = val.length,
+      err = smooth ? gen.random.normal(0, smooth) : null;
+  var f = function() {
+    return val[~~(Math.random()*len)] + (err ? err() : 0);
+  };
+  f.samples = function(n) {
+    return gen.zeros(n).map(f);
+  };
+  return f;
+};
+},{"./util":30}],17:[function(require,module,exports){
 var util = require('../../util');
 var d3_dsv = require('d3-dsv');
 
@@ -3392,7 +3216,7 @@ dsv.delimiter = function(delim) {
 
 module.exports = dsv;
 
-},{"../../util":31,"d3-dsv":5}],18:[function(require,module,exports){
+},{"../../util":30,"d3-dsv":3}],18:[function(require,module,exports){
 var dsv = require('./dsv');
 
 module.exports = {
@@ -3416,8 +3240,7 @@ module.exports = function(data, format) {
   return d;
 };
 
-},{"../../util":31}],20:[function(require,module,exports){
-(function (global){
+},{"../../util":30}],20:[function(require,module,exports){
 var json = require('./json');
 
 var reader = function(data, format) {
@@ -3443,12 +3266,10 @@ var reader = function(data, format) {
   }
 };
 
-reader.topojson = (typeof window !== "undefined" ? window['topojson'] : typeof global !== "undefined" ? global['topojson'] : null);
+reader.topojson = require('topojson');
 module.exports = reader;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"./json":19}],21:[function(require,module,exports){
+},{"./json":19,"topojson":31}],21:[function(require,module,exports){
 var json = require('./json');
 
 module.exports = function(tree, format) {
@@ -3476,6 +3297,8 @@ function toTable(root, fields) {
 }
 
 },{"./json":19}],22:[function(require,module,exports){
+var util = require('../util');
+
 // Matches absolute URLs with optional protocol
 //   https://...    file://...    //...
 var protocol_re = /^([A-Za-z]+:)?\/\//;
@@ -3540,6 +3363,10 @@ function sanitizeUrl(opt) {
 }
 
 function load(opt, callback) {
+  return load.loader(opt, callback);
+}
+
+function loader(opt, callback) {
   var error = callback || function(e) { throw e; }, url;
 
   try {
@@ -3553,16 +3380,16 @@ function load(opt, callback) {
     error('Invalid URL: ' + opt.url);
   } else if (load.useXHR) {
     // on client, use xhr
-    return xhr(url, callback);
+    return load.xhr(url, opt, callback);
   } else if (startsWith(url, fileProtocol)) {
     // on server, if url starts with 'file://', strip it and load from file
-    return file(url.slice(fileProtocol.length), callback);
+    return load.file(url.slice(fileProtocol.length), opt, callback);
   } else if (url.indexOf('://') < 0) { // TODO better protocol check?
     // on server, if no protocol assume file
-    return file(url, callback);
+    return load.file(url, opt, callback);
   } else {
     // for regular URLs on server
-    return http(url, callback);
+    return load.http(url, opt, callback);
   }
 }
 
@@ -3573,11 +3400,11 @@ function xhrHasResponse(request) {
     request.responseText; // '' on error
 }
 
-function xhr(url, callback) {
+function xhr(url, opt, callback) {
   var async = !!callback;
   var request = new XMLHttpRequest();
   // If IE does not support CORS, use XDomainRequest (copied from d3.xhr)
-  if (this.XDomainRequest &&
+  if (typeof XDomainRequest !== 'undefined' &&
       !('withCredentials' in request) &&
       /^(http(s)?:)?\/\//.test(url)) request = new XDomainRequest();
 
@@ -3601,6 +3428,13 @@ function xhr(url, callback) {
   }
 
   request.open('GET', url, async);
+  /* istanbul ignore else */
+  if (request.setRequestHeader) {
+    var headers = util.extend({}, load.headers, opt.headers);
+    for (var name in headers) {
+      request.setRequestHeader(name, headers[name]);
+    }
+  }
   request.send();
 
   if (!async && xhrHasResponse(request)) {
@@ -3608,7 +3442,7 @@ function xhr(url, callback) {
   }
 }
 
-function file(filename, callback) {
+function file(filename, opt, callback) {
   var fs = require('fs');
   if (!callback) {
     return fs.readFileSync(filename, 'utf8');
@@ -3616,12 +3450,14 @@ function file(filename, callback) {
   fs.readFile(filename, callback);
 }
 
-function http(url, callback) {
+function http(url, opt, callback) {
+  var headers = util.extend({}, load.headers, opt.headers);
+
   if (!callback) {
-    return require('sync-request')('GET', url).getBody();
+    return require('sync-request')('GET', url, {headers: headers}).getBody();
   }
 
-  var options = {url: url, encoding: null, gzip: true};
+  var options = {url: url, encoding: null, gzip: true, headers: headers};
   require('request')(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
       callback(null, body);
@@ -3637,16 +3473,24 @@ function startsWith(string, searchString) {
   return string == null ? false : string.lastIndexOf(searchString, 0) === 0;
 }
 
+// Allow these functions to be overriden by the user of the library
+load.loader = loader;
 load.sanitizeUrl = sanitizeUrl;
+load.xhr = xhr;
+load.file = file;
+load.http = http;
 
+// Default settings
 load.useXHR = (typeof XMLHttpRequest !== 'undefined');
+load.headers = {};
 
 module.exports = load;
 
-},{"fs":2,"request":2,"sync-request":2,"url":2}],23:[function(require,module,exports){
-var util = require('../util');
-var type = require('./type');
-var formats = require('./formats');
+},{"../util":30,"fs":2,"request":2,"sync-request":2,"url":2}],23:[function(require,module,exports){
+var util = require('../util'),
+  type = require('./type'),
+  formats = require('./formats'),
+  timeF = require('../format').time;
 
 function read(data, format) {
   var type = (format && format.type) || 'json';
@@ -3660,7 +3504,25 @@ function parse(data, types) {
 
   types = (types==='auto') ? type.inferAll(data) : util.duplicate(types);
   cols = util.keys(types);
-  parsers = cols.map(function(c) { return type.parsers[types[c]]; });
+  parsers = cols.map(function(c) {
+    var t = types[c];
+    if (t && t.indexOf('date:') === 0) {
+      var parts = t.split(':', 2),
+          pattern = parts[1];
+      if ((pattern[0] === '\'' && pattern[pattern.length-1] === '\'') ||
+          (pattern[0] === '"'  && pattern[pattern.length-1] === '"')) {
+        pattern = pattern.slice(1, -1);
+      } else {
+        throw Error('Format pattern must be quoted: ' + pattern);
+      }
+      pattern = timeF(pattern);
+      return function(v) { return pattern.parse(v); };
+    }
+    if (!type.parsers[t]) {
+      throw Error('Illegal format pattern: ' + c + ':' + t);
+    }
+    return type.parsers[t];
+  });
 
   for (i=0, clen=cols.length; i<len; ++i) {
     d = data[i];
@@ -3674,7 +3536,7 @@ function parse(data, types) {
 read.formats = formats;
 module.exports = read;
 
-},{"../util":31,"./formats":18,"./type":25}],24:[function(require,module,exports){
+},{"../format":15,"../util":30,"./formats":18,"./type":25}],24:[function(require,module,exports){
 var util = require('../util');
 var load = require('./load');
 var read = require('./read');
@@ -3712,7 +3574,7 @@ module.exports = util
     return out;
   }, {});
 
-},{"../util":31,"./load":22,"./read":23}],25:[function(require,module,exports){
+},{"../util":30,"./load":22,"./read":23}],25:[function(require,module,exports){
 var util = require('../util');
 
 var TYPES = '__types__';
@@ -3738,6 +3600,7 @@ function annotation(data, types) {
 }
 
 function type(values, f) {
+  values = util.array(values);
   f = util.$(f);
   var v, i, n;
 
@@ -3766,6 +3629,7 @@ function typeAll(data, fields) {
 }
 
 function infer(values, f) {
+  values = util.array(values);
   f = util.$(f);
   var i, j, v;
 
@@ -3804,11 +3668,11 @@ type.inferAll = inferAll;
 type.parsers = PARSERS;
 module.exports = type;
 
-},{"../util":31}],26:[function(require,module,exports){
+},{"../util":30}],26:[function(require,module,exports){
 var util = require('./util');
 
 var dl = {
-  version:    '1.4.9',
+  version:    '1.6.3',
   load:       require('./import/load'),
   read:       require('./import/read'),
   type:       require('./import/type'),
@@ -3818,123 +3682,32 @@ var dl = {
   $bin:       require('./bins/histogram').$bin,
   histogram:  require('./bins/histogram').histogram,
   format:     require('./format'),
-  print:      require('./print'),
   template:   require('./template'),
   time:       require('./time')
 };
 
 util.extend(dl, util);
+util.extend(dl, require('./accessor'));
 util.extend(dl, require('./generate'));
 util.extend(dl, require('./stats'));
 util.extend(dl, require('./import/readers'));
+util.extend(dl.format, require('./format-tables'));
+
+// backwards-compatible, deprecated API
+// will remove in the future
+dl.print = {
+  table:   dl.format.table,
+  summary: dl.format.summary
+};
 
 module.exports = dl;
 
-},{"./aggregate/aggregator":9,"./aggregate/groupby":11,"./bins/bins":13,"./bins/histogram":14,"./format":15,"./generate":16,"./import/load":22,"./import/read":23,"./import/readers":24,"./import/type":25,"./print":27,"./stats":28,"./template":29,"./time":30,"./util":31}],27:[function(require,module,exports){
-var util = require('./util');
-var type = require('./import/type');
-var stats = require('./stats');
-var template = require('./template');
-
-var FMT = {
-  'date':    '|time:"%m/%d/%Y %H:%M:%S"',
-  'number':  '|number:".4f"',
-  'integer': '|number:"d"'
-};
-
-var POS = {
-  'number':  'left',
-  'integer': 'left'
-};
-
-module.exports.table = function(data, opt) {
-  opt = util.extend({separator:' ', minwidth: 8, maxwidth: 15}, opt);
-  var fields = opt.fields || util.keys(data[0]),
-      types = type.all(data);
-
-  if (opt.start || opt.limit) {
-    var a = opt.start || 0,
-        b = opt.limit ? a + opt.limit : data.length;
-    data = data.slice(a, b);
-  }
-
-  // determine char width of fields
-  var lens = fields.map(function(name) {
-    var format = FMT[types[name]] || '',
-        t = template('{{' + name + format + '}}'),
-        l = stats.max(data, function(x) { return t(x).length; });
-    l = Math.max(Math.min(name.length, opt.minwidth), l);
-    return opt.maxwidth > 0 ? Math.min(l, opt.maxwidth) : l;
-  });
-
-  // print header row
-  var head = fields.map(function(name, i) {
-    return util.truncate(util.pad(name, lens[i], 'center'), lens[i]);
-  }).join(opt.separator);
-
-  // build template function for each row
-  var tmpl = template(fields.map(function(name, i) {
-    return '{{' +
-      name +
-      (FMT[types[name]] || '') +
-      ('|pad:' + lens[i] + ',' + (POS[types[name]] || 'right')) +
-      ('|truncate:' + lens[i]) +
-    '}}';
-  }).join(opt.separator));
-
-  // print table
-  return head + "\n" + data.map(tmpl).join('\n');
-};
-
-module.exports.summary = function(s) {
-  s = s ? s.__summary__ ? s : stats.summary(s) : this;
-  var str = [], i, n;
-  for (i=0, n=s.length; i<n; ++i) {
-    str.push('-- ' + s[i].field + ' --');
-    if (s[i].type === 'string' || s[i].distinct < 10) {
-      str.push(printCategoricalProfile(s[i]));
-    } else {
-      str.push(printQuantitativeProfile(s[i]));
-    }
-    str.push('');
-  }
-  return str.join('\n');
-};
-
-function printQuantitativeProfile(p) {
-  return [
-    'valid:    ' + p.valid,
-    'missing:  ' + p.missing,
-    'distinct: ' + p.distinct,
-    'min:      ' + p.min,
-    'max:      ' + p.max,
-    'median:   ' + p.median,
-    'mean:     ' + p.mean,
-    'stdev:    ' + p.stdev,
-    'modeskew: ' + p.modeskew
-  ].join('\n');
-}
-
-function printCategoricalProfile(p) {
-  var list = [
-    'valid:    ' + p.valid,
-    'missing:  ' + p.missing,
-    'distinct: ' + p.distinct,
-    'top values: '
-  ];
-  var u = p.unique;
-  var top = util.keys(u)
-    .sort(function(a,b) { return u[b] - u[a]; })
-    .slice(0, 6)
-    .map(function(v) { return ' \'' + v + '\' (' + u[v] + ')'; });
-  return list.concat(top).join('\n');
-}
-
-},{"./import/type":25,"./stats":28,"./template":29,"./util":31}],28:[function(require,module,exports){
+},{"./accessor":7,"./aggregate/aggregator":8,"./aggregate/groupby":10,"./bins/bins":12,"./bins/histogram":13,"./format":15,"./format-tables":14,"./generate":16,"./import/load":22,"./import/read":23,"./import/readers":24,"./import/type":25,"./stats":27,"./template":28,"./time":29,"./util":30}],27:[function(require,module,exports){
 var util = require('./util');
 var type = require('./import/type');
 var gen = require('./generate');
-var stats = {};
+
+var stats = module.exports;
 
 // Collect unique values.
 // Output: an array of unique values, in first-observed order
@@ -4054,6 +3827,38 @@ stats.mean = function(values, f) {
   return mean;
 };
 
+// Compute the geometric mean of an array of numbers.
+stats.mean.geometric = function(values, f) {
+  f = util.$(f);
+  var mean = 1, c, n, v, i;
+  for (i=0, c=0, n=values.length; i<n; ++i) {
+    v = f ? f(values[i]) : values[i];
+    if (util.isValid(v)) {
+      if (v <= 0) {
+        throw Error("Geometric mean only defined for positive values.");
+      }
+      mean *= v;
+      ++c;
+    }
+  }
+  mean = c > 0 ? Math.pow(mean, 1/c) : 0;
+  return mean;
+};
+
+// Compute the harmonic mean of an array of numbers.
+stats.mean.harmonic = function(values, f) {
+  f = util.$(f);
+  var mean = 0, c, n, v, i;
+  for (i=0, c=0, n=values.length; i<n; ++i) {
+    v = f ? f(values[i]) : values[i];
+    if (util.isValid(v)) {
+      mean += 1/v;
+      ++c;
+    }
+  }
+  return c / mean;
+};
+
 // Compute the sample variance of an array of numbers.
 stats.variance = function(values, f) {
   f = util.$(f);
@@ -4152,6 +3957,73 @@ stats.dot = function(values, a, b) {
   return sum;
 };
 
+// Compute the vector distance between two arrays of numbers.
+// Default is Euclidean (exp=2) distance, configurable via exp argument.
+stats.dist = function(values, a, b, exp) {
+  var f = util.isFunction(b) || util.isString(b),
+      X = values,
+      Y = f ? values : a,
+      e = f ? exp : b,
+      L2 = e === 2 || e == null,
+      n = values.length, s = 0, d, i;
+  if (f) {
+    a = util.$(a);
+    b = util.$(b);
+  }
+  for (i=0; i<n; ++i) {
+    d = f ? (a(X[i])-b(Y[i])) : (X[i]-Y[i]);
+    s += L2 ? d*d : Math.pow(Math.abs(d), e);
+  }
+  return L2 ? Math.sqrt(s) : Math.pow(s, 1/e);
+};
+
+// Compute the Cohen's d effect size between two arrays of numbers.
+stats.cohensd = function(values, a, b) {
+  var X = b ? values.map(util.$(a)) : values,
+      Y = b ? values.map(util.$(b)) : a,
+      x1 = stats.mean(X),
+      x2 = stats.mean(Y),
+      n1 = stats.count.valid(X),
+      n2 = stats.count.valid(Y);
+
+  if ((n1+n2-2) <= 0) {
+    // if both arrays are size 1, or one is empty, there's no effect size
+    return 0;
+  }
+  // pool standard deviation
+  var s1 = stats.variance(X),
+      s2 = stats.variance(Y),
+      s = Math.sqrt((((n1-1)*s1) + ((n2-1)*s2)) / (n1+n2-2));
+  // if there is no variance, there's no effect size
+  return s===0 ? 0 : (x1 - x2) / s;
+};
+
+// Computes the covariance between two arrays of numbers
+stats.covariance = function(values, a, b) {
+  var X = b ? values.map(util.$(a)) : values,
+      Y = b ? values.map(util.$(b)) : a,
+      n = X.length,
+      xm = stats.mean(X),
+      ym = stats.mean(Y),
+      sum = 0, c = 0, i, x, y, vx, vy;
+
+  if (n !== Y.length) {
+    throw Error('Input lengths must match.');
+  }
+
+  for (i=0; i<n; ++i) {
+    x = X[i]; vx = util.isValid(x);
+    y = Y[i]; vy = util.isValid(y);
+    if (vx && vy) {
+      sum += (x-xm) * (y-ym);
+      ++c;
+    } else if (vx || vy) {
+      throw Error('Valid values must align.');
+    }
+  }
+  return sum / (c-1);
+};
+
 // Compute ascending rank scores for an array of values.
 // Ties are assigned their collective mean rank.
 stats.rank = function(values, f) {
@@ -4204,8 +4076,8 @@ stats.cor = function(values, a, b) {
 
 // Compute the Spearman rank correlation of two arrays of values.
 stats.cor.rank = function(values, a, b) {
-  var ra = b ? stats.rank(values, util.$(a)) : stats.rank(values),
-      rb = b ? stats.rank(values, util.$(b)) : stats.rank(a),
+  var ra = b ? stats.rank(values, a) : stats.rank(values),
+      rb = b ? stats.rank(values, b) : stats.rank(a),
       n = values.length, i, s, d;
 
   for (i=0, s=0; i<n; ++i) {
@@ -4236,25 +4108,159 @@ stats.cor.dist = function(values, a, b) {
   return Math.sqrt(ab / Math.sqrt(aa*bb));
 };
 
-// Compute the vector distance between two arrays of numbers.
-// Default is Euclidean (exp=2) distance, configurable via exp argument.
-stats.dist = function(values, a, b, exp) {
-  var f = util.isFunction(b) || util.isString(b),
-      X = values,
-      Y = f ? values : a,
-      e = f ? exp : b,
-      L2 = e === 2 || e == null,
-      n = values.length, s = 0, d, i;
-  if (f) {
-    a = util.$(a);
-    b = util.$(b);
-  }
+// Simple linear regression.
+// Returns a "fit" object with slope (m), intercept (b),
+// r value (R), and sum-squared residual error (rss).
+stats.linearRegression = function(values, a, b) {
+  var X = b ? values.map(util.$(a)) : values,
+      Y = b ? values.map(util.$(b)) : a,
+      n = X.length,
+      xy = stats.covariance(X, Y), // will throw err if valid vals don't align
+      sx = stats.stdev(X),
+      sy = stats.stdev(Y),
+      slope = xy / (sx*sx),
+      icept = stats.mean(Y) - slope * stats.mean(X),
+      fit = {slope: slope, intercept: icept, R: xy / (sx*sy), rss: 0},
+      res, i;
+
   for (i=0; i<n; ++i) {
-    d = f ? (a(X[i])-b(Y[i])) : (X[i]-Y[i]);
-    s += L2 ? d*d : Math.pow(Math.abs(d), e);
+    if (util.isValid(X[i]) && util.isValid(Y[i])) {
+      res = (slope*X[i] + icept) - Y[i];
+      fit.rss += res * res;
+    }
   }
-  return L2 ? Math.sqrt(s) : Math.pow(s, 1/e);
+
+  return fit;
 };
+
+// Namespace for bootstrap
+stats.bootstrap = {};
+
+// Construct a bootstrapped confidence interval at a given percentile level
+// Arguments are an array, an optional n (defaults to 1000),
+//  an optional alpha (defaults to 0.05), and an optional smoothing parameter
+stats.bootstrap.ci = function(values, a, b, c, d) {
+  var X, N, alpha, smooth, bs, means, i;
+  if (util.isFunction(a) || util.isString(a)) {
+    X = values.map(util.$(a));
+    N = b;
+    alpha = c;
+    smooth = d;
+  } else {
+    X = values;
+    N = a;
+    alpha = b;
+    smooth = c;
+  }
+  N = N ? +N : 1000;
+  alpha = alpha || 0.05;
+
+  bs = gen.random.bootstrap(X, smooth);
+  for (i=0, means = Array(N); i<N; ++i) {
+    means[i] = stats.mean(bs.samples(X.length));
+  }
+  means.sort(util.numcmp);
+  return [
+    stats.quantile(means, alpha/2),
+    stats.quantile(means, 1-(alpha/2))
+  ];
+};
+
+// Namespace for z-tests
+stats.z = {};
+
+// Construct a z-confidence interval at a given significance level
+// Arguments are an array and an optional alpha (defaults to 0.05).
+stats.z.ci = function(values, a, b) {
+  var X = values, alpha = a;
+  if (util.isFunction(a) || util.isString(a)) {
+    X = values.map(util.$(a));
+    alpha = b;
+  }
+  alpha = alpha || 0.05;
+
+  var z = alpha===0.05 ? 1.96 : gen.random.normal(0, 1).icdf(1-(alpha/2)),
+      mu = stats.mean(X),
+      SE = stats.stdev(X) / Math.sqrt(stats.count.valid(X));
+  return [mu - (z*SE), mu + (z*SE)];
+};
+
+// Perform a z-test of means. Returns the p-value.
+// If a single array is provided, performs a one-sample location test.
+// If two arrays or a table and two accessors are provided, performs
+// a two-sample location test. A paired test is performed if specified
+// by the options hash.
+// The options hash format is: {paired: boolean, nullh: number}.
+// http://en.wikipedia.org/wiki/Z-test
+// http://en.wikipedia.org/wiki/Paired_difference_test
+stats.z.test = function(values, a, b, opt) {
+  if (util.isFunction(b) || util.isString(b)) { // table and accessors
+    return (opt && opt.paired ? ztestP : ztest2)(opt, values, a, b);
+  } else if (util.isArray(a)) { // two arrays
+    return (b && b.paired ? ztestP : ztest2)(b, values, a);
+  } else if (util.isFunction(a) || util.isString(a)) {
+    return ztest1(b, values, a); // table and accessor
+  } else {
+    return ztest1(a, values); // one array
+  }
+};
+
+// Perform a z-test of means. Returns the p-value.
+// Assuming we have a list of values, and a null hypothesis. If no null
+// hypothesis, assume our null hypothesis is mu=0.
+function ztest1(opt, X, f) {
+  var nullH = opt && opt.nullh || 0,
+      gaussian = gen.random.normal(0, 1),
+      mu = stats.mean(X,f),
+      SE = stats.stdev(X,f) / Math.sqrt(stats.count.valid(X,f));
+
+  if (SE===0) {
+    // Test not well defined when standard error is 0.
+    return (mu - nullH) === 0 ? 1 : 0;
+  }
+  // Two-sided, so twice the one-sided cdf.
+  var z = (mu - nullH) / SE;
+  return 2 * gaussian.cdf(-Math.abs(z));
+}
+
+// Perform a two sample paired z-test of means. Returns the p-value.
+function ztestP(opt, values, a, b) {
+  var X = b ? values.map(util.$(a)) : values,
+      Y = b ? values.map(util.$(b)) : a,
+      n1 = stats.count(X),
+      n2 = stats.count(Y),
+      diffs = Array(), i;
+
+  if (n1 !== n2) {
+    throw Error('Array lengths must match.');
+  }
+  for (i=0; i<n1; ++i) {
+    // Only valid differences should contribute to the test statistic
+    if (util.isValid(X[i]) && util.isValid(Y[i])) {
+      diffs.push(X[i] - Y[i]);
+    }
+  }
+  return stats.z.test(diffs, opt && opt.nullh || 0);
+}
+
+// Perform a two sample z-test of means. Returns the p-value.
+function ztest2(opt, values, a, b) {
+  var X = b ? values.map(util.$(a)) : values,
+      Y = b ? values.map(util.$(b)) : a,
+      n1 = stats.count.valid(X),
+      n2 = stats.count.valid(Y),
+      gaussian = gen.random.normal(0, 1),
+      meanDiff = stats.mean(X) - stats.mean(Y) - (opt && opt.nullh || 0),
+      SE = Math.sqrt(stats.variance(X)/n1 + stats.variance(Y)/n2);
+
+  if (SE===0) {
+    // Not well defined when pooled standard error is 0.
+    return meanDiff===0 ? 1 : 0;
+  }
+  // Two-tailed, so twice the one-sided cdf.
+  var z = meanDiff / SE;
+  return 2 * gaussian.cdf(-Math.abs(z));
+}
 
 // Construct a mean-centered distance matrix for an array of numbers.
 stats.dist.mat = function(X) {
@@ -4418,9 +4424,7 @@ stats.summary = function(data, fields) {
   return (s.__summary__ = true, s);
 };
 
-module.exports = stats;
-
-},{"./generate":16,"./import/type":25,"./util":31}],29:[function(require,module,exports){
+},{"./generate":16,"./import/type":25,"./util":30}],28:[function(require,module,exports){
 var util = require('./util'),
     format = require('./format');
 
@@ -4428,7 +4432,9 @@ var context = {
   formats:    [],
   format_map: {},
   truncate:   util.truncate,
-  pad:        util.pad
+  pad:        util.pad,
+  day:        format.day,
+  month:      format.month
 };
 
 function template(text) {
@@ -4441,6 +4447,7 @@ function template(text) {
 
 template.source = source;
 template.context = context;
+template.format = get_format;
 module.exports = template;
 
 // Clear cache of format objects.
@@ -4507,16 +4514,18 @@ function template_var(text, variable, properties) {
     return '(typeof ' + src + '==="number"?new Date('+src+'):'+src+')';
   }
 
-  function number_format(fmt, key) {
-    a = template_format(args[0], key, fmt);
+  function formatter(type) {
+    var pattern = args[0];
+    if ((pattern[0] === '\'' && pattern[pattern.length-1] === '\'') ||
+        (pattern[0] === '"'  && pattern[pattern.length-1] === '"')) {
+      pattern = pattern.slice(1, -1);
+    } else {
+      throw Error('Format pattern must be quoted: ' + pattern);
+    }
+    a = template_format(pattern, type);
     stringCast = false;
-    src = 'this.formats['+a+']('+src+')';
-  }
-
-  function time_format(fmt, key) {
-    a = template_format(args[0], key, fmt);
-    stringCast = false;
-    src = 'this.formats['+a+']('+date()+')';
+    var arg = type === 'number' ? src : date();
+    src = 'this.formats['+a+']('+arg+')';
   }
 
   if (properties) properties[prop] = 1;
@@ -4584,13 +4593,25 @@ function template_var(text, variable, properties) {
         src = 'this.pad(' + strcall() + ',' + a + ',\'' + b + '\')';
         break;
       case 'number':
-        number_format(format.number, 'number');
+        formatter('number');
         break;
       case 'time':
-        time_format(format.time, 'time');
+        formatter('time');
         break;
       case 'time-utc':
-        time_format(format.utc, 'time-utc');
+        formatter('utc');
+        break;
+      case 'month':
+        src = 'this.month(' + src + ')';
+        break;
+      case 'month-abbrev':
+        src = 'this.month(' + src + ',true)';
+        break;
+      case 'day':
+        src = 'this.day(' + src + ')';
+        break;
+      case 'day-abbrev':
+        src = 'this.day(' + src + ',true)';
         break;
       default:
         throw Error('Unrecognized template filter: ' + f);
@@ -4621,24 +4642,23 @@ function template_escapeChar(match) {
   return '\\' + template_escapes[match];
 }
 
-function template_format(pattern, key, fmt) {
-  if ((pattern[0] === '\'' && pattern[pattern.length-1] === '\'') ||
-      (pattern[0] === '"'  && pattern[pattern.length-1] === '"')) {
-    pattern = pattern.slice(1, -1);
-  } else {
-    throw Error('Format pattern must be quoted: ' + pattern);
-  }
-  key = key + ':' + pattern;
-  if (!context.format_map[key]) {
-    var f = fmt(pattern);
+function template_format(pattern, type) {
+  var key = type + ':' + pattern;
+  if (context.format_map[key] == null) {
+    var f = format[type](pattern);
     var i = context.formats.length;
     context.formats.push(f);
     context.format_map[key] = i;
+    return i;
   }
   return context.format_map[key];
 }
 
-},{"./format":15,"./util":31}],30:[function(require,module,exports){
+function get_format(pattern, type) {
+  return context.formats[template_format(pattern, type)];
+}
+
+},{"./format":15,"./util":30}],29:[function(require,module,exports){
 var d3_time = require('d3-time');
 
 var tempDate = new Date(),
@@ -4808,13 +4828,9 @@ function toUnitMap(units) {
 
 module.exports = toUnitMap(locale);
 module.exports.utc = toUnitMap(utc);
-
-},{"d3-time":8}],31:[function(require,module,exports){
-var buffer = require('buffer'),
-    time = require('./time'),
-    utc = time.utc;
-
-var u = module.exports = {};
+},{"d3-time":6}],30:[function(require,module,exports){
+(function (Buffer){
+var u = module.exports;
 
 // utility functions
 
@@ -4914,7 +4930,7 @@ u.isValid = function(obj) {
   return obj != null && obj === obj;
 };
 
-u.isBuffer = (buffer.Buffer && buffer.Buffer.isBuffer) || u.false;
+u.isBuffer = (typeof Buffer === 'function' && Buffer.isBuffer) || u.false;
 
 // type coercion functions
 
@@ -4926,8 +4942,10 @@ u.boolean = function(s) {
   return s == null || s === '' ? null : s==='false' ? false : !!s;
 };
 
-u.date = function(s) {
-  return s == null || s === '' ? null : Date.parse(s);
+// parse a date with optional d3.time-format format
+u.date = function(s, format) {
+  var d = format ? format : Date;
+  return s == null || s === '' ? null : d.parse(s);
 };
 
 u.array = function(x) {
@@ -4936,15 +4954,12 @@ u.array = function(x) {
 
 u.str = function(x) {
   return u.isArray(x) ? '[' + x.map(u.str) + ']'
-    : u.isObject(x) ? JSON.stringify(x)
-    : u.isString(x) ? ('\''+util_escape_str(x)+'\'') : x;
+    : u.isObject(x) || u.isString(x) ?
+      // Output valid JSON and JS source strings.
+      // See http://timelessrepo.com/json-isnt-a-javascript-subset
+      JSON.stringify(x).replace('\u2028','\\u2028').replace('\u2029', '\\u2029')
+    : x;
 };
-
-var escape_str_re = /(^|[^\\])'/g;
-
-function util_escape_str(x) {
-  return x.replace(escape_str_re, '$1\\\'');
-}
 
 // data access functions
 
@@ -4959,12 +4974,9 @@ u.field = function(f) {
 };
 
 u.accessor = function(f) {
-  var s;
+  /* jshint evil: true */
   return f==null || u.isFunction(f) ? f :
-    u.namedfunc(f, (s = u.field(f)).length > 1 ?
-      function(x) { return s.reduce(function(x,f) { return x[f]; }, x); } :
-      function(x) { return x[f]; }
-    );
+    u.namedfunc(f, Function('x', 'return x[' + u.field(f).map(u.str).join('][') + '];'));
 };
 
 // short-cut for accessor
@@ -4997,22 +5009,6 @@ u.$in = function(f, values) {
   var map = u.isArray(values) ? u.toMap(values) : values;
   return function(d) { return !!map[f(d)]; };
 };
-
-u.$year   = u.$func('year', time.year.unit);
-u.$month  = u.$func('month', time.months.unit);
-u.$date   = u.$func('date', time.dates.unit);
-u.$day    = u.$func('day', time.weekdays.unit);
-u.$hour   = u.$func('hour', time.hours.unit);
-u.$minute = u.$func('minute', time.minutes.unit);
-u.$second = u.$func('second', time.seconds.unit);
-
-u.$utcYear   = u.$func('utcYear', utc.year.unit);
-u.$utcMonth  = u.$func('utcMonth', utc.months.unit);
-u.$utcDate   = u.$func('utcDate', utc.dates.unit);
-u.$utcDay    = u.$func('utcDay', utc.weekdays.unit);
-u.$utcHour   = u.$func('utcHour', utc.hours.unit);
-u.$utcMinute = u.$func('utcMinute', utc.minutes.unit);
-u.$utcSecond = u.$func('utcSecond', utc.seconds.unit);
 
 // comparison / sorting functions
 
@@ -5127,7 +5123,558 @@ function truncateOnWord(s, len, rev) {
 
 var truncate_word_re = /([\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u2028\u2029\u3000\uFEFF])/;
 
-},{"./time":30,"buffer":2}],32:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+
+},{"buffer":2}],31:[function(require,module,exports){
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.topojson = {})));
+}(this, function (exports) { 'use strict';
+
+  function noop() {}
+
+  function absolute(transform) {
+    if (!transform) return noop;
+    var x0,
+        y0,
+        kx = transform.scale[0],
+        ky = transform.scale[1],
+        dx = transform.translate[0],
+        dy = transform.translate[1];
+    return function(point, i) {
+      if (!i) x0 = y0 = 0;
+      point[0] = (x0 += point[0]) * kx + dx;
+      point[1] = (y0 += point[1]) * ky + dy;
+    };
+  }
+
+  function relative(transform) {
+    if (!transform) return noop;
+    var x0,
+        y0,
+        kx = transform.scale[0],
+        ky = transform.scale[1],
+        dx = transform.translate[0],
+        dy = transform.translate[1];
+    return function(point, i) {
+      if (!i) x0 = y0 = 0;
+      var x1 = (point[0] - dx) / kx | 0,
+          y1 = (point[1] - dy) / ky | 0;
+      point[0] = x1 - x0;
+      point[1] = y1 - y0;
+      x0 = x1;
+      y0 = y1;
+    };
+  }
+
+  function reverse(array, n) {
+    var t, j = array.length, i = j - n;
+    while (i < --j) t = array[i], array[i++] = array[j], array[j] = t;
+  }
+
+  function bisect(a, x) {
+    var lo = 0, hi = a.length;
+    while (lo < hi) {
+      var mid = lo + hi >>> 1;
+      if (a[mid] < x) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  function feature(topology, o) {
+    return o.type === "GeometryCollection" ? {
+      type: "FeatureCollection",
+      features: o.geometries.map(function(o) { return feature$1(topology, o); })
+    } : feature$1(topology, o);
+  }
+
+  function feature$1(topology, o) {
+    var f = {
+      type: "Feature",
+      id: o.id,
+      properties: o.properties || {},
+      geometry: object(topology, o)
+    };
+    if (o.id == null) delete f.id;
+    return f;
+  }
+
+  function object(topology, o) {
+    var absolute$$ = absolute(topology.transform),
+        arcs = topology.arcs;
+
+    function arc(i, points) {
+      if (points.length) points.pop();
+      for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length, p; k < n; ++k) {
+        points.push(p = a[k].slice());
+        absolute$$(p, k);
+      }
+      if (i < 0) reverse(points, n);
+    }
+
+    function point(p) {
+      p = p.slice();
+      absolute$$(p, 0);
+      return p;
+    }
+
+    function line(arcs) {
+      var points = [];
+      for (var i = 0, n = arcs.length; i < n; ++i) arc(arcs[i], points);
+      if (points.length < 2) points.push(points[0].slice());
+      return points;
+    }
+
+    function ring(arcs) {
+      var points = line(arcs);
+      while (points.length < 4) points.push(points[0].slice());
+      return points;
+    }
+
+    function polygon(arcs) {
+      return arcs.map(ring);
+    }
+
+    function geometry(o) {
+      var t = o.type;
+      return t === "GeometryCollection" ? {type: t, geometries: o.geometries.map(geometry)}
+          : t in geometryType ? {type: t, coordinates: geometryType[t](o)}
+          : null;
+    }
+
+    var geometryType = {
+      Point: function(o) { return point(o.coordinates); },
+      MultiPoint: function(o) { return o.coordinates.map(point); },
+      LineString: function(o) { return line(o.arcs); },
+      MultiLineString: function(o) { return o.arcs.map(line); },
+      Polygon: function(o) { return polygon(o.arcs); },
+      MultiPolygon: function(o) { return o.arcs.map(polygon); }
+    };
+
+    return geometry(o);
+  }
+
+  function stitchArcs(topology, arcs) {
+    var stitchedArcs = {},
+        fragmentByStart = {},
+        fragmentByEnd = {},
+        fragments = [],
+        emptyIndex = -1;
+
+    // Stitch empty arcs first, since they may be subsumed by other arcs.
+    arcs.forEach(function(i, j) {
+      var arc = topology.arcs[i < 0 ? ~i : i], t;
+      if (arc.length < 3 && !arc[1][0] && !arc[1][1]) {
+        t = arcs[++emptyIndex], arcs[emptyIndex] = i, arcs[j] = t;
+      }
+    });
+
+    arcs.forEach(function(i) {
+      var e = ends(i),
+          start = e[0],
+          end = e[1],
+          f, g;
+
+      if (f = fragmentByEnd[start]) {
+        delete fragmentByEnd[f.end];
+        f.push(i);
+        f.end = end;
+        if (g = fragmentByStart[end]) {
+          delete fragmentByStart[g.start];
+          var fg = g === f ? f : f.concat(g);
+          fragmentByStart[fg.start = f.start] = fragmentByEnd[fg.end = g.end] = fg;
+        } else {
+          fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
+        }
+      } else if (f = fragmentByStart[end]) {
+        delete fragmentByStart[f.start];
+        f.unshift(i);
+        f.start = start;
+        if (g = fragmentByEnd[start]) {
+          delete fragmentByEnd[g.end];
+          var gf = g === f ? f : g.concat(f);
+          fragmentByStart[gf.start = g.start] = fragmentByEnd[gf.end = f.end] = gf;
+        } else {
+          fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
+        }
+      } else {
+        f = [i];
+        fragmentByStart[f.start = start] = fragmentByEnd[f.end = end] = f;
+      }
+    });
+
+    function ends(i) {
+      var arc = topology.arcs[i < 0 ? ~i : i], p0 = arc[0], p1;
+      if (topology.transform) p1 = [0, 0], arc.forEach(function(dp) { p1[0] += dp[0], p1[1] += dp[1]; });
+      else p1 = arc[arc.length - 1];
+      return i < 0 ? [p1, p0] : [p0, p1];
+    }
+
+    function flush(fragmentByEnd, fragmentByStart) {
+      for (var k in fragmentByEnd) {
+        var f = fragmentByEnd[k];
+        delete fragmentByStart[f.start];
+        delete f.start;
+        delete f.end;
+        f.forEach(function(i) { stitchedArcs[i < 0 ? ~i : i] = 1; });
+        fragments.push(f);
+      }
+    }
+
+    flush(fragmentByEnd, fragmentByStart);
+    flush(fragmentByStart, fragmentByEnd);
+    arcs.forEach(function(i) { if (!stitchedArcs[i < 0 ? ~i : i]) fragments.push([i]); });
+
+    return fragments;
+  }
+
+  function mesh(topology) {
+    return object(topology, meshArcs.apply(this, arguments));
+  }
+
+  function meshArcs(topology, o, filter) {
+    var arcs = [];
+
+    function arc(i) {
+      var j = i < 0 ? ~i : i;
+      (geomsByArc[j] || (geomsByArc[j] = [])).push({i: i, g: geom});
+    }
+
+    function line(arcs) {
+      arcs.forEach(arc);
+    }
+
+    function polygon(arcs) {
+      arcs.forEach(line);
+    }
+
+    function geometry(o) {
+      if (o.type === "GeometryCollection") o.geometries.forEach(geometry);
+      else if (o.type in geometryType) geom = o, geometryType[o.type](o.arcs);
+    }
+
+    if (arguments.length > 1) {
+      var geomsByArc = [],
+          geom;
+
+      var geometryType = {
+        LineString: line,
+        MultiLineString: polygon,
+        Polygon: polygon,
+        MultiPolygon: function(arcs) { arcs.forEach(polygon); }
+      };
+
+      geometry(o);
+
+      geomsByArc.forEach(arguments.length < 3
+          ? function(geoms) { arcs.push(geoms[0].i); }
+          : function(geoms) { if (filter(geoms[0].g, geoms[geoms.length - 1].g)) arcs.push(geoms[0].i); });
+    } else {
+      for (var i = 0, n = topology.arcs.length; i < n; ++i) arcs.push(i);
+    }
+
+    return {type: "MultiLineString", arcs: stitchArcs(topology, arcs)};
+  }
+
+  function triangle(triangle) {
+    var a = triangle[0], b = triangle[1], c = triangle[2];
+    return Math.abs((a[0] - c[0]) * (b[1] - a[1]) - (a[0] - b[0]) * (c[1] - a[1]));
+  }
+
+  function ring(ring) {
+    var i = -1,
+        n = ring.length,
+        a,
+        b = ring[n - 1],
+        area = 0;
+
+    while (++i < n) {
+      a = b;
+      b = ring[i];
+      area += a[0] * b[1] - a[1] * b[0];
+    }
+
+    return area / 2;
+  }
+
+  function merge(topology) {
+    return object(topology, mergeArcs.apply(this, arguments));
+  }
+
+  function mergeArcs(topology, objects) {
+    var polygonsByArc = {},
+        polygons = [],
+        components = [];
+
+    objects.forEach(function(o) {
+      if (o.type === "Polygon") register(o.arcs);
+      else if (o.type === "MultiPolygon") o.arcs.forEach(register);
+    });
+
+    function register(polygon) {
+      polygon.forEach(function(ring$$) {
+        ring$$.forEach(function(arc) {
+          (polygonsByArc[arc = arc < 0 ? ~arc : arc] || (polygonsByArc[arc] = [])).push(polygon);
+        });
+      });
+      polygons.push(polygon);
+    }
+
+    function exterior(ring$$) {
+      return ring(object(topology, {type: "Polygon", arcs: [ring$$]}).coordinates[0]) > 0; // TODO allow spherical?
+    }
+
+    polygons.forEach(function(polygon) {
+      if (!polygon._) {
+        var component = [],
+            neighbors = [polygon];
+        polygon._ = 1;
+        components.push(component);
+        while (polygon = neighbors.pop()) {
+          component.push(polygon);
+          polygon.forEach(function(ring$$) {
+            ring$$.forEach(function(arc) {
+              polygonsByArc[arc < 0 ? ~arc : arc].forEach(function(polygon) {
+                if (!polygon._) {
+                  polygon._ = 1;
+                  neighbors.push(polygon);
+                }
+              });
+            });
+          });
+        }
+      }
+    });
+
+    polygons.forEach(function(polygon) {
+      delete polygon._;
+    });
+
+    return {
+      type: "MultiPolygon",
+      arcs: components.map(function(polygons) {
+        var arcs = [], n;
+
+        // Extract the exterior (unique) arcs.
+        polygons.forEach(function(polygon) {
+          polygon.forEach(function(ring$$) {
+            ring$$.forEach(function(arc) {
+              if (polygonsByArc[arc < 0 ? ~arc : arc].length < 2) {
+                arcs.push(arc);
+              }
+            });
+          });
+        });
+
+        // Stitch the arcs into one or more rings.
+        arcs = stitchArcs(topology, arcs);
+
+        // If more than one ring is returned,
+        // at most one of these rings can be the exterior;
+        // this exterior ring has the same winding order
+        // as any exterior ring in the original polygons.
+        if ((n = arcs.length) > 1) {
+          var sgn = exterior(polygons[0][0]);
+          for (var i = 0, t; i < n; ++i) {
+            if (sgn === exterior(arcs[i])) {
+              t = arcs[0], arcs[0] = arcs[i], arcs[i] = t;
+              break;
+            }
+          }
+        }
+
+        return arcs;
+      })
+    };
+  }
+
+  function neighbors(objects) {
+    var indexesByArc = {}, // arc index -> array of object indexes
+        neighbors = objects.map(function() { return []; });
+
+    function line(arcs, i) {
+      arcs.forEach(function(a) {
+        if (a < 0) a = ~a;
+        var o = indexesByArc[a];
+        if (o) o.push(i);
+        else indexesByArc[a] = [i];
+      });
+    }
+
+    function polygon(arcs, i) {
+      arcs.forEach(function(arc) { line(arc, i); });
+    }
+
+    function geometry(o, i) {
+      if (o.type === "GeometryCollection") o.geometries.forEach(function(o) { geometry(o, i); });
+      else if (o.type in geometryType) geometryType[o.type](o.arcs, i);
+    }
+
+    var geometryType = {
+      LineString: line,
+      MultiLineString: polygon,
+      Polygon: polygon,
+      MultiPolygon: function(arcs, i) { arcs.forEach(function(arc) { polygon(arc, i); }); }
+    };
+
+    objects.forEach(geometry);
+
+    for (var i in indexesByArc) {
+      for (var indexes = indexesByArc[i], m = indexes.length, j = 0; j < m; ++j) {
+        for (var k = j + 1; k < m; ++k) {
+          var ij = indexes[j], ik = indexes[k], n;
+          if ((n = neighbors[ij])[i = bisect(n, ik)] !== ik) n.splice(i, 0, ik);
+          if ((n = neighbors[ik])[i = bisect(n, ij)] !== ij) n.splice(i, 0, ij);
+        }
+      }
+    }
+
+    return neighbors;
+  }
+
+  function compareArea(a, b) {
+    return a[1][2] - b[1][2];
+  }
+
+  function minAreaHeap() {
+    var heap = {},
+        array = [],
+        size = 0;
+
+    heap.push = function(object) {
+      up(array[object._ = size] = object, size++);
+      return size;
+    };
+
+    heap.pop = function() {
+      if (size <= 0) return;
+      var removed = array[0], object;
+      if (--size > 0) object = array[size], down(array[object._ = 0] = object, 0);
+      return removed;
+    };
+
+    heap.remove = function(removed) {
+      var i = removed._, object;
+      if (array[i] !== removed) return; // invalid request
+      if (i !== --size) object = array[size], (compareArea(object, removed) < 0 ? up : down)(array[object._ = i] = object, i);
+      return i;
+    };
+
+    function up(object, i) {
+      while (i > 0) {
+        var j = ((i + 1) >> 1) - 1,
+            parent = array[j];
+        if (compareArea(object, parent) >= 0) break;
+        array[parent._ = i] = parent;
+        array[object._ = i = j] = object;
+      }
+    }
+
+    function down(object, i) {
+      while (true) {
+        var r = (i + 1) << 1,
+            l = r - 1,
+            j = i,
+            child = array[j];
+        if (l < size && compareArea(array[l], child) < 0) child = array[j = l];
+        if (r < size && compareArea(array[r], child) < 0) child = array[j = r];
+        if (j === i) break;
+        array[child._ = i] = child;
+        array[object._ = i = j] = object;
+      }
+    }
+
+    return heap;
+  }
+
+  function presimplify(topology, triangleArea) {
+    var absolute$$ = absolute(topology.transform),
+        relative$$ = relative(topology.transform),
+        heap = minAreaHeap();
+
+    if (!triangleArea) triangleArea = triangle;
+
+    topology.arcs.forEach(function(arc) {
+      var triangles = [],
+          maxArea = 0,
+          triangle,
+          i,
+          n,
+          p;
+
+      // To store each point’s effective area, we create a new array rather than
+      // extending the passed-in point to workaround a Chrome/V8 bug (getting
+      // stuck in smi mode). For midpoints, the initial effective area of
+      // Infinity will be computed in the next step.
+      for (i = 0, n = arc.length; i < n; ++i) {
+        p = arc[i];
+        absolute$$(arc[i] = [p[0], p[1], Infinity], i);
+      }
+
+      for (i = 1, n = arc.length - 1; i < n; ++i) {
+        triangle = arc.slice(i - 1, i + 2);
+        triangle[1][2] = triangleArea(triangle);
+        triangles.push(triangle);
+        heap.push(triangle);
+      }
+
+      for (i = 0, n = triangles.length; i < n; ++i) {
+        triangle = triangles[i];
+        triangle.previous = triangles[i - 1];
+        triangle.next = triangles[i + 1];
+      }
+
+      while (triangle = heap.pop()) {
+        var previous = triangle.previous,
+            next = triangle.next;
+
+        // If the area of the current point is less than that of the previous point
+        // to be eliminated, use the latter's area instead. This ensures that the
+        // current point cannot be eliminated without eliminating previously-
+        // eliminated points.
+        if (triangle[1][2] < maxArea) triangle[1][2] = maxArea;
+        else maxArea = triangle[1][2];
+
+        if (previous) {
+          previous.next = next;
+          previous[2] = triangle[2];
+          update(previous);
+        }
+
+        if (next) {
+          next.previous = previous;
+          next[0] = triangle[0];
+          update(next);
+        }
+      }
+
+      arc.forEach(relative$$);
+    });
+
+    function update(triangle) {
+      heap.remove(triangle);
+      triangle[1][2] = triangleArea(triangle);
+      heap.push(triangle);
+    }
+
+    return topology;
+  }
+
+  var version = "1.6.24";
+
+  exports.version = version;
+  exports.mesh = mesh;
+  exports.meshArcs = meshArcs;
+  exports.merge = merge;
+  exports.mergeArcs = mergeArcs;
+  exports.feature = feature;
+  exports.neighbors = neighbors;
+  exports.presimplify = presimplify;
+
+}));
+},{}],32:[function(require,module,exports){
 var DEPS = require('./Dependencies').ALL;
 
 function create(cs, reflow) {
@@ -5162,7 +5709,8 @@ module.exports = {
 },{"./Dependencies":35}],33:[function(require,module,exports){
 var log = require('vega-logging'),
     Tuple = require('./Tuple'),
-    Base = require('./Node').prototype;
+    Base = require('./Node').prototype,
+    ChangeSet = require('./ChangeSet');
 
 function Collector(graph) {
   Base.init.call(this, graph);
@@ -5180,12 +5728,22 @@ prototype.data = function() {
 prototype.evaluate = function(input) {
   log.debug(input, ["collecting"]);
 
+  // Create a new output changeset to prevent pollution when the Graph
+  // merges reflow and regular changesets.
+  var output = ChangeSet.create(input);
+
   if (input.rem.length) {
     this._data = Tuple.idFilter(this._data, input.rem);
+    output.rem = input.rem.slice(0);
   }
 
   if (input.add.length) {
-    this._data = this._data.length ? this._data.concat(input.add) : input.add;
+    this._data = this._data.concat(input.add);
+    output.add = input.add.slice(0);
+  }
+
+  if (input.mod.length) {
+    output.mod = input.mod.slice(0);
   }
 
   if (input.sort) {
@@ -5193,18 +5751,19 @@ prototype.evaluate = function(input) {
   }
 
   if (input.reflow) {
-    input.mod = input.mod.concat(
-      Tuple.idFilter(this._data, input.add, input.mod, input.rem));
-    input.reflow = false;
+    output.mod = output.mod.concat(
+      Tuple.idFilter(this._data, output.add, output.mod, output.rem));
+    output.reflow = false;
   }
 
-  return input;
+  return output;
 };
 
 module.exports = Collector;
-},{"./Node":38,"./Tuple":40,"vega-logging":47}],34:[function(require,module,exports){
-var log = require('vega-logging'),
-    ChangeSet = require('./ChangeSet'), 
+},{"./ChangeSet":32,"./Node":38,"./Tuple":40,"vega-logging":48}],34:[function(require,module,exports){
+var dl = require('datalib'),
+    log = require('vega-logging'),
+    ChangeSet = require('./ChangeSet'),
     Collector = require('./Collector'),
     Tuple = require('./Tuple'),
     Node = require('./Node'); // jshint ignore:line
@@ -5217,6 +5776,8 @@ function DataSource(graph, name, facet) {
   this._facet  = facet;
   this._input  = ChangeSet.create();
   this._output = null; // Output changeset
+  this._indexes = {};
+  this._indexFields = [];
 
   this._inputNode  = null;
   this._outputNode = null;
@@ -5320,7 +5881,26 @@ prototype.synchronize = function() {
   return this;
 };
 
-prototype.listener = function() { 
+prototype.getIndex = function(field) {
+  var data = this.values(),
+      indexes = this._indexes,
+      fields  = this._indexFields,
+      f = dl.$(field),
+      index, i, len, value;
+
+  if (!indexes[field]) {
+    indexes[field] = index = {};
+    fields.push(field);
+    for (i=0, len=data.length; i<len; ++i) {
+      value = f(data[i]);
+      index[value] = (index[value] || 0) + 1;
+      Tuple.prev_init(data[i]);
+    }
+  }
+  return indexes[field];
+};
+
+prototype.listener = function() {
   return DataSourceListener(this).addListener(this._inputNode);
 };
 
@@ -5328,7 +5908,7 @@ prototype.addListener = function(l) {
   if (l instanceof DataSource) {
     this._collector.addListener(l.listener());
   } else {
-    this._outputNode.addListener(l);      
+    this._outputNode.addListener(l);
   }
   return this;
 };
@@ -5341,7 +5921,7 @@ prototype.listeners = function(ds) {
   return (ds ? this._collector : this._outputNode).listeners();
 };
 
-// Input node applies the datasource's delta, and propagates it to 
+// Input node applies the datasource's delta, and propagates it to
 // the rest of the pipeline. It receives touches to reflow data.
 function DataSourceInput(ds) {
   var input = new Node(ds._graph)
@@ -5355,7 +5935,7 @@ function DataSourceInput(ds) {
   input.evaluate = function(input) {
     log.debug(input, ['input', ds._name]);
 
-    var delta = ds._input, 
+    var delta = ds._input,
         out = ChangeSet.create(input), f;
 
     // Delta might contain fields updated through API
@@ -5385,7 +5965,7 @@ function DataSourceInput(ds) {
     // reset change list
     ds._input = ChangeSet.create();
 
-    out.add = delta.add; 
+    out.add = delta.add;
     out.mod = delta.mod;
     out.rem = delta.rem;
     out.facet = ds._facet;
@@ -5404,6 +5984,33 @@ function DataSourceOutput(ds) {
     .reflows(true)
     .collector(true);
 
+  function updateIndices(pulse) {
+    var fields = ds._indexFields,
+        i, j, f, key, index, value;
+
+    for (i=0; i<fields.length; ++i) {
+      key = fields[i];
+      index = ds._indexes[key];
+      f = dl.$(key);
+
+      for (j=0; j<pulse.add.length; ++j) {
+        value = f(pulse.add[j]);
+        Tuple.prev_init(pulse.add[j]);
+        index[value] = (index[value] || 0) + 1;
+      }
+      for (j=0; j<pulse.rem.length; ++j) {
+        value = f(pulse.rem[j]);
+        index[value] = (index[value] || 0) - 1;
+      }
+      for (j=0; j<pulse.mod.length; ++j) {
+        value = f(pulse.mod[j]._prev);
+        index[value] = (index[value] || 0) - 1;
+        value = f(pulse.mod[j]);
+        index[value] = (index[value] || 0) + 1;
+      }
+    }
+  }
+
   output.data = function() {
     return ds._collector ? ds._collector.data() : ds._data;
   };
@@ -5411,6 +6018,7 @@ function DataSourceOutput(ds) {
   output.evaluate = function(input) {
     log.debug(input, ['output', ds._name]);
 
+    updateIndices(input);
     var out = ChangeSet.create(input, true);
 
     if (ds._facet) {
@@ -5432,7 +6040,7 @@ function DataSourceListener(ds) {
   l.evaluate = function(input) {
     // Tuple derivation carries a cost. So only derive if the pipeline has
     // operators that mutate, and thus would override the source data.
-    if (ds.mutates()) {  
+    if (ds.mutates()) {
       var map = ds._srcMap || (ds._srcMap = {}), // to propagate tuples correctly
           output = ChangeSet.create(input);
 
@@ -5444,7 +6052,7 @@ function DataSourceListener(ds) {
         return Tuple.rederive(t, map[t._id]);
       });
 
-      output.rem = input.rem.map(function(t) { 
+      output.rem = input.rem.map(function(t) {
         var o = map[t._id];
         return (map[t._id] = null, o);
       });
@@ -5460,7 +6068,7 @@ function DataSourceListener(ds) {
 
 module.exports = DataSource;
 
-},{"./ChangeSet":32,"./Collector":33,"./Node":38,"./Tuple":40,"vega-logging":47}],35:[function(require,module,exports){
+},{"./ChangeSet":32,"./Collector":33,"./Node":38,"./Tuple":40,"datalib":26,"vega-logging":48}],35:[function(require,module,exports){
 var deps = module.exports = {
   ALL: ['data', 'fields', 'scales', 'signals']
 };
@@ -5468,6 +6076,7 @@ deps.ALL.forEach(function(k) { deps[k.toUpperCase()] = k; });
 
 },{}],36:[function(require,module,exports){
 var dl = require('datalib'),
+    log = require('vega-logging'),
     Heap = require('./Heap'),
     ChangeSet = require('./ChangeSet'),
     DataSource = require('./DataSource'),
@@ -5487,6 +6096,7 @@ prototype.init = function() {
 
   this._data = {};
   this._signals = {};
+  this._requestedIndexes = {};
 
   this.doNotPropagate = {};
 };
@@ -5559,12 +6169,41 @@ prototype.signalRef = function(ref) {
   return value;
 };
 
+prototype.requestIndex = function(data, field) {
+  var ri  = this._requestedIndexes,
+      reg = ri[data] || (ri[data] = {}); 
+  return (reg[field] = true, this);
+};
+
+prototype.buildIndexes = function() {
+  var ri = this._requestedIndexes,
+      data = dl.keys(ri),
+      i, len, j, jlen, d, src, fields, f;
+
+  for (i=0, len=data.length; i<len; ++i) {
+    src = this.data(d=data[i]);
+    if (!src) throw Error('Data source '+dl.str(d)+' does not exist.');
+
+    fields = dl.keys(ri[d]);
+    for (j=0, jlen=fields.length; j<jlen; ++j) {
+      if ((f=fields[j]) === null) continue;
+      src.getIndex(f);
+      ri[d][f] = null;
+    }
+  }
+
+  return this;
+};
+
 // Stamp should be specified with caution. It is necessary for inline datasources,
 // which need to be populated during the same cycle even though propagation has
-// passed that part of the dataflow graph.  
-prototype.propagate = function(pulse, node, stamp) {
+// passed that part of the dataflow graph. 
+// If skipSignals is true, Signal nodes do not get reevaluated but their listeners
+// are queued for propagation. This is useful when setting signal values in batch
+// (e.g., time travel to the initial state).
+prototype.propagate = function(pulse, node, stamp, skipSignals) {
   var pulses = {},
-      listeners, next, nplse, tpls, ntpls, i, len;
+      listeners, next, nplse, tpls, ntpls, i, len, isSg;
 
   // new PQ with each propagation cycle so that we can pulse branches
   // of the dataflow graph during a propagation (e.g., when creating
@@ -5583,6 +6222,7 @@ prototype.propagate = function(pulse, node, stamp) {
 
   while (pq.size() > 0) {
     node  = pq.peek();
+    isSg  = node instanceof Signal;
     pulse = pulses[node._id];
 
     if (node.rank() !== node.qrank()) {
@@ -5593,9 +6233,12 @@ prototype.propagate = function(pulse, node, stamp) {
       pq.pop();
       pulses[node._id] = null;
       listeners = node._listeners;
-      pulse = this.evaluate(pulse, node);
 
-      // Propagate the pulse. 
+      if (!isSg || (isSg && !skipSignals)) {
+        pulse = this.evaluate(pulse, node);
+      }
+
+      // Propagate the pulse.
       if (pulse !== this.doNotPropagate) {
         // Ensure reflow pulses always send reflow pulses even if skipped.
         if (!pulse.reflow && node.reflows()) {
@@ -5610,13 +6253,13 @@ prototype.propagate = function(pulse, node, stamp) {
             if (nplse === pulse) continue;  // Re-queueing the same pulse.
 
             // We've already queued this node. Ensure there should be at most one
-            // pulse with tuples (add/mod/rem), and the remainder will be reflows. 
+            // pulse with tuples (add/mod/rem), and the remainder will be reflows.
             tpls  = pulse.add.length || pulse.mod.length || pulse.rem.length;
             ntpls = nplse.add.length || nplse.mod.length || nplse.rem.length;
 
             if (tpls && ntpls) throw Error('Multiple changeset pulses to same node');
 
-            // Combine reflow and tuples into a single pulse. 
+            // Combine reflow and tuples into a single pulse.
             pulses[next._id] = tpls ? pulse : nplse;
             pulses[next._id].reflow = pulse.reflow || nplse.reflow;
           } else {
@@ -5628,10 +6271,20 @@ prototype.propagate = function(pulse, node, stamp) {
       }
     }
   }
+
+  return this.done(pulse);
+};
+
+// Perform final bookkeeping on the graph, after propagation is complete.
+//  - For all updated datasources, synchronize their previous values.
+prototype.done = function(pulse) {
+  log.debug(pulse, ['bookkeeping']);
+  for (var d in pulse.data) { this.data(d).synchronize(); }
+  return this;
 };
 
 // Process a new branch of the dataflow graph prior to connection:
-// (1) Insert new Collector nodes as needed. 
+// (1) Insert new Collector nodes as needed.
 // (2) Track + return mutation/routing status of the branch.
 prototype.preprocess = function(branch) {
   var graph = this,
@@ -5641,7 +6294,7 @@ prototype.preprocess = function(branch) {
   for (var i=0; i<branch.length; ++i) {
     node = branch[i];
 
-    // Batch nodes need access to a materialized dataset. 
+    // Batch nodes need access to a materialized dataset.
     if (node.batch() && !node._collector) {
       if (router || !collector) {
         node = new Collector(graph);
@@ -5732,9 +6385,9 @@ prototype.synchronize = function(branch) {
 
     for (j=0, data=node.data(), m=data.length; j<m; ++j) {
       id = (d = data[j])._id;
-      if (ids[id]) continue; 
+      if (ids[id]) continue;
       Tuple.prev_update(d);
-      ids[id] = 1; 
+      ids[id] = 1;
     }
   }
 
@@ -5757,7 +6410,7 @@ prototype.evaluate = function(pulse, node) {
 
 module.exports = Graph;
 
-},{"./ChangeSet":32,"./Collector":33,"./DataSource":34,"./Dependencies":35,"./Heap":37,"./Signal":39,"./Tuple":40,"datalib":26}],37:[function(require,module,exports){
+},{"./ChangeSet":32,"./Collector":33,"./DataSource":34,"./Dependencies":35,"./Heap":37,"./Signal":39,"./Tuple":40,"datalib":26,"vega-logging":48}],37:[function(require,module,exports){
 function Heap(comparator) {
   this.cmp = comparator;
   this.nodes = [];
@@ -6212,7 +6865,1179 @@ module.exports = {
   debug:        require('vega-logging').debug
 };
 
-},{"./ChangeSet":32,"./Collector":33,"./DataSource":34,"./Dependencies":35,"./Graph":36,"./Node":38,"./Signal":39,"./Tuple":40,"vega-logging":47}],42:[function(require,module,exports){
+},{"./ChangeSet":32,"./Collector":33,"./DataSource":34,"./Dependencies":35,"./Graph":36,"./Node":38,"./Signal":39,"./Tuple":40,"vega-logging":48}],42:[function(require,module,exports){
+module.exports = (function() {
+  "use strict";
+
+  /*
+   * Generated by PEG.js 0.9.0.
+   *
+   * http://pegjs.org/
+   */
+
+  function peg$subclass(child, parent) {
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor();
+  }
+
+  function peg$SyntaxError(message, expected, found, location) {
+    this.message  = message;
+    this.expected = expected;
+    this.found    = found;
+    this.location = location;
+    this.name     = "SyntaxError";
+
+    if (typeof Error.captureStackTrace === "function") {
+      Error.captureStackTrace(this, peg$SyntaxError);
+    }
+  }
+
+  peg$subclass(peg$SyntaxError, Error);
+
+  function peg$parse(input) {
+    var options = arguments.length > 1 ? arguments[1] : {},
+        parser  = this,
+
+        peg$FAILED = {},
+
+        peg$startRuleFunctions = { start: peg$parsestart },
+        peg$startRuleFunction  = peg$parsestart,
+
+        peg$c0 = ",",
+        peg$c1 = { type: "literal", value: ",", description: "\",\"" },
+        peg$c2 = function(o, m) { return [o].concat(m); },
+        peg$c3 = function(o) { return [o]; },
+        peg$c4 = "[",
+        peg$c5 = { type: "literal", value: "[", description: "\"[\"" },
+        peg$c6 = "]",
+        peg$c7 = { type: "literal", value: "]", description: "\"]\"" },
+        peg$c8 = ">",
+        peg$c9 = { type: "literal", value: ">", description: "\">\"" },
+        peg$c10 = function(f1, f2, o) { return {start: f1, end: f2, middle: o}; },
+        peg$c11 = function(s, f) { return (s.filters = f, s); },
+        peg$c12 = function(s) { return s; },
+        peg$c13 = "(",
+        peg$c14 = { type: "literal", value: "(", description: "\"(\"" },
+        peg$c15 = ")",
+        peg$c16 = { type: "literal", value: ")", description: "\")\"" },
+        peg$c17 = function(m) { return {stream: m}; },
+        peg$c18 = "@",
+        peg$c19 = { type: "literal", value: "@", description: "\"@\"" },
+        peg$c20 = ":",
+        peg$c21 = { type: "literal", value: ":", description: "\":\"" },
+        peg$c22 = function(n, e) { return {event: e, name: n}; },
+        peg$c23 = function(m, e) { return {event: e, mark: m}; },
+        peg$c24 = function(t, e) { return {event: e, target: t}; },
+        peg$c25 = function(e) { return {event: e}; },
+        peg$c26 = function(s) { return {signal: s}; },
+        peg$c27 = "rect",
+        peg$c28 = { type: "literal", value: "rect", description: "\"rect\"" },
+        peg$c29 = "symbol",
+        peg$c30 = { type: "literal", value: "symbol", description: "\"symbol\"" },
+        peg$c31 = "path",
+        peg$c32 = { type: "literal", value: "path", description: "\"path\"" },
+        peg$c33 = "arc",
+        peg$c34 = { type: "literal", value: "arc", description: "\"arc\"" },
+        peg$c35 = "area",
+        peg$c36 = { type: "literal", value: "area", description: "\"area\"" },
+        peg$c37 = "line",
+        peg$c38 = { type: "literal", value: "line", description: "\"line\"" },
+        peg$c39 = "rule",
+        peg$c40 = { type: "literal", value: "rule", description: "\"rule\"" },
+        peg$c41 = "image",
+        peg$c42 = { type: "literal", value: "image", description: "\"image\"" },
+        peg$c43 = "text",
+        peg$c44 = { type: "literal", value: "text", description: "\"text\"" },
+        peg$c45 = "group",
+        peg$c46 = { type: "literal", value: "group", description: "\"group\"" },
+        peg$c47 = "mousedown",
+        peg$c48 = { type: "literal", value: "mousedown", description: "\"mousedown\"" },
+        peg$c49 = "mouseup",
+        peg$c50 = { type: "literal", value: "mouseup", description: "\"mouseup\"" },
+        peg$c51 = "click",
+        peg$c52 = { type: "literal", value: "click", description: "\"click\"" },
+        peg$c53 = "dblclick",
+        peg$c54 = { type: "literal", value: "dblclick", description: "\"dblclick\"" },
+        peg$c55 = "wheel",
+        peg$c56 = { type: "literal", value: "wheel", description: "\"wheel\"" },
+        peg$c57 = "keydown",
+        peg$c58 = { type: "literal", value: "keydown", description: "\"keydown\"" },
+        peg$c59 = "keypress",
+        peg$c60 = { type: "literal", value: "keypress", description: "\"keypress\"" },
+        peg$c61 = "keyup",
+        peg$c62 = { type: "literal", value: "keyup", description: "\"keyup\"" },
+        peg$c63 = "mousewheel",
+        peg$c64 = { type: "literal", value: "mousewheel", description: "\"mousewheel\"" },
+        peg$c65 = "mousemove",
+        peg$c66 = { type: "literal", value: "mousemove", description: "\"mousemove\"" },
+        peg$c67 = "mouseout",
+        peg$c68 = { type: "literal", value: "mouseout", description: "\"mouseout\"" },
+        peg$c69 = "mouseover",
+        peg$c70 = { type: "literal", value: "mouseover", description: "\"mouseover\"" },
+        peg$c71 = "mouseenter",
+        peg$c72 = { type: "literal", value: "mouseenter", description: "\"mouseenter\"" },
+        peg$c73 = "touchstart",
+        peg$c74 = { type: "literal", value: "touchstart", description: "\"touchstart\"" },
+        peg$c75 = "touchmove",
+        peg$c76 = { type: "literal", value: "touchmove", description: "\"touchmove\"" },
+        peg$c77 = "touchend",
+        peg$c78 = { type: "literal", value: "touchend", description: "\"touchend\"" },
+        peg$c79 = "dragenter",
+        peg$c80 = { type: "literal", value: "dragenter", description: "\"dragenter\"" },
+        peg$c81 = "dragover",
+        peg$c82 = { type: "literal", value: "dragover", description: "\"dragover\"" },
+        peg$c83 = "dragleave",
+        peg$c84 = { type: "literal", value: "dragleave", description: "\"dragleave\"" },
+        peg$c85 = function(e) { return e; },
+        peg$c86 = /^[a-zA-Z0-9_\-]/,
+        peg$c87 = { type: "class", value: "[a-zA-Z0-9_-]", description: "[a-zA-Z0-9_-]" },
+        peg$c88 = function(n) { return n.join(""); },
+        peg$c89 = /^[a-zA-Z0-9\-_  #.>+~[\]=|\^$*]/,
+        peg$c90 = { type: "class", value: "[a-zA-Z0-9-_  #\\.\\>\\+~\\[\\]=|\\^\\$\\*]", description: "[a-zA-Z0-9-_  #\\.\\>\\+~\\[\\]=|\\^\\$\\*]" },
+        peg$c91 = function(c) { return c.join(""); },
+        peg$c92 = /^['"a-zA-Z0-9_().><=! \t-&|~]/,
+        peg$c93 = { type: "class", value: "['\"a-zA-Z0-9_\\(\\)\\.\\>\\<\\=\\! \\t-&|~]", description: "['\"a-zA-Z0-9_\\(\\)\\.\\>\\<\\=\\! \\t-&|~]" },
+        peg$c94 = function(v) { return v.join(""); },
+        peg$c95 = /^[ \t\r\n]/,
+        peg$c96 = { type: "class", value: "[ \\t\\r\\n]", description: "[ \\t\\r\\n]" },
+
+        peg$currPos          = 0,
+        peg$savedPos         = 0,
+        peg$posDetailsCache  = [{ line: 1, column: 1, seenCR: false }],
+        peg$maxFailPos       = 0,
+        peg$maxFailExpected  = [],
+        peg$silentFails      = 0,
+
+        peg$result;
+
+    if ("startRule" in options) {
+      if (!(options.startRule in peg$startRuleFunctions)) {
+        throw new Error("Can't start parsing from rule \"" + options.startRule + "\".");
+      }
+
+      peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
+    }
+
+    function text() {
+      return input.substring(peg$savedPos, peg$currPos);
+    }
+
+    function location() {
+      return peg$computeLocation(peg$savedPos, peg$currPos);
+    }
+
+    function expected(description) {
+      throw peg$buildException(
+        null,
+        [{ type: "other", description: description }],
+        input.substring(peg$savedPos, peg$currPos),
+        peg$computeLocation(peg$savedPos, peg$currPos)
+      );
+    }
+
+    function error(message) {
+      throw peg$buildException(
+        message,
+        null,
+        input.substring(peg$savedPos, peg$currPos),
+        peg$computeLocation(peg$savedPos, peg$currPos)
+      );
+    }
+
+    function peg$computePosDetails(pos) {
+      var details = peg$posDetailsCache[pos],
+          p, ch;
+
+      if (details) {
+        return details;
+      } else {
+        p = pos - 1;
+        while (!peg$posDetailsCache[p]) {
+          p--;
+        }
+
+        details = peg$posDetailsCache[p];
+        details = {
+          line:   details.line,
+          column: details.column,
+          seenCR: details.seenCR
+        };
+
+        while (p < pos) {
+          ch = input.charAt(p);
+          if (ch === "\n") {
+            if (!details.seenCR) { details.line++; }
+            details.column = 1;
+            details.seenCR = false;
+          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
+            details.line++;
+            details.column = 1;
+            details.seenCR = true;
+          } else {
+            details.column++;
+            details.seenCR = false;
+          }
+
+          p++;
+        }
+
+        peg$posDetailsCache[pos] = details;
+        return details;
+      }
+    }
+
+    function peg$computeLocation(startPos, endPos) {
+      var startPosDetails = peg$computePosDetails(startPos),
+          endPosDetails   = peg$computePosDetails(endPos);
+
+      return {
+        start: {
+          offset: startPos,
+          line:   startPosDetails.line,
+          column: startPosDetails.column
+        },
+        end: {
+          offset: endPos,
+          line:   endPosDetails.line,
+          column: endPosDetails.column
+        }
+      };
+    }
+
+    function peg$fail(expected) {
+      if (peg$currPos < peg$maxFailPos) { return; }
+
+      if (peg$currPos > peg$maxFailPos) {
+        peg$maxFailPos = peg$currPos;
+        peg$maxFailExpected = [];
+      }
+
+      peg$maxFailExpected.push(expected);
+    }
+
+    function peg$buildException(message, expected, found, location) {
+      function cleanupExpected(expected) {
+        var i = 1;
+
+        expected.sort(function(a, b) {
+          if (a.description < b.description) {
+            return -1;
+          } else if (a.description > b.description) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+
+        while (i < expected.length) {
+          if (expected[i - 1] === expected[i]) {
+            expected.splice(i, 1);
+          } else {
+            i++;
+          }
+        }
+      }
+
+      function buildMessage(expected, found) {
+        function stringEscape(s) {
+          function hex(ch) { return ch.charCodeAt(0).toString(16).toUpperCase(); }
+
+          return s
+            .replace(/\\/g,   '\\\\')
+            .replace(/"/g,    '\\"')
+            .replace(/\x08/g, '\\b')
+            .replace(/\t/g,   '\\t')
+            .replace(/\n/g,   '\\n')
+            .replace(/\f/g,   '\\f')
+            .replace(/\r/g,   '\\r')
+            .replace(/[\x00-\x07\x0B\x0E\x0F]/g, function(ch) { return '\\x0' + hex(ch); })
+            .replace(/[\x10-\x1F\x80-\xFF]/g,    function(ch) { return '\\x'  + hex(ch); })
+            .replace(/[\u0100-\u0FFF]/g,         function(ch) { return '\\u0' + hex(ch); })
+            .replace(/[\u1000-\uFFFF]/g,         function(ch) { return '\\u'  + hex(ch); });
+        }
+
+        var expectedDescs = new Array(expected.length),
+            expectedDesc, foundDesc, i;
+
+        for (i = 0; i < expected.length; i++) {
+          expectedDescs[i] = expected[i].description;
+        }
+
+        expectedDesc = expected.length > 1
+          ? expectedDescs.slice(0, -1).join(", ")
+              + " or "
+              + expectedDescs[expected.length - 1]
+          : expectedDescs[0];
+
+        foundDesc = found ? "\"" + stringEscape(found) + "\"" : "end of input";
+
+        return "Expected " + expectedDesc + " but " + foundDesc + " found.";
+      }
+
+      if (expected !== null) {
+        cleanupExpected(expected);
+      }
+
+      return new peg$SyntaxError(
+        message !== null ? message : buildMessage(expected, found),
+        expected,
+        found,
+        location
+      );
+    }
+
+    function peg$parsestart() {
+      var s0;
+
+      s0 = peg$parsemerged();
+
+      return s0;
+    }
+
+    function peg$parsemerged() {
+      var s0, s1, s2, s3, s4, s5;
+
+      s0 = peg$currPos;
+      s1 = peg$parseordered();
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsesep();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 44) {
+            s3 = peg$c0;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c1); }
+          }
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parsesep();
+            if (s4 !== peg$FAILED) {
+              s5 = peg$parsemerged();
+              if (s5 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c2(s1, s5);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$parseordered();
+        if (s1 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c3(s1);
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseordered() {
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 91) {
+        s1 = peg$c4;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c5); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsesep();
+        if (s2 !== peg$FAILED) {
+          s3 = peg$parsefiltered();
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parsesep();
+            if (s4 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 44) {
+                s5 = peg$c0;
+                peg$currPos++;
+              } else {
+                s5 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c1); }
+              }
+              if (s5 !== peg$FAILED) {
+                s6 = peg$parsesep();
+                if (s6 !== peg$FAILED) {
+                  s7 = peg$parsefiltered();
+                  if (s7 !== peg$FAILED) {
+                    s8 = peg$parsesep();
+                    if (s8 !== peg$FAILED) {
+                      if (input.charCodeAt(peg$currPos) === 93) {
+                        s9 = peg$c6;
+                        peg$currPos++;
+                      } else {
+                        s9 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c7); }
+                      }
+                      if (s9 !== peg$FAILED) {
+                        s10 = peg$parsesep();
+                        if (s10 !== peg$FAILED) {
+                          if (input.charCodeAt(peg$currPos) === 62) {
+                            s11 = peg$c8;
+                            peg$currPos++;
+                          } else {
+                            s11 = peg$FAILED;
+                            if (peg$silentFails === 0) { peg$fail(peg$c9); }
+                          }
+                          if (s11 !== peg$FAILED) {
+                            s12 = peg$parsesep();
+                            if (s12 !== peg$FAILED) {
+                              s13 = peg$parseordered();
+                              if (s13 !== peg$FAILED) {
+                                peg$savedPos = s0;
+                                s1 = peg$c10(s3, s7, s13);
+                                s0 = s1;
+                              } else {
+                                peg$currPos = s0;
+                                s0 = peg$FAILED;
+                              }
+                            } else {
+                              peg$currPos = s0;
+                              s0 = peg$FAILED;
+                            }
+                          } else {
+                            peg$currPos = s0;
+                            s0 = peg$FAILED;
+                          }
+                        } else {
+                          peg$currPos = s0;
+                          s0 = peg$FAILED;
+                        }
+                      } else {
+                        peg$currPos = s0;
+                        s0 = peg$FAILED;
+                      }
+                    } else {
+                      peg$currPos = s0;
+                      s0 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s0;
+                    s0 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s0;
+                  s0 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$parsefiltered();
+      }
+
+      return s0;
+    }
+
+    function peg$parsefiltered() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      s1 = peg$parsestream();
+      if (s1 !== peg$FAILED) {
+        s2 = [];
+        s3 = peg$parsefilter();
+        if (s3 !== peg$FAILED) {
+          while (s3 !== peg$FAILED) {
+            s2.push(s3);
+            s3 = peg$parsefilter();
+          }
+        } else {
+          s2 = peg$FAILED;
+        }
+        if (s2 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c11(s1, s2);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$parsestream();
+        if (s1 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c12(s1);
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parsestream() {
+      var s0, s1, s2, s3, s4;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 40) {
+        s1 = peg$c13;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c14); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsemerged();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 41) {
+            s3 = peg$c15;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c16); }
+          }
+          if (s3 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$c17(s2);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        if (input.charCodeAt(peg$currPos) === 64) {
+          s1 = peg$c18;
+          peg$currPos++;
+        } else {
+          s1 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c19); }
+        }
+        if (s1 !== peg$FAILED) {
+          s2 = peg$parsename();
+          if (s2 !== peg$FAILED) {
+            if (input.charCodeAt(peg$currPos) === 58) {
+              s3 = peg$c20;
+              peg$currPos++;
+            } else {
+              s3 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c21); }
+            }
+            if (s3 !== peg$FAILED) {
+              s4 = peg$parseeventType();
+              if (s4 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c22(s2, s4);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+        if (s0 === peg$FAILED) {
+          s0 = peg$currPos;
+          s1 = peg$parsemarkType();
+          if (s1 !== peg$FAILED) {
+            if (input.charCodeAt(peg$currPos) === 58) {
+              s2 = peg$c20;
+              peg$currPos++;
+            } else {
+              s2 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c21); }
+            }
+            if (s2 !== peg$FAILED) {
+              s3 = peg$parseeventType();
+              if (s3 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c23(s1, s3);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          if (s0 === peg$FAILED) {
+            s0 = peg$currPos;
+            s1 = peg$parsecss();
+            if (s1 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 58) {
+                s2 = peg$c20;
+                peg$currPos++;
+              } else {
+                s2 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c21); }
+              }
+              if (s2 !== peg$FAILED) {
+                s3 = peg$parseeventType();
+                if (s3 !== peg$FAILED) {
+                  peg$savedPos = s0;
+                  s1 = peg$c24(s1, s3);
+                  s0 = s1;
+                } else {
+                  peg$currPos = s0;
+                  s0 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+            if (s0 === peg$FAILED) {
+              s0 = peg$currPos;
+              s1 = peg$parseeventType();
+              if (s1 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c25(s1);
+              }
+              s0 = s1;
+              if (s0 === peg$FAILED) {
+                s0 = peg$currPos;
+                s1 = peg$parsename();
+                if (s1 !== peg$FAILED) {
+                  peg$savedPos = s0;
+                  s1 = peg$c26(s1);
+                }
+                s0 = s1;
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parsemarkType() {
+      var s0;
+
+      if (input.substr(peg$currPos, 4) === peg$c27) {
+        s0 = peg$c27;
+        peg$currPos += 4;
+      } else {
+        s0 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c28); }
+      }
+      if (s0 === peg$FAILED) {
+        if (input.substr(peg$currPos, 6) === peg$c29) {
+          s0 = peg$c29;
+          peg$currPos += 6;
+        } else {
+          s0 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c30); }
+        }
+        if (s0 === peg$FAILED) {
+          if (input.substr(peg$currPos, 4) === peg$c31) {
+            s0 = peg$c31;
+            peg$currPos += 4;
+          } else {
+            s0 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c32); }
+          }
+          if (s0 === peg$FAILED) {
+            if (input.substr(peg$currPos, 3) === peg$c33) {
+              s0 = peg$c33;
+              peg$currPos += 3;
+            } else {
+              s0 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c34); }
+            }
+            if (s0 === peg$FAILED) {
+              if (input.substr(peg$currPos, 4) === peg$c35) {
+                s0 = peg$c35;
+                peg$currPos += 4;
+              } else {
+                s0 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c36); }
+              }
+              if (s0 === peg$FAILED) {
+                if (input.substr(peg$currPos, 4) === peg$c37) {
+                  s0 = peg$c37;
+                  peg$currPos += 4;
+                } else {
+                  s0 = peg$FAILED;
+                  if (peg$silentFails === 0) { peg$fail(peg$c38); }
+                }
+                if (s0 === peg$FAILED) {
+                  if (input.substr(peg$currPos, 4) === peg$c39) {
+                    s0 = peg$c39;
+                    peg$currPos += 4;
+                  } else {
+                    s0 = peg$FAILED;
+                    if (peg$silentFails === 0) { peg$fail(peg$c40); }
+                  }
+                  if (s0 === peg$FAILED) {
+                    if (input.substr(peg$currPos, 5) === peg$c41) {
+                      s0 = peg$c41;
+                      peg$currPos += 5;
+                    } else {
+                      s0 = peg$FAILED;
+                      if (peg$silentFails === 0) { peg$fail(peg$c42); }
+                    }
+                    if (s0 === peg$FAILED) {
+                      if (input.substr(peg$currPos, 4) === peg$c43) {
+                        s0 = peg$c43;
+                        peg$currPos += 4;
+                      } else {
+                        s0 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c44); }
+                      }
+                      if (s0 === peg$FAILED) {
+                        if (input.substr(peg$currPos, 5) === peg$c45) {
+                          s0 = peg$c45;
+                          peg$currPos += 5;
+                        } else {
+                          s0 = peg$FAILED;
+                          if (peg$silentFails === 0) { peg$fail(peg$c46); }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parseeventType() {
+      var s0;
+
+      if (input.substr(peg$currPos, 9) === peg$c47) {
+        s0 = peg$c47;
+        peg$currPos += 9;
+      } else {
+        s0 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c48); }
+      }
+      if (s0 === peg$FAILED) {
+        if (input.substr(peg$currPos, 7) === peg$c49) {
+          s0 = peg$c49;
+          peg$currPos += 7;
+        } else {
+          s0 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c50); }
+        }
+        if (s0 === peg$FAILED) {
+          if (input.substr(peg$currPos, 5) === peg$c51) {
+            s0 = peg$c51;
+            peg$currPos += 5;
+          } else {
+            s0 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c52); }
+          }
+          if (s0 === peg$FAILED) {
+            if (input.substr(peg$currPos, 8) === peg$c53) {
+              s0 = peg$c53;
+              peg$currPos += 8;
+            } else {
+              s0 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c54); }
+            }
+            if (s0 === peg$FAILED) {
+              if (input.substr(peg$currPos, 5) === peg$c55) {
+                s0 = peg$c55;
+                peg$currPos += 5;
+              } else {
+                s0 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c56); }
+              }
+              if (s0 === peg$FAILED) {
+                if (input.substr(peg$currPos, 7) === peg$c57) {
+                  s0 = peg$c57;
+                  peg$currPos += 7;
+                } else {
+                  s0 = peg$FAILED;
+                  if (peg$silentFails === 0) { peg$fail(peg$c58); }
+                }
+                if (s0 === peg$FAILED) {
+                  if (input.substr(peg$currPos, 8) === peg$c59) {
+                    s0 = peg$c59;
+                    peg$currPos += 8;
+                  } else {
+                    s0 = peg$FAILED;
+                    if (peg$silentFails === 0) { peg$fail(peg$c60); }
+                  }
+                  if (s0 === peg$FAILED) {
+                    if (input.substr(peg$currPos, 5) === peg$c61) {
+                      s0 = peg$c61;
+                      peg$currPos += 5;
+                    } else {
+                      s0 = peg$FAILED;
+                      if (peg$silentFails === 0) { peg$fail(peg$c62); }
+                    }
+                    if (s0 === peg$FAILED) {
+                      if (input.substr(peg$currPos, 10) === peg$c63) {
+                        s0 = peg$c63;
+                        peg$currPos += 10;
+                      } else {
+                        s0 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c64); }
+                      }
+                      if (s0 === peg$FAILED) {
+                        if (input.substr(peg$currPos, 9) === peg$c65) {
+                          s0 = peg$c65;
+                          peg$currPos += 9;
+                        } else {
+                          s0 = peg$FAILED;
+                          if (peg$silentFails === 0) { peg$fail(peg$c66); }
+                        }
+                        if (s0 === peg$FAILED) {
+                          if (input.substr(peg$currPos, 8) === peg$c67) {
+                            s0 = peg$c67;
+                            peg$currPos += 8;
+                          } else {
+                            s0 = peg$FAILED;
+                            if (peg$silentFails === 0) { peg$fail(peg$c68); }
+                          }
+                          if (s0 === peg$FAILED) {
+                            if (input.substr(peg$currPos, 9) === peg$c69) {
+                              s0 = peg$c69;
+                              peg$currPos += 9;
+                            } else {
+                              s0 = peg$FAILED;
+                              if (peg$silentFails === 0) { peg$fail(peg$c70); }
+                            }
+                            if (s0 === peg$FAILED) {
+                              if (input.substr(peg$currPos, 10) === peg$c71) {
+                                s0 = peg$c71;
+                                peg$currPos += 10;
+                              } else {
+                                s0 = peg$FAILED;
+                                if (peg$silentFails === 0) { peg$fail(peg$c72); }
+                              }
+                              if (s0 === peg$FAILED) {
+                                if (input.substr(peg$currPos, 10) === peg$c73) {
+                                  s0 = peg$c73;
+                                  peg$currPos += 10;
+                                } else {
+                                  s0 = peg$FAILED;
+                                  if (peg$silentFails === 0) { peg$fail(peg$c74); }
+                                }
+                                if (s0 === peg$FAILED) {
+                                  if (input.substr(peg$currPos, 9) === peg$c75) {
+                                    s0 = peg$c75;
+                                    peg$currPos += 9;
+                                  } else {
+                                    s0 = peg$FAILED;
+                                    if (peg$silentFails === 0) { peg$fail(peg$c76); }
+                                  }
+                                  if (s0 === peg$FAILED) {
+                                    if (input.substr(peg$currPos, 8) === peg$c77) {
+                                      s0 = peg$c77;
+                                      peg$currPos += 8;
+                                    } else {
+                                      s0 = peg$FAILED;
+                                      if (peg$silentFails === 0) { peg$fail(peg$c78); }
+                                    }
+                                    if (s0 === peg$FAILED) {
+                                      if (input.substr(peg$currPos, 9) === peg$c79) {
+                                        s0 = peg$c79;
+                                        peg$currPos += 9;
+                                      } else {
+                                        s0 = peg$FAILED;
+                                        if (peg$silentFails === 0) { peg$fail(peg$c80); }
+                                      }
+                                      if (s0 === peg$FAILED) {
+                                        if (input.substr(peg$currPos, 8) === peg$c81) {
+                                          s0 = peg$c81;
+                                          peg$currPos += 8;
+                                        } else {
+                                          s0 = peg$FAILED;
+                                          if (peg$silentFails === 0) { peg$fail(peg$c82); }
+                                        }
+                                        if (s0 === peg$FAILED) {
+                                          if (input.substr(peg$currPos, 9) === peg$c83) {
+                                            s0 = peg$c83;
+                                            peg$currPos += 9;
+                                          } else {
+                                            s0 = peg$FAILED;
+                                            if (peg$silentFails === 0) { peg$fail(peg$c84); }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parsefilter() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 91) {
+        s1 = peg$c4;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c5); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parseexpr();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 93) {
+            s3 = peg$c6;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c7); }
+          }
+          if (s3 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$c85(s2);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+
+      return s0;
+    }
+
+    function peg$parsename() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c86.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c87); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c86.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c87); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c88(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parsecss() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c89.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c90); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c89.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c90); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c91(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parseexpr() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c92.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c93); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c92.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c93); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c94(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parsesep() {
+      var s0, s1;
+
+      s0 = [];
+      if (peg$c95.test(input.charAt(peg$currPos))) {
+        s1 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c96); }
+      }
+      while (s1 !== peg$FAILED) {
+        s0.push(s1);
+        if (peg$c95.test(input.charAt(peg$currPos))) {
+          s1 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s1 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c96); }
+        }
+      }
+
+      return s0;
+    }
+
+    peg$result = peg$startRuleFunction();
+
+    if (peg$result !== peg$FAILED && peg$currPos === input.length) {
+      return peg$result;
+    } else {
+      if (peg$result !== peg$FAILED && peg$currPos < input.length) {
+        peg$fail({ type: "end", description: "end of input" });
+      }
+
+      throw peg$buildException(
+        null,
+        peg$maxFailExpected,
+        peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null,
+        peg$maxFailPos < input.length
+          ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
+          : peg$computeLocation(peg$maxFailPos, peg$maxFailPos)
+      );
+    }
+  }
+
+  return {
+    SyntaxError: peg$SyntaxError,
+    parse:       peg$parse
+  };
+})();
+
+},{}],43:[function(require,module,exports){
 function toMap(list) {
   var map = {}, i, n;
   for (i=0, n=list.length; i<n; ++i) map[list[i]] = 1;
@@ -6229,28 +8054,35 @@ module.exports = function(opt) {
   opt = opt || {};
   var constants = opt.constants || require('./constants'),
       functions = (opt.functions || require('./functions'))(codegen),
+      functionDefs = opt.functionDefs ? opt.functionDefs(codegen) : {},
       idWhiteList = opt.idWhiteList ? toMap(opt.idWhiteList) : null,
       idBlackList = opt.idBlackList ? toMap(opt.idBlackList) : null,
       memberDepth = 0,
       FIELD_VAR = opt.fieldVar || 'datum',
       GLOBAL_VAR = opt.globalVar || 'signals',
       globals = {},
-      fields = {};
+      fields = {},
+      dataSources = {};
 
-  function codegen_wrap(ast) {    
+  function codegen_wrap(ast) {
     var retval = {
       code: codegen(ast),
       globals: keys(globals),
-      fields: keys(fields)
+      fields: keys(fields),
+      dataSources: keys(dataSources),
+      defs: functionDefs
     };
     globals = {};
     fields = {};
+    dataSources = {};
     return retval;
   }
 
-  function lookupGlobal(id) {
-    return GLOBAL_VAR + '["' + id + '"]';
-  }
+  /* istanbul ignore next */
+  var lookupGlobal = typeof GLOBAL_VAR === 'function' ? GLOBAL_VAR :
+    function (id) {
+      return GLOBAL_VAR + '["' + id + '"]';
+    };
 
   function codegen(ast) {
     if (typeof ast === 'string') return ast;
@@ -6307,7 +8139,7 @@ module.exports = function(opt) {
         var fn = functions.hasOwnProperty(callee) && functions[callee];
         if (!fn) throw new Error('Unrecognized function: ' + callee);
         return fn instanceof Function ?
-          fn(args) :
+          fn(args, globals, fields, dataSources) :
           fn + '(' + args.map(codegen).join(',') + ')';
       },
     'ArrayExpression': function(n) {
@@ -6343,11 +8175,12 @@ module.exports = function(opt) {
   };
 
   codegen_wrap.functions = functions;
+  codegen_wrap.functionDefs = functionDefs;
   codegen_wrap.constants = constants;
   return codegen_wrap;
 };
 
-},{"./constants":43,"./functions":44}],43:[function(require,module,exports){
+},{"./constants":44,"./functions":45}],44:[function(require,module,exports){
 module.exports = {
   'NaN':     'NaN',
   'E':       'Math.E',
@@ -6359,7 +8192,7 @@ module.exports = {
   'SQRT1_2': 'Math.SQRT1_2',
   'SQRT2':   'Math.SQRT2'
 };
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 module.exports = function(codegen) {
 
   function fncall(name, args, cast, type) {
@@ -6410,13 +8243,14 @@ module.exports = function(codegen) {
       if (args.length < 3)
         throw new Error('Missing arguments to clamp function.');
       if (args.length > 3)
-      throw new Error('Too many arguments to clamp function.');
+        throw new Error('Too many arguments to clamp function.');
       var a = args.map(codegen);
       return 'Math.max('+a[1]+', Math.min('+a[2]+','+a[0]+'))';
     },
 
     // DATE functions
     'now':             'Date.now',
+    'utc':             'Date.UTC',
     'datetime':        DATE,
     'date':            fn('getDate', DATE, 0),
     'day':             fn('getDay', DATE, 0),
@@ -6449,6 +8283,7 @@ module.exports = function(codegen) {
     'lower':       fn('toLowerCase', STRING, 0),
     'slice':       fn('slice', STRING),
     'substring':   fn('substring', STRING),
+    'replace':     fn('replace', STRING),
 
     // REGEXP functions
     'regexp':  REGEXP,
@@ -6459,16 +8294,17 @@ module.exports = function(codegen) {
         if (args.length < 3)
           throw new Error('Missing arguments to if function.');
         if (args.length > 3)
-        throw new Error('Too many arguments to if function.');
+          throw new Error('Too many arguments to if function.');
         var a = args.map(codegen);
         return a[0]+'?'+a[1]+':'+a[2];
       }
   };
 };
-},{}],45:[function(require,module,exports){
+
+},{}],46:[function(require,module,exports){
 var parser = require('./parser'),
     codegen = require('./codegen');
-    
+
 var expr = module.exports = {
   parse: function(input, opt) {
       return parser.parse('('+input+')', opt);
@@ -6483,7 +8319,12 @@ var expr = module.exports = {
           compile = function(str) {
             var value = generator(expr.parse(str));
             args[len] = '"use strict"; return (' + value.code + ');';
-            value.fn = Function.apply(null, args);
+            var fn = Function.apply(null, args);
+            value.fn = (args.length > 8) ?
+              function() { return fn.apply(value, arguments); } :
+              function(a, b, c, d, e, f, g) {
+                return fn.call(value, a, b, c, d, e, f, g);
+              }; // call often faster than apply, use if args low enough
             return value;
           };
       compile.codegen = generator;
@@ -6492,8 +8333,7 @@ var expr = module.exports = {
   functions: require('./functions'),
   constants: require('./constants')
 };
-
-},{"./codegen":42,"./constants":43,"./functions":44,"./parser":46}],46:[function(require,module,exports){
+},{"./codegen":43,"./constants":44,"./functions":45,"./parser":47}],47:[function(require,module,exports){
 /*
   The following expression parser is based on Esprima (http://esprima.org/).
   Original header comment and license for Esprima is included here:
@@ -8821,17 +10661,15 @@ module.exports = (function() {
   };
 
 })();
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 var ts = Date.now();
 
 function write(msg) {
-  msg = '[Vega Log] ' + msg;
-  console.log(msg);
+  console.log('[Vega Log]', msg);
 }
 
 function error(msg) {
-  msg = '[Vega Err] ' + msg;
-  console.error(msg);
+  console.error('[Vega Err]', msg);
 }
 
 function debug(input, args) {
@@ -8859,7 +10697,7 @@ module.exports = {
   debug: (debug.enable = false, debug)
 };
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 module.exports = {
   path:       require('./path'),
   render:     require('./render'),
@@ -8871,7 +10709,7 @@ module.exports = {
   toJSON:     require('./util/scene').toJSON,
   fromJSON:   require('./util/scene').fromJSON
 };
-},{"./path":50,"./render":70,"./util/Bounds":76,"./util/Gradient":78,"./util/Item":80,"./util/bound":81,"./util/canvas":82,"./util/scene":84}],49:[function(require,module,exports){
+},{"./path":51,"./render":71,"./util/Bounds":77,"./util/Gradient":79,"./util/Item":81,"./util/bound":82,"./util/canvas":83,"./util/scene":85}],50:[function(require,module,exports){
 var segmentCache = {},
     bezierCache = {},
     join = [].join;
@@ -8986,13 +10824,13 @@ module.exports = {
   }
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 module.exports = {
   parse:  require('./parse'),
   render: require('./render')
 };
 
-},{"./parse":51,"./render":52}],51:[function(require,module,exports){
+},{"./parse":52,"./render":53}],52:[function(require,module,exports){
 // Path parsing and rendering code adapted from fabric.js -- Thanks!
 var cmdlen = { m:2, l:2, h:1, v:1, c:6, s:4, q:4, t:2, a:7 },
     regexp = [/([MLHVCSQTAZmlhvcsqtaz])/g, /###/, /(\d)([-+])/g, /\s|,|###/];
@@ -9043,7 +10881,7 @@ module.exports = function(pathstr) {
   return result;
 };
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var arc = require('./arc');
 
 module.exports = function(g, path, l, t) {
@@ -9339,7 +11177,7 @@ function drawArc(g, x, y, coords) {
   }
 }
 
-},{"./arc":49}],53:[function(require,module,exports){
+},{"./arc":50}],54:[function(require,module,exports){
 function Handler() {
   this._active = null;
   this._handlers = {};
@@ -9389,7 +11227,7 @@ prototype.eventName = function(name) {
 };
 
 module.exports = Handler;
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 function Renderer() {
   this._el = null;
   this._bgcolor = null;
@@ -9431,7 +11269,7 @@ prototype.render = function(/*scene, items*/) {
 };
 
 module.exports = Renderer;
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Handler = require('../Handler'),
     marks = require('./marks');
@@ -9480,6 +11318,9 @@ prototype.events = [
   'keydown',
   'keypress',
   'keyup',
+  'dragenter',
+  'dragleave',
+  'dragover',
   'mousedown',
   'mouseup',
   'mousemove',
@@ -9499,26 +11340,36 @@ prototype.DOMMouseScroll = function(evt) {
   this.fire('mousewheel', evt);
 };
 
-prototype.mousemove = function(evt) {
-  var a = this._active,
-      p = this.pickEvent(evt);
+function move(moveEvent, overEvent, outEvent) {
+  return function(evt) {
+    var a = this._active,
+        p = this.pickEvent(evt);
 
-  if (p === a) {
-    // active item and picked item are the same
-    this.fire('mousemove', evt); // fire move
-  } else {
-    // active item and picked item are different
-    this.fire('mouseout', evt);  // fire out for prior active item
-    this._active = p;            // set new active item
-    this.fire('mouseover', evt); // fire over for new active item
-    this.fire('mousemove', evt); // fire move for new active item
-  }
-};
+    if (p === a) {
+      // active item and picked item are the same
+      this.fire(moveEvent, evt); // fire move
+    } else {
+      // active item and picked item are different
+      this.fire(outEvent, evt);  // fire out for prior active item
+      this._active = p;            // set new active item
+      this.fire(overEvent, evt); // fire over for new active item
+      this.fire(moveEvent, evt); // fire move for new active item
+    }
+  };
+}
 
-prototype.mouseout = function(evt) {
-  this.fire('mouseout', evt);
-  this._active = null;
-};
+function inactive(type) {
+  return function(evt) {
+    this.fire(type, evt);
+    this._active = null;
+  };
+}
+
+prototype.mousemove = move('mousemove', 'mouseover', 'mouseout');
+prototype.dragover  = move('dragover', 'dragenter', 'dragleave');
+
+prototype.mouseout  = inactive('mouseout');
+prototype.dragleave = inactive('dragleave');
 
 prototype.mousedown = function(evt) {
   this._down = this._active;
@@ -9607,7 +11458,7 @@ prototype.pick = function(scene, x, y, gx, gy) {
 
 module.exports = CanvasHandler;
 
-},{"../../util/dom":83,"../Handler":53,"./marks":62}],56:[function(require,module,exports){
+},{"../../util/dom":84,"../Handler":54,"./marks":63}],57:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Bounds = require('../../util/Bounds'),
     ImageLoader = require('../../util/ImageLoader'),
@@ -9745,12 +11596,12 @@ prototype.renderAsync = function(scene) {
 
 module.exports = CanvasRenderer;
 
-},{"../../util/Bounds":76,"../../util/ImageLoader":79,"../../util/canvas":82,"../../util/dom":83,"../Renderer":54,"./marks":62}],57:[function(require,module,exports){
+},{"../../util/Bounds":77,"../../util/ImageLoader":80,"../../util/canvas":83,"../../util/dom":84,"../Renderer":55,"./marks":63}],58:[function(require,module,exports){
 module.exports = {
   Handler:  require('./CanvasHandler'),
   Renderer: require('./CanvasRenderer')
 };
-},{"./CanvasHandler":55,"./CanvasRenderer":56}],58:[function(require,module,exports){
+},{"./CanvasHandler":56,"./CanvasRenderer":57}],59:[function(require,module,exports){
 var util = require('./util');
 var halfpi = Math.PI / 2;
 
@@ -9772,7 +11623,7 @@ module.exports = {
   draw: util.drawAll(path),
   pick: util.pickPath(path)
 };
-},{"./util":69}],59:[function(require,module,exports){
+},{"./util":70}],60:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render'),
@@ -9807,7 +11658,7 @@ module.exports = {
   nested: true
 };
 
-},{"../../../path/parse":51,"../../../path/render":52,"../../../util/svg":85,"./util":69}],60:[function(require,module,exports){
+},{"../../../path/parse":52,"../../../path/render":53,"../../../util/svg":86,"./util":70}],61:[function(require,module,exports){
 var util = require('./util'),
     EMPTY = [];
 
@@ -9946,7 +11797,7 @@ module.exports = {
   pick: pick
 };
 
-},{"./util":69}],61:[function(require,module,exports){
+},{"./util":70}],62:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -9984,7 +11835,7 @@ module.exports = {
   draw: draw,
   pick: util.pick()
 };
-},{"./util":69}],62:[function(require,module,exports){
+},{"./util":70}],63:[function(require,module,exports){
 module.exports = {
   arc:    require('./arc'),
   area:   require('./area'),
@@ -9998,7 +11849,7 @@ module.exports = {
   text:   require('./text')
 };
 
-},{"./arc":58,"./area":59,"./group":60,"./image":61,"./line":63,"./path":64,"./rect":65,"./rule":66,"./symbol":67,"./text":68}],63:[function(require,module,exports){
+},{"./arc":59,"./area":60,"./group":61,"./image":62,"./line":64,"./path":65,"./rect":66,"./rule":67,"./symbol":68,"./text":69}],64:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render'),
@@ -10033,7 +11884,7 @@ module.exports = {
   nested: true
 };
 
-},{"../../../path/parse":51,"../../../path/render":52,"../../../util/svg":85,"./util":69}],64:[function(require,module,exports){
+},{"../../../path/parse":52,"../../../path/render":53,"../../../util/svg":86,"./util":70}],65:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render');
@@ -10049,7 +11900,7 @@ module.exports = {
   pick: util.pickPath(path)
 };
 
-},{"../../../path/parse":51,"../../../path/render":52,"./util":69}],65:[function(require,module,exports){
+},{"../../../path/parse":52,"../../../path/render":53,"./util":70}],66:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -10084,7 +11935,7 @@ module.exports = {
   draw: draw,
   pick: util.pick()
 };
-},{"./util":69}],66:[function(require,module,exports){
+},{"./util":70}],67:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -10141,7 +11992,7 @@ module.exports = {
   pick: util.pick(hit)
 };
 
-},{"./util":69}],67:[function(require,module,exports){
+},{"./util":70}],68:[function(require,module,exports){
 var util = require('./util');
 
 var sqrt3 = Math.sqrt(3),
@@ -10215,7 +12066,7 @@ module.exports = {
   draw: util.drawAll(path),
   pick: util.pickPath(path)
 };
-},{"./util":69}],68:[function(require,module,exports){
+},{"./util":70}],69:[function(require,module,exports){
 var Bounds = require('../../../util/Bounds'),
     textBounds = require('../../../util/bound').text,
     text = require('../../../util/text'),
@@ -10290,7 +12141,7 @@ module.exports = {
   pick: util.pick(hit)
 };
 
-},{"../../../util/Bounds":76,"../../../util/bound":81,"../../../util/text":86,"./util":69}],69:[function(require,module,exports){
+},{"../../../util/Bounds":77,"../../../util/bound":82,"../../../util/text":87,"./util":70}],70:[function(require,module,exports){
 function drawPathOne(path, g, o, items) {
   if (path(g, items)) return;
 
@@ -10439,13 +12290,13 @@ module.exports = {
   gradient: gradient
 };
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 module.exports = {
   'canvas': require('./canvas'),
   'svg':    require('./svg')
 };
 
-},{"./canvas":57,"./svg":74}],71:[function(require,module,exports){
+},{"./canvas":58,"./svg":75}],72:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Handler = require('../Handler');
 
@@ -10511,7 +12362,7 @@ prototype.off = function(type, handler) {
 
 module.exports = SVGHandler;
 
-},{"../../util/dom":83,"../Handler":53}],72:[function(require,module,exports){
+},{"../../util/dom":84,"../Handler":54}],73:[function(require,module,exports){
 var ImageLoader = require('../../util/ImageLoader'),
     Renderer = require('../Renderer'),
     text = require('../../util/text'),
@@ -10936,7 +12787,7 @@ function href() {
 
 module.exports = SVGRenderer;
 
-},{"../../util/ImageLoader":79,"../../util/dom":83,"../../util/svg":85,"../../util/text":86,"../Renderer":54,"./marks":75}],73:[function(require,module,exports){
+},{"../../util/ImageLoader":80,"../../util/dom":84,"../../util/svg":86,"../../util/text":87,"../Renderer":55,"./marks":76}],74:[function(require,module,exports){
 var Renderer = require('../Renderer'),
     ImageLoader = require('../../util/ImageLoader'),
     SVG = require('../../util/svg'),
@@ -11180,7 +13031,7 @@ function escape_text(s) {
 
 module.exports = SVGStringRenderer;
 
-},{"../../util/ImageLoader":79,"../../util/dom":83,"../../util/svg":85,"../../util/text":86,"../Renderer":54,"./marks":75}],74:[function(require,module,exports){
+},{"../../util/ImageLoader":80,"../../util/dom":84,"../../util/svg":86,"../../util/text":87,"../Renderer":55,"./marks":76}],75:[function(require,module,exports){
 module.exports = {
   Handler:  require('./SVGHandler'),
   Renderer: require('./SVGRenderer'),
@@ -11188,7 +13039,7 @@ module.exports = {
     Renderer : require('./SVGStringRenderer')
   }
 };
-},{"./SVGHandler":71,"./SVGRenderer":72,"./SVGStringRenderer":73}],75:[function(require,module,exports){
+},{"./SVGHandler":72,"./SVGRenderer":73,"./SVGStringRenderer":74}],76:[function(require,module,exports){
 var text = require('../../util/text'),
     SVG = require('../../util/svg'),
     textAlign = SVG.textAlign,
@@ -11335,7 +13186,7 @@ module.exports = {
   }
 };
 
-},{"../../util/svg":85,"../../util/text":86}],76:[function(require,module,exports){
+},{"../../util/svg":86,"../../util/text":87}],77:[function(require,module,exports){
 function Bounds(b) {
   this.clear();
   if (b) this.union(b);
@@ -11427,6 +13278,15 @@ prototype.encloses = function(b) {
   );
 };
 
+prototype.alignsWith = function(b) {
+  return b && (
+    this.x1 == b.x1 ||
+    this.x2 == b.x2 ||
+    this.y1 == b.y1 ||
+    this.y2 == b.y2
+  );
+};
+
 prototype.intersects = function(b) {
   return b && !(
     this.x2 < b.x1 ||
@@ -11455,7 +13315,7 @@ prototype.height = function() {
 
 module.exports = Bounds;
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 module.exports = function(b) {
   function noop() { }
   function add(x,y) { b.add(x, y); }
@@ -11481,7 +13341,7 @@ module.exports = function(b) {
   };
 };
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 var gradient_id = 0;
 
 function Gradient(type) {
@@ -11505,7 +13365,7 @@ prototype.stop = function(offset, color) {
 };
 
 module.exports = Gradient;
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function (global){
 var load = require('datalib/src/import/load');
 
@@ -11585,7 +13445,7 @@ module.exports = ImageLoader;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"datalib/src/import/load":22}],80:[function(require,module,exports){
+},{"datalib/src/import/load":22}],81:[function(require,module,exports){
 function Item(mark) {
   this.mark = mark;
 }
@@ -11634,7 +13494,7 @@ prototype.touch = function() {
 };
 
 module.exports = Item;
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 var BoundsContext = require('./BoundsContext'),
     Bounds = require('./Bounds'),
     canvas = require('./canvas'),
@@ -11931,7 +13791,7 @@ module.exports = {
   group: group
 };
 
-},{"../path":50,"./Bounds":76,"./BoundsContext":77,"./canvas":82,"./svg":85,"./text":86}],82:[function(require,module,exports){
+},{"../path":51,"./Bounds":77,"./BoundsContext":78,"./canvas":83,"./svg":86,"./text":87}],83:[function(require,module,exports){
 (function (global){
 function instance(w, h) {
   w = w || 1;
@@ -12025,7 +13885,7 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 // create a new DOM element
 function create(doc, tag, ns) {
   return ns ? doc.createElementNS(ns, tag) : doc.createElement(tag);
@@ -12103,7 +13963,7 @@ module.exports = {
   }
 };
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 var bound = require('../util/bound');
 
 var sets = [
@@ -12161,7 +14021,7 @@ module.exports = {
   toJSON:   toJSON,
   fromJSON: fromJSON
 };
-},{"../util/bound":81}],85:[function(require,module,exports){
+},{"../util/bound":82}],86:[function(require,module,exports){
 (function (global){
 var d3_svg = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null).svg;
 
@@ -12236,7 +14096,7 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 function size(item) {
   return item.fontSize != null ? item.fontSize : 11;
 }
@@ -12271,7 +14131,7 @@ module.exports = {
   }
 };
 
-},{}],87:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 var sg = require('vega-scenegraph').render,
     canvas = sg.canvas,
     svg = sg.svg.string,
@@ -12335,7 +14195,7 @@ prototype.initialize = function() {
 };
 
 module.exports = HeadlessView;
-},{"./View":89,"vega-scenegraph":48}],88:[function(require,module,exports){
+},{"./View":90,"vega-scenegraph":49}],89:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
     ChangeSet = df.ChangeSet,
@@ -12343,19 +14203,23 @@ var dl = require('datalib'),
     Node  = df.Node, // jshint ignore:line
     GroupBuilder = require('../scene/GroupBuilder'),
     visit = require('../scene/visit'),
+    compiler = require('../parse/expr'),
     config = require('./config');
 
 function Model(cfg) {
   this._defs = {};
   this._predicates = {};
-  this._scene = null;
+
+  this._scene  = null;  // Root scenegraph node.
+  this._groups = null;  // Index of group items.
 
   this._node = null;
-  this._builder = null; // Top-level scenegraph builder
+  this._builder = null; // Top-level scenegraph builder.
 
   this._reset = {axes: false, legends: false};
 
   this.config(cfg);
+  this.expr = compiler(this);
   Base.init.call(this);
 }
 
@@ -12374,7 +14238,7 @@ prototype.config = function(cfg) {
   for (var name in cfg) {
     var x = cfg[name], y = this._config[name];
     if (dl.isObject(x) && dl.isObject(y)) {
-      dl.extend(y, x);
+      this._config[name] = dl.extend({}, y, x);
     } else {
       this._config[name] = x;
     }
@@ -12448,6 +14312,7 @@ prototype.scene = function(renderer) {
     var gb = b._groupBuilder = new GroupBuilder(m, m._defs.marks, m._scene={}),
         p  = gb.pipeline();
 
+    m._groups = {};
     this.addListener(gb.connect());
     p[p.length-1].addListener(renderer);
     return input;
@@ -12455,6 +14320,12 @@ prototype.scene = function(renderer) {
 
   this.addListener(b);
   return this;
+};
+
+prototype.group = function(id, item) {
+  var groups = this._groups;
+  if (arguments.length === 1) return groups[id];
+  return (groups[id] = item, this);
 };
 
 prototype.reset = function() {
@@ -12487,7 +14358,7 @@ prototype.fire = function(cs) {
 };
 
 module.exports = Model;
-},{"../scene/GroupBuilder":112,"../scene/visit":117,"./config":90,"datalib":26,"vega-dataflow":41}],89:[function(require,module,exports){
+},{"../parse/expr":96,"../scene/GroupBuilder":112,"../scene/visit":117,"./config":91,"datalib":26,"vega-dataflow":41}],90:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -12505,12 +14376,14 @@ function View(el, width, height) {
   this._width   = this.__width = width || 500;
   this._height  = this.__height = height || 300;
   this._bgcolor = null;
+  this._cursor  = true; // Set cursor based on hover propset?
   this._autopad = 1;
   this._padding = {top:0, left:0, bottom:0, right:0};
   this._viewport = null;
   this._renderer = null;
   this._handler  = null;
   this._streamer = null; // Targeted update for streaming changes
+  this._skipSignals = false; // Batch set signals can skip reevaluation.
   this._changeset = null;
   this._repaint = true; // Full re-render on every re-init
   this._renderers = sg;
@@ -12535,9 +14408,10 @@ prototype.model = function(model) {
 // Sandboxed streaming data API
 function streaming(src) {
   var view = this,
-      ds = this._model.data(src),
-      name = ds.name(),
-      listener = ds.pipeline()[0],
+      ds = this._model.data(src);
+  if (!ds) return log.error('Data source "'+src+'" is not defined.');
+
+  var listener = ds.pipeline()[0],
       streamer = this._streamer,
       api = {};
 
@@ -12547,19 +14421,19 @@ function streaming(src) {
   api.insert = function(vals) {
     ds.insert(dl.duplicate(vals));  // Don't pollute the environment
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return api;
   };
 
   api.update = function() {
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return (ds.update.apply(ds, arguments), api);
   };
 
   api.remove = function() {
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return (ds.remove.apply(ds, arguments), api);
   };
 
@@ -12583,7 +14457,7 @@ prototype.data = function(data) {
 
 var VIEW_SIGNALS = dl.toMap(['width', 'height', 'padding']);
 
-prototype.signal = function(name, value, propagate) {
+prototype.signal = function(name, value, skip) {
   var m = this._model,
       key, values;
 
@@ -12596,10 +14470,10 @@ prototype.signal = function(name, value, propagate) {
   }
 
   // Setter. Can be done in batch or individually. In either case,
-  // the final argument determines if set values should propagate.
+  // the final argument determines if set signals should be skipped.
   if (dl.isObject(name)) {
     values = name;
-    propagate = value;
+    skip = value;
   } else {
     values = {};
     values[name] = value;
@@ -12608,16 +14482,19 @@ prototype.signal = function(name, value, propagate) {
     if (VIEW_SIGNALS[key]) {
       this[key](values[key]);
     } else {
-      setSignal.call(this, key, values[key], propagate);
+      setSignal.call(this, key, values[key]);
     }
   }
-  return this;
+  return (this._skipSignals = skip, this);
 };
 
-function setSignal(name, value, propagate) {
-  var cs = this._changeset;
-  this._streamer.addListener(this._model.signal(name).value(value));
-  if (propagate !== false) cs.signals[name] = 1;
+function setSignal(name, value) {
+  var cs = this._changeset,
+      sg = this._model.signal(name);
+  if (!sg) return log.error('Signal "'+name+'" is not defined.');
+
+  this._streamer.addListener(sg.value(value));
+  cs.signals[name] = 1;
   cs.reflow = true;
 }
 
@@ -12799,7 +14676,6 @@ function build() {
       input.trans.start(function(items) { v._renderer.render(s, items); });
     } else if (v._repaint) {
       v._renderer.render(s);
-      v._repaint = false;
     } else if (input.dirty.length) {
       v._renderer.render(s, input.dirty);
     }
@@ -12809,8 +14685,7 @@ function build() {
       s.items[0]._dirty = false;
     }
 
-    // For all updated datasources, clear their previous values.
-    for (var d in input.data) { v._model.data(d).synchronize(); }
+    v._repaint = v._skipSignals = false;
     return input;
   };
 
@@ -12850,7 +14725,7 @@ prototype.update = function(opt) {
   } else if (streamer.listeners().length && built) {
     // Include re-evaluation entire model when repaint flag is set
     if (this._repaint) streamer.addListener(model.node());
-    model.propagate(cs, streamer);
+    model.propagate(cs, streamer, null, this._skipSignals);
     streamer.disconnect();
   } else {
     model.fire(cs);
@@ -12880,6 +14755,7 @@ prototype.toImageURL = function(type) {
   // render the scenegraph
   var ren = new Renderer(v._model.config.load)
     .initialize(null, v._width, v._height, v._padding)
+    .background(v._bgcolor)
     .render(v._model.scene());
 
   sg.canvas.Renderer.RETINA = retina; // restore retina settings
@@ -12904,8 +14780,9 @@ prototype.on = function() {
 };
 
 prototype.onSignal = function(name, handler) {
-  this._model.signal(name).on(handler);
-  return this;
+  var sg = this._model.signal(name);
+  return (sg ?
+    sg.on(handler) : log.error('Signal "'+name+'" is not defined.'), this);
 };
 
 prototype.off = function() {
@@ -12914,8 +14791,9 @@ prototype.off = function() {
 };
 
 prototype.offSignal = function(name, handler) {
-  this._model.signal(name).off(handler);
-  return this;
+  var sg = this._model.signal(name);
+  return (sg ?
+    sg.off(handler) : log.error('Signal "'+name+'" is not defined.'), this);
 };
 
 View.factory = function(model) {
@@ -12935,17 +14813,35 @@ View.factory = function(model) {
 
     if (opt.data) v.data(opt.data);
 
-    if (opt.hover !== false && opt.el) {
-      v.on('mouseover', function(evt, item) {
-        if (item && item.hasPropertySet('hover')) {
-          this.update({props:'hover', items:item});
-        }
-      })
-      .on('mouseout', function(evt, item) {
-        if (item && item.hasPropertySet('hover')) {
-          this.update({props:'update', items:item});
-        }
-      });
+    // Register handlers for the hover propset and cursors.
+    if (opt.el) {
+      if (opt.hover !== false) {
+        v.on('mouseover', function(evt, item) {
+          if (item && item.hasPropertySet('hover')) {
+            this.update({props:'hover', items:item});
+          }
+        })
+        .on('mouseout', function(evt, item) {
+          if (item && item.hasPropertySet('hover')) {
+            this.update({props:'update', items:item});
+          }
+        });
+      }
+
+      if (opt.cursor !== false) {
+        // If value is a string, it is a custom value set by the user.
+        // In this case, the user is responsible for maintaining the cursor state
+        // and control only reverts back to this handler if set back to 'default'.
+        v.onSignal('cursor', function(name, value) {
+          var body = d3.select('body');
+          if (dl.isString(value)) {
+            v._cursor = value === 'default';
+            body.style('cursor', value);
+          } else if (dl.isObject(value) && v._cursor) {
+            body.style('cursor', value.default);
+          }
+        });
+      }
     }
 
     return v;
@@ -12955,7 +14851,7 @@ View.factory = function(model) {
 module.exports = View;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../parse/streams":107,"../scene/Encoder":111,"../scene/Transition":114,"./HeadlessView":87,"datalib":26,"vega-dataflow":41,"vega-logging":47,"vega-scenegraph":48}],90:[function(require,module,exports){
+},{"../parse/streams":107,"../scene/Encoder":111,"../scene/Transition":114,"./HeadlessView":88,"datalib":26,"vega-dataflow":41,"vega-logging":48,"vega-scenegraph":49}],91:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     config = {};
@@ -13074,7 +14970,7 @@ config.range = {
 module.exports = config;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 var dl = require('datalib'),
     parse = require('../parse'),
     Scale = require('../scene/Scale'),
@@ -13121,7 +15017,7 @@ module.exports = function(opt) {
 
   return schema;
 };
-},{"../parse":97,"../scene/Scale":113,"./config":90,"datalib":26}],92:[function(require,module,exports){
+},{"../parse":97,"../scene/Scale":113,"./config":91,"datalib":26}],93:[function(require,module,exports){
 var dl = require('datalib'),
     axs = require('../scene/axis');
 
@@ -13207,7 +15103,7 @@ function parseAxis(config, def, index, axis, group) {
 }
 
 module.exports = parseAxes;
-},{"../scene/axis":115,"datalib":26}],93:[function(require,module,exports){
+},{"../scene/axis":115,"datalib":26}],94:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null);
 
@@ -13221,7 +15117,7 @@ function parseBg(bg) {
 module.exports = parseBg;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     parseTransforms = require('./transforms'),
@@ -13231,14 +15127,24 @@ function parseData(model, spec, callback) {
   var config = model.config(),
       count = 0;
 
-  function loaded(d) {
+  function onError(error, d) {
+    log.error('PARSE DATA FAILED: ' + d.name + ' ' + error);
+    count = -1;
+    callback(error);
+  }
+
+  function onLoad(d) {
     return function(error, data) {
       if (error) {
-        log.error('LOADING FAILED: ' + d.url + ' ' + error);
-      } else {
-        model.data(d.name).values(dl.read(data, d.format));
+        onError(error, d);
+      } else if (count > 0) {
+        try {
+          model.data(d.name).values(dl.read(data, d.format));
+          if (--count === 0) callback();
+        } catch (err) {
+          onError(err, d);
+        }
       }
-      if (--count === 0) callback();
     };
   }
 
@@ -13246,9 +15152,13 @@ function parseData(model, spec, callback) {
   (spec || []).forEach(function(d) {
     if (d.url) {
       count += 1;
-      dl.load(dl.extend({url: d.url}, config.load), loaded(d));
+      dl.load(dl.extend({url: d.url}, config.load), onLoad(d));
     }
-    parseData.datasource(model, d);
+    try {
+      parseData.datasource(model, d);
+    } catch (err) {
+      onError(err, d);
+    }
   });
 
   if (count === 0) setTimeout(callback, 1);
@@ -13276,1140 +15186,137 @@ parseData.datasource = function(model, d) {
 };
 
 module.exports = parseData;
-},{"./modify":101,"./transforms":108,"datalib":26,"vega-logging":47}],95:[function(require,module,exports){
-module.exports = (function() {
-  /*
-   * Generated by PEG.js 0.8.0.
-   *
-   * http://pegjs.majda.cz/
-   */
-
-  function peg$subclass(child, parent) {
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor();
-  }
-
-  function SyntaxError(message, expected, found, offset, line, column) {
-    this.message  = message;
-    this.expected = expected;
-    this.found    = found;
-    this.offset   = offset;
-    this.line     = line;
-    this.column   = column;
-
-    this.name     = "SyntaxError";
-  }
-
-  peg$subclass(SyntaxError, Error);
-
-  function parse(input) {
-    var options = arguments.length > 1 ? arguments[1] : {},
-
-        peg$FAILED = {},
-
-        peg$startRuleFunctions = { start: peg$parsestart },
-        peg$startRuleFunction  = peg$parsestart,
-
-        peg$c0 = peg$FAILED,
-        peg$c1 = ",",
-        peg$c2 = { type: "literal", value: ",", description: "\",\"" },
-        peg$c3 = function(o, m) { return [o].concat(m); },
-        peg$c4 = function(o) { return [o]; },
-        peg$c5 = "[",
-        peg$c6 = { type: "literal", value: "[", description: "\"[\"" },
-        peg$c7 = "]",
-        peg$c8 = { type: "literal", value: "]", description: "\"]\"" },
-        peg$c9 = ">",
-        peg$c10 = { type: "literal", value: ">", description: "\">\"" },
-        peg$c11 = function(f1, f2, o) { return {start: f1, end: f2, middle: o}; },
-        peg$c12 = [],
-        peg$c13 = function(s, f) { return (s.filters = f, s); },
-        peg$c14 = function(s) { return s; },
-        peg$c15 = "(",
-        peg$c16 = { type: "literal", value: "(", description: "\"(\"" },
-        peg$c17 = ")",
-        peg$c18 = { type: "literal", value: ")", description: "\")\"" },
-        peg$c19 = function(m) { return {stream: m}; },
-        peg$c20 = "@",
-        peg$c21 = { type: "literal", value: "@", description: "\"@\"" },
-        peg$c22 = ":",
-        peg$c23 = { type: "literal", value: ":", description: "\":\"" },
-        peg$c24 = function(n, e) { return {event: e, name: n}; },
-        peg$c25 = function(m, e) { return {event: e, mark: m}; },
-        peg$c26 = function(t, e) { return {event: e, target: t}; },
-        peg$c27 = function(e) { return {event: e}; },
-        peg$c28 = function(s) { return {signal: s}; },
-        peg$c29 = "rect",
-        peg$c30 = { type: "literal", value: "rect", description: "\"rect\"" },
-        peg$c31 = "symbol",
-        peg$c32 = { type: "literal", value: "symbol", description: "\"symbol\"" },
-        peg$c33 = "path",
-        peg$c34 = { type: "literal", value: "path", description: "\"path\"" },
-        peg$c35 = "arc",
-        peg$c36 = { type: "literal", value: "arc", description: "\"arc\"" },
-        peg$c37 = "area",
-        peg$c38 = { type: "literal", value: "area", description: "\"area\"" },
-        peg$c39 = "line",
-        peg$c40 = { type: "literal", value: "line", description: "\"line\"" },
-        peg$c41 = "rule",
-        peg$c42 = { type: "literal", value: "rule", description: "\"rule\"" },
-        peg$c43 = "image",
-        peg$c44 = { type: "literal", value: "image", description: "\"image\"" },
-        peg$c45 = "text",
-        peg$c46 = { type: "literal", value: "text", description: "\"text\"" },
-        peg$c47 = "group",
-        peg$c48 = { type: "literal", value: "group", description: "\"group\"" },
-        peg$c49 = "mousedown",
-        peg$c50 = { type: "literal", value: "mousedown", description: "\"mousedown\"" },
-        peg$c51 = "mouseup",
-        peg$c52 = { type: "literal", value: "mouseup", description: "\"mouseup\"" },
-        peg$c53 = "click",
-        peg$c54 = { type: "literal", value: "click", description: "\"click\"" },
-        peg$c55 = "dblclick",
-        peg$c56 = { type: "literal", value: "dblclick", description: "\"dblclick\"" },
-        peg$c57 = "wheel",
-        peg$c58 = { type: "literal", value: "wheel", description: "\"wheel\"" },
-        peg$c59 = "keydown",
-        peg$c60 = { type: "literal", value: "keydown", description: "\"keydown\"" },
-        peg$c61 = "keypress",
-        peg$c62 = { type: "literal", value: "keypress", description: "\"keypress\"" },
-        peg$c63 = "keyup",
-        peg$c64 = { type: "literal", value: "keyup", description: "\"keyup\"" },
-        peg$c65 = "mousewheel",
-        peg$c66 = { type: "literal", value: "mousewheel", description: "\"mousewheel\"" },
-        peg$c67 = "mousemove",
-        peg$c68 = { type: "literal", value: "mousemove", description: "\"mousemove\"" },
-        peg$c69 = "mouseout",
-        peg$c70 = { type: "literal", value: "mouseout", description: "\"mouseout\"" },
-        peg$c71 = "mouseover",
-        peg$c72 = { type: "literal", value: "mouseover", description: "\"mouseover\"" },
-        peg$c73 = "mouseenter",
-        peg$c74 = { type: "literal", value: "mouseenter", description: "\"mouseenter\"" },
-        peg$c75 = "touchstart",
-        peg$c76 = { type: "literal", value: "touchstart", description: "\"touchstart\"" },
-        peg$c77 = "touchmove",
-        peg$c78 = { type: "literal", value: "touchmove", description: "\"touchmove\"" },
-        peg$c79 = "touchend",
-        peg$c80 = { type: "literal", value: "touchend", description: "\"touchend\"" },
-        peg$c81 = function(e) { return e; },
-        peg$c82 = /^[a-zA-Z0-9_\-]/,
-        peg$c83 = { type: "class", value: "[a-zA-Z0-9_\\-]", description: "[a-zA-Z0-9_\\-]" },
-        peg$c84 = function(n) { return n.join(""); },
-        peg$c85 = /^[a-zA-Z0-9\-_  #.>+~[\]=|\^$*]/,
-        peg$c86 = { type: "class", value: "[a-zA-Z0-9\\-_  #.>+~[\\]=|\\^$*]", description: "[a-zA-Z0-9\\-_  #.>+~[\\]=|\\^$*]" },
-        peg$c87 = function(c) { return c.join(""); },
-        peg$c88 = /^['"a-zA-Z0-9_().><=! \t-&|~]/,
-        peg$c89 = { type: "class", value: "['\"a-zA-Z0-9_().><=! \\t-&|~]", description: "['\"a-zA-Z0-9_().><=! \\t-&|~]" },
-        peg$c90 = function(v) { return v.join(""); },
-        peg$c91 = /^[ \t\r\n]/,
-        peg$c92 = { type: "class", value: "[ \\t\\r\\n]", description: "[ \\t\\r\\n]" },
-
-        peg$currPos          = 0,
-        peg$reportedPos      = 0,
-        peg$cachedPos        = 0,
-        peg$cachedPosDetails = { line: 1, column: 1, seenCR: false },
-        peg$maxFailPos       = 0,
-        peg$maxFailExpected  = [],
-        peg$silentFails      = 0,
-
-        peg$result;
-
-    if ("startRule" in options) {
-      if (!(options.startRule in peg$startRuleFunctions)) {
-        throw new Error("Can't start parsing from rule \"" + options.startRule + "\".");
-      }
-
-      peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
-    }
-
-    function text() {
-      return input.substring(peg$reportedPos, peg$currPos);
-    }
-
-    function offset() {
-      return peg$reportedPos;
-    }
-
-    function line() {
-      return peg$computePosDetails(peg$reportedPos).line;
-    }
-
-    function column() {
-      return peg$computePosDetails(peg$reportedPos).column;
-    }
-
-    function expected(description) {
-      throw peg$buildException(
-        null,
-        [{ type: "other", description: description }],
-        peg$reportedPos
-      );
-    }
-
-    function error(message) {
-      throw peg$buildException(message, null, peg$reportedPos);
-    }
-
-    function peg$computePosDetails(pos) {
-      function advance(details, startPos, endPos) {
-        var p, ch;
-
-        for (p = startPos; p < endPos; p++) {
-          ch = input.charAt(p);
-          if (ch === "\n") {
-            if (!details.seenCR) { details.line++; }
-            details.column = 1;
-            details.seenCR = false;
-          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
-            details.line++;
-            details.column = 1;
-            details.seenCR = true;
-          } else {
-            details.column++;
-            details.seenCR = false;
-          }
-        }
-      }
-
-      if (peg$cachedPos !== pos) {
-        if (peg$cachedPos > pos) {
-          peg$cachedPos = 0;
-          peg$cachedPosDetails = { line: 1, column: 1, seenCR: false };
-        }
-        advance(peg$cachedPosDetails, peg$cachedPos, pos);
-        peg$cachedPos = pos;
-      }
-
-      return peg$cachedPosDetails;
-    }
-
-    function peg$fail(expected) {
-      if (peg$currPos < peg$maxFailPos) { return; }
-
-      if (peg$currPos > peg$maxFailPos) {
-        peg$maxFailPos = peg$currPos;
-        peg$maxFailExpected = [];
-      }
-
-      peg$maxFailExpected.push(expected);
-    }
-
-    function peg$buildException(message, expected, pos) {
-      function cleanupExpected(expected) {
-        var i = 1;
-
-        expected.sort(function(a, b) {
-          if (a.description < b.description) {
-            return -1;
-          } else if (a.description > b.description) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-
-        while (i < expected.length) {
-          if (expected[i - 1] === expected[i]) {
-            expected.splice(i, 1);
-          } else {
-            i++;
-          }
-        }
-      }
-
-      function buildMessage(expected, found) {
-        function stringEscape(s) {
-          function hex(ch) { return ch.charCodeAt(0).toString(16).toUpperCase(); }
-
-          return s
-            .replace(/\\/g,   '\\\\')
-            .replace(/"/g,    '\\"')
-            .replace(/\x08/g, '\\b')
-            .replace(/\t/g,   '\\t')
-            .replace(/\n/g,   '\\n')
-            .replace(/\f/g,   '\\f')
-            .replace(/\r/g,   '\\r')
-            .replace(/[\x00-\x07\x0B\x0E\x0F]/g, function(ch) { return '\\x0' + hex(ch); })
-            .replace(/[\x10-\x1F\x80-\xFF]/g,    function(ch) { return '\\x'  + hex(ch); })
-            .replace(/[\u0180-\u0FFF]/g,         function(ch) { return '\\u0' + hex(ch); })
-            .replace(/[\u1080-\uFFFF]/g,         function(ch) { return '\\u'  + hex(ch); });
-        }
-
-        var expectedDescs = new Array(expected.length),
-            expectedDesc, foundDesc, i;
-
-        for (i = 0; i < expected.length; i++) {
-          expectedDescs[i] = expected[i].description;
-        }
-
-        expectedDesc = expected.length > 1
-          ? expectedDescs.slice(0, -1).join(", ")
-              + " or "
-              + expectedDescs[expected.length - 1]
-          : expectedDescs[0];
-
-        foundDesc = found ? "\"" + stringEscape(found) + "\"" : "end of input";
-
-        return "Expected " + expectedDesc + " but " + foundDesc + " found.";
-      }
-
-      var posDetails = peg$computePosDetails(pos),
-          found      = pos < input.length ? input.charAt(pos) : null;
-
-      if (expected !== null) {
-        cleanupExpected(expected);
-      }
-
-      return new SyntaxError(
-        message !== null ? message : buildMessage(expected, found),
-        expected,
-        found,
-        pos,
-        posDetails.line,
-        posDetails.column
-      );
-    }
-
-    function peg$parsestart() {
-      var s0;
-
-      s0 = peg$parsemerged();
-
-      return s0;
-    }
-
-    function peg$parsemerged() {
-      var s0, s1, s2, s3, s4, s5;
-
-      s0 = peg$currPos;
-      s1 = peg$parseordered();
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsesep();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 44) {
-            s3 = peg$c1;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c2); }
-          }
-          if (s3 !== peg$FAILED) {
-            s4 = peg$parsesep();
-            if (s4 !== peg$FAILED) {
-              s5 = peg$parsemerged();
-              if (s5 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c3(s1, s5);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        s1 = peg$parseordered();
-        if (s1 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c4(s1);
-        }
-        s0 = s1;
-      }
-
-      return s0;
-    }
-
-    function peg$parseordered() {
-      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 91) {
-        s1 = peg$c5;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c6); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsesep();
-        if (s2 !== peg$FAILED) {
-          s3 = peg$parsefiltered();
-          if (s3 !== peg$FAILED) {
-            s4 = peg$parsesep();
-            if (s4 !== peg$FAILED) {
-              if (input.charCodeAt(peg$currPos) === 44) {
-                s5 = peg$c1;
-                peg$currPos++;
-              } else {
-                s5 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c2); }
-              }
-              if (s5 !== peg$FAILED) {
-                s6 = peg$parsesep();
-                if (s6 !== peg$FAILED) {
-                  s7 = peg$parsefiltered();
-                  if (s7 !== peg$FAILED) {
-                    s8 = peg$parsesep();
-                    if (s8 !== peg$FAILED) {
-                      if (input.charCodeAt(peg$currPos) === 93) {
-                        s9 = peg$c7;
-                        peg$currPos++;
-                      } else {
-                        s9 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c8); }
-                      }
-                      if (s9 !== peg$FAILED) {
-                        s10 = peg$parsesep();
-                        if (s10 !== peg$FAILED) {
-                          if (input.charCodeAt(peg$currPos) === 62) {
-                            s11 = peg$c9;
-                            peg$currPos++;
-                          } else {
-                            s11 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c10); }
-                          }
-                          if (s11 !== peg$FAILED) {
-                            s12 = peg$parsesep();
-                            if (s12 !== peg$FAILED) {
-                              s13 = peg$parseordered();
-                              if (s13 !== peg$FAILED) {
-                                peg$reportedPos = s0;
-                                s1 = peg$c11(s3, s7, s13);
-                                s0 = s1;
-                              } else {
-                                peg$currPos = s0;
-                                s0 = peg$c0;
-                              }
-                            } else {
-                              peg$currPos = s0;
-                              s0 = peg$c0;
-                            }
-                          } else {
-                            peg$currPos = s0;
-                            s0 = peg$c0;
-                          }
-                        } else {
-                          peg$currPos = s0;
-                          s0 = peg$c0;
-                        }
-                      } else {
-                        peg$currPos = s0;
-                        s0 = peg$c0;
-                      }
-                    } else {
-                      peg$currPos = s0;
-                      s0 = peg$c0;
-                    }
-                  } else {
-                    peg$currPos = s0;
-                    s0 = peg$c0;
-                  }
-                } else {
-                  peg$currPos = s0;
-                  s0 = peg$c0;
-                }
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$parsefiltered();
-      }
-
-      return s0;
-    }
-
-    function peg$parsefiltered() {
-      var s0, s1, s2, s3;
-
-      s0 = peg$currPos;
-      s1 = peg$parsestream();
-      if (s1 !== peg$FAILED) {
-        s2 = [];
-        s3 = peg$parsefilter();
-        if (s3 !== peg$FAILED) {
-          while (s3 !== peg$FAILED) {
-            s2.push(s3);
-            s3 = peg$parsefilter();
-          }
-        } else {
-          s2 = peg$c0;
-        }
-        if (s2 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c13(s1, s2);
-          s0 = s1;
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        s1 = peg$parsestream();
-        if (s1 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c14(s1);
-        }
-        s0 = s1;
-      }
-
-      return s0;
-    }
-
-    function peg$parsestream() {
-      var s0, s1, s2, s3, s4;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 40) {
-        s1 = peg$c15;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c16); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsemerged();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 41) {
-            s3 = peg$c17;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c18); }
-          }
-          if (s3 !== peg$FAILED) {
-            peg$reportedPos = s0;
-            s1 = peg$c19(s2);
-            s0 = s1;
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        if (input.charCodeAt(peg$currPos) === 64) {
-          s1 = peg$c20;
-          peg$currPos++;
-        } else {
-          s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c21); }
-        }
-        if (s1 !== peg$FAILED) {
-          s2 = peg$parsename();
-          if (s2 !== peg$FAILED) {
-            if (input.charCodeAt(peg$currPos) === 58) {
-              s3 = peg$c22;
-              peg$currPos++;
-            } else {
-              s3 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c23); }
-            }
-            if (s3 !== peg$FAILED) {
-              s4 = peg$parseeventType();
-              if (s4 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c24(s2, s4);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-        if (s0 === peg$FAILED) {
-          s0 = peg$currPos;
-          s1 = peg$parsemarkType();
-          if (s1 !== peg$FAILED) {
-            if (input.charCodeAt(peg$currPos) === 58) {
-              s2 = peg$c22;
-              peg$currPos++;
-            } else {
-              s2 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c23); }
-            }
-            if (s2 !== peg$FAILED) {
-              s3 = peg$parseeventType();
-              if (s3 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c25(s1, s3);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-          if (s0 === peg$FAILED) {
-            s0 = peg$currPos;
-            s1 = peg$parsecss();
-            if (s1 !== peg$FAILED) {
-              if (input.charCodeAt(peg$currPos) === 58) {
-                s2 = peg$c22;
-                peg$currPos++;
-              } else {
-                s2 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c23); }
-              }
-              if (s2 !== peg$FAILED) {
-                s3 = peg$parseeventType();
-                if (s3 !== peg$FAILED) {
-                  peg$reportedPos = s0;
-                  s1 = peg$c26(s1, s3);
-                  s0 = s1;
-                } else {
-                  peg$currPos = s0;
-                  s0 = peg$c0;
-                }
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-            if (s0 === peg$FAILED) {
-              s0 = peg$currPos;
-              s1 = peg$parseeventType();
-              if (s1 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c27(s1);
-              }
-              s0 = s1;
-              if (s0 === peg$FAILED) {
-                s0 = peg$currPos;
-                s1 = peg$parsename();
-                if (s1 !== peg$FAILED) {
-                  peg$reportedPos = s0;
-                  s1 = peg$c28(s1);
-                }
-                s0 = s1;
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parsemarkType() {
-      var s0;
-
-      if (input.substr(peg$currPos, 4) === peg$c29) {
-        s0 = peg$c29;
-        peg$currPos += 4;
-      } else {
-        s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c30); }
-      }
-      if (s0 === peg$FAILED) {
-        if (input.substr(peg$currPos, 6) === peg$c31) {
-          s0 = peg$c31;
-          peg$currPos += 6;
-        } else {
-          s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c32); }
-        }
-        if (s0 === peg$FAILED) {
-          if (input.substr(peg$currPos, 4) === peg$c33) {
-            s0 = peg$c33;
-            peg$currPos += 4;
-          } else {
-            s0 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c34); }
-          }
-          if (s0 === peg$FAILED) {
-            if (input.substr(peg$currPos, 3) === peg$c35) {
-              s0 = peg$c35;
-              peg$currPos += 3;
-            } else {
-              s0 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c36); }
-            }
-            if (s0 === peg$FAILED) {
-              if (input.substr(peg$currPos, 4) === peg$c37) {
-                s0 = peg$c37;
-                peg$currPos += 4;
-              } else {
-                s0 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c38); }
-              }
-              if (s0 === peg$FAILED) {
-                if (input.substr(peg$currPos, 4) === peg$c39) {
-                  s0 = peg$c39;
-                  peg$currPos += 4;
-                } else {
-                  s0 = peg$FAILED;
-                  if (peg$silentFails === 0) { peg$fail(peg$c40); }
-                }
-                if (s0 === peg$FAILED) {
-                  if (input.substr(peg$currPos, 4) === peg$c41) {
-                    s0 = peg$c41;
-                    peg$currPos += 4;
-                  } else {
-                    s0 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c42); }
-                  }
-                  if (s0 === peg$FAILED) {
-                    if (input.substr(peg$currPos, 5) === peg$c43) {
-                      s0 = peg$c43;
-                      peg$currPos += 5;
-                    } else {
-                      s0 = peg$FAILED;
-                      if (peg$silentFails === 0) { peg$fail(peg$c44); }
-                    }
-                    if (s0 === peg$FAILED) {
-                      if (input.substr(peg$currPos, 4) === peg$c45) {
-                        s0 = peg$c45;
-                        peg$currPos += 4;
-                      } else {
-                        s0 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c46); }
-                      }
-                      if (s0 === peg$FAILED) {
-                        if (input.substr(peg$currPos, 5) === peg$c47) {
-                          s0 = peg$c47;
-                          peg$currPos += 5;
-                        } else {
-                          s0 = peg$FAILED;
-                          if (peg$silentFails === 0) { peg$fail(peg$c48); }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parseeventType() {
-      var s0;
-
-      if (input.substr(peg$currPos, 9) === peg$c49) {
-        s0 = peg$c49;
-        peg$currPos += 9;
-      } else {
-        s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c50); }
-      }
-      if (s0 === peg$FAILED) {
-        if (input.substr(peg$currPos, 7) === peg$c51) {
-          s0 = peg$c51;
-          peg$currPos += 7;
-        } else {
-          s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c52); }
-        }
-        if (s0 === peg$FAILED) {
-          if (input.substr(peg$currPos, 5) === peg$c53) {
-            s0 = peg$c53;
-            peg$currPos += 5;
-          } else {
-            s0 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c54); }
-          }
-          if (s0 === peg$FAILED) {
-            if (input.substr(peg$currPos, 8) === peg$c55) {
-              s0 = peg$c55;
-              peg$currPos += 8;
-            } else {
-              s0 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c56); }
-            }
-            if (s0 === peg$FAILED) {
-              if (input.substr(peg$currPos, 5) === peg$c57) {
-                s0 = peg$c57;
-                peg$currPos += 5;
-              } else {
-                s0 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c58); }
-              }
-              if (s0 === peg$FAILED) {
-                if (input.substr(peg$currPos, 7) === peg$c59) {
-                  s0 = peg$c59;
-                  peg$currPos += 7;
-                } else {
-                  s0 = peg$FAILED;
-                  if (peg$silentFails === 0) { peg$fail(peg$c60); }
-                }
-                if (s0 === peg$FAILED) {
-                  if (input.substr(peg$currPos, 8) === peg$c61) {
-                    s0 = peg$c61;
-                    peg$currPos += 8;
-                  } else {
-                    s0 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c62); }
-                  }
-                  if (s0 === peg$FAILED) {
-                    if (input.substr(peg$currPos, 5) === peg$c63) {
-                      s0 = peg$c63;
-                      peg$currPos += 5;
-                    } else {
-                      s0 = peg$FAILED;
-                      if (peg$silentFails === 0) { peg$fail(peg$c64); }
-                    }
-                    if (s0 === peg$FAILED) {
-                      if (input.substr(peg$currPos, 10) === peg$c65) {
-                        s0 = peg$c65;
-                        peg$currPos += 10;
-                      } else {
-                        s0 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c66); }
-                      }
-                      if (s0 === peg$FAILED) {
-                        if (input.substr(peg$currPos, 9) === peg$c67) {
-                          s0 = peg$c67;
-                          peg$currPos += 9;
-                        } else {
-                          s0 = peg$FAILED;
-                          if (peg$silentFails === 0) { peg$fail(peg$c68); }
-                        }
-                        if (s0 === peg$FAILED) {
-                          if (input.substr(peg$currPos, 8) === peg$c69) {
-                            s0 = peg$c69;
-                            peg$currPos += 8;
-                          } else {
-                            s0 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c70); }
-                          }
-                          if (s0 === peg$FAILED) {
-                            if (input.substr(peg$currPos, 9) === peg$c71) {
-                              s0 = peg$c71;
-                              peg$currPos += 9;
-                            } else {
-                              s0 = peg$FAILED;
-                              if (peg$silentFails === 0) { peg$fail(peg$c72); }
-                            }
-                            if (s0 === peg$FAILED) {
-                              if (input.substr(peg$currPos, 10) === peg$c73) {
-                                s0 = peg$c73;
-                                peg$currPos += 10;
-                              } else {
-                                s0 = peg$FAILED;
-                                if (peg$silentFails === 0) { peg$fail(peg$c74); }
-                              }
-                              if (s0 === peg$FAILED) {
-                                if (input.substr(peg$currPos, 10) === peg$c75) {
-                                  s0 = peg$c75;
-                                  peg$currPos += 10;
-                                } else {
-                                  s0 = peg$FAILED;
-                                  if (peg$silentFails === 0) { peg$fail(peg$c76); }
-                                }
-                                if (s0 === peg$FAILED) {
-                                  if (input.substr(peg$currPos, 9) === peg$c77) {
-                                    s0 = peg$c77;
-                                    peg$currPos += 9;
-                                  } else {
-                                    s0 = peg$FAILED;
-                                    if (peg$silentFails === 0) { peg$fail(peg$c78); }
-                                  }
-                                  if (s0 === peg$FAILED) {
-                                    if (input.substr(peg$currPos, 8) === peg$c79) {
-                                      s0 = peg$c79;
-                                      peg$currPos += 8;
-                                    } else {
-                                      s0 = peg$FAILED;
-                                      if (peg$silentFails === 0) { peg$fail(peg$c80); }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parsefilter() {
-      var s0, s1, s2, s3;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 91) {
-        s1 = peg$c5;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c6); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parseexpr();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 93) {
-            s3 = peg$c7;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c8); }
-          }
-          if (s3 !== peg$FAILED) {
-            peg$reportedPos = s0;
-            s1 = peg$c81(s2);
-            s0 = s1;
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-
-      return s0;
-    }
-
-    function peg$parsename() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c82.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c83); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c82.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c83); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c84(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parsecss() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c85.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c86); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c85.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c86); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c87(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parseexpr() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c88.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c89); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c88.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c89); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c90(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parsesep() {
-      var s0, s1;
-
-      s0 = [];
-      if (peg$c91.test(input.charAt(peg$currPos))) {
-        s1 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c92); }
-      }
-      while (s1 !== peg$FAILED) {
-        s0.push(s1);
-        if (peg$c91.test(input.charAt(peg$currPos))) {
-          s1 = input.charAt(peg$currPos);
-          peg$currPos++;
-        } else {
-          s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c92); }
-        }
-      }
-
-      return s0;
-    }
-
-    peg$result = peg$startRuleFunction();
-
-    if (peg$result !== peg$FAILED && peg$currPos === input.length) {
-      return peg$result;
-    } else {
-      if (peg$result !== peg$FAILED && peg$currPos < input.length) {
-        peg$fail({ type: "end", description: "end of input" });
-      }
-
-      throw peg$buildException(null, peg$maxFailExpected, peg$maxFailPos);
-    }
-  }
-
-  return {
-    SyntaxError: SyntaxError,
-    parse:       parse
-  };
-})();
-},{}],96:[function(require,module,exports){
-var expr = require('vega-expression'),
+},{"./modify":101,"./transforms":108,"datalib":26,"vega-logging":48}],96:[function(require,module,exports){
+var dl = require('datalib'),
+    template = dl.template,
+    expr = require('vega-expression'),
     args = ['datum', 'event', 'signals'];
 
-module.exports = expr.compiler(args, {
+var compile = expr.compiler(args, {
   idWhiteList: args,
   fieldVar:    args[0],
-  globalVar:   args[2],
+  globalVar:   function(id) {
+    return 'this.sig[' + dl.str(id) + ']._value';
+  },
   functions:   function(codegen) {
     var fn = expr.functions(codegen);
-    fn.eventItem = function() { return 'event.vg.item'; };
+    fn.eventItem  = 'event.vg.getItem';
     fn.eventGroup = 'event.vg.getGroup';
-    fn.eventX = 'event.vg.getX';
-    fn.eventY = 'event.vg.getY';
-    fn.open = 'window.open';
+    fn.eventX     = 'event.vg.getX';
+    fn.eventY     = 'event.vg.getY';
+    fn.open       = 'window.open';
+    fn.scale      = scaleGen(codegen, false);
+    fn.iscale     = scaleGen(codegen, true);
+    fn.inrange    = 'this.defs.inrange';
+    fn.indata     = indataGen(codegen);
+    fn.format     = 'this.defs.format';
+    fn.timeFormat = 'this.defs.timeFormat';
+    fn.utcFormat  = 'this.defs.utcFormat';
     return fn;
+  },
+  functionDefs: function(/*codegen*/) {
+    return {
+      'scale':      scale,
+      'inrange':    inrange,
+      'indata':     indata,
+      'format':     numberFormat,
+      'timeFormat': timeFormat,
+      'utcFormat':  utcFormat
+    };
   }
 });
-},{"vega-expression":45}],97:[function(require,module,exports){
+
+function scaleGen(codegen, invert) {
+  return function(args) {
+    args = args.map(codegen);
+    var n = args.length;
+    if (n < 2 || n > 3) {
+      throw Error("scale takes exactly 2 or 3 arguments.");
+    }
+    return 'this.defs.scale(this.model, ' + invert + ', ' +
+      args[0] + ',' + args[1] + (n > 2 ? ',' + args[2] : '') + ')';
+  };
+}
+
+function scale(model, invert, name, value, scope) {
+  if (!scope || !scope.scale) {
+    scope = (scope && scope.mark) ? scope.mark.group : model.scene().items[0];
+  }
+  // Verify scope is valid
+  if (model.group(scope._id) !== scope) {
+    throw Error('Scope for scale "'+name+'" is not a valid group item.');
+  }
+  var s = scope.scale(name);
+  return !s ? value : (invert ? s.invert(value) : s(value));
+}
+
+function inrange(val, a, b, exclusive) {
+  var min = a, max = b;
+  if (a > b) { min = b; max = a; }
+  return exclusive ?
+    (min < val && max > val) :
+    (min <= val && max >= val);
+}
+
+function indataGen(codegen) {
+  return function(args, globals, fields, dataSources) {
+    var data;
+    if (args.length !== 3) {
+      throw Error("indata takes 3 arguments.");
+    }
+    if (args[0].type !== 'Literal') {
+      throw Error("Data source name must be a literal for indata.");
+    }
+
+    data = args[0].value;
+    dataSources[data] = 1;
+    if (args[2].type === 'Literal') {
+      indataGen.model.requestIndex(data, args[2].value);
+    }
+
+    args = args.map(codegen);
+    return 'this.defs.indata(this.model,' + 
+      args[0] + ',' + args[1] + ',' + args[2] + ')';
+  };
+}
+
+function indata(model, dataname, val, field) {
+  var data = model.data(dataname),
+      index = data.getIndex(field);
+  return index[val] > 0;
+}
+
+function numberFormat(specifier, v) {
+  return template.format(specifier, 'number')(v);
+}
+
+function timeFormat(specifier, d) {
+  return template.format(specifier, 'time')(d);
+}
+
+function utcFormat(specifier, d) {
+  return template.format(specifier, 'utc')(d);
+}
+
+function wrap(model) {
+  return function(str) {
+    indataGen.model = model;
+    var x = compile(str);
+    x.model = model;
+    x.sig = model ? model._signals : {};
+    return x;
+  };
+}
+
+wrap.scale = scale;
+wrap.codegen = compile.codegen;
+module.exports = wrap;
+},{"datalib":26,"vega-expression":46}],97:[function(require,module,exports){
 module.exports = {
   axes:       require('./axes'),
   background: require('./background'),
   data:       require('./data'),
-  events:     require('./events'),
+  events:     require('vega-event-selector'),
   expr:       require('./expr'),
   legends:    require('./legends'),
   mark:       require('./mark'),
@@ -14423,7 +15330,7 @@ module.exports = {
   streams:    require('./streams'),
   transforms: require('./transforms')
 };
-},{"./axes":92,"./background":93,"./data":94,"./events":95,"./expr":96,"./legends":98,"./mark":99,"./marks":100,"./modify":101,"./padding":102,"./predicates":103,"./properties":104,"./signals":105,"./spec":106,"./streams":107,"./transforms":108}],98:[function(require,module,exports){
+},{"./axes":93,"./background":94,"./data":95,"./expr":96,"./legends":98,"./mark":99,"./marks":100,"./modify":101,"./padding":102,"./predicates":103,"./properties":104,"./signals":105,"./spec":106,"./streams":107,"./transforms":108,"vega-event-selector":42}],98:[function(require,module,exports){
 var lgnd = require('../scene/legend');
 
 function parseLegends(model, spec, legends, group) {
@@ -14454,6 +15361,7 @@ function parseLegend(def, index, legend, group) {
 
   // legend label formatting
   legend.format(def.format !== undefined ? def.format : null);
+  legend.formatType(def.formatType || null);
 
   // style properties
   var p = def.properties;
@@ -14544,75 +15452,127 @@ var dl = require('datalib'),
 var Types = {
   INSERT: "insert",
   REMOVE: "remove",
+  UPSERT: "upsert",
   TOGGLE: "toggle",
   CLEAR:  "clear"
 };
 
 var EMPTY = [];
 
-var filter = function(field, value, src, dest) {
-  for(var i = src.length-1; i >= 0; --i) {
-    if (src[i][field] == value)
-      dest.push.apply(dest, src.splice(i, 1));
+function filter(fields, value, src, dest) {
+  var splice = true, len = fields.length, i, j, f, v;
+  for (i = src.length - 1; i >= 0; --i) {
+    for (j=0; j<len; ++j) {
+      f = fields[j];
+      v = value && f(value) || value;
+      if (f(src[i]) !== v) {
+        splice = false;
+        break;
+      }
+    }
+
+    if (splice) dest.push.apply(dest, src.splice(i, 1));
+    splice = true;
   }
-};
+}
+
+function insert(input, datum, source) {
+  var t = Tuple.ingest(datum);
+  input.add.push(t);
+  source._data.push(t);
+}
 
 function parseModify(model, def, ds) {
   var signal = def.signal ? dl.field(def.signal) : null,
-      signalName = signal ? signal[0] : null,
-      predicate = def.predicate ? model.predicate(def.predicate.name || def.predicate) : null,
-      reeval = (predicate === null),
+      signalName  = signal ? signal[0] : null,
+      predicate   = def.predicate ? model.predicate(def.predicate.name || def.predicate) : null,
+      exprTrigger = def.test ? model.expr(def.test) : null,
+      reeval  = (predicate === null && exprTrigger === null),
       isClear = def.type === Types.CLEAR,
+      fields  = dl.array(def.field || 'data'),
+      getters = fields.map(dl.accessor),
+      setters = fields.map(dl.mutator),
       node = new Node(model).router(isClear);
 
   node.evaluate = function(input) {
+    var db, sg;
+
     if (predicate !== null) {  // TODO: predicate args
-      var db = model.values(Deps.DATA, predicate.data || EMPTY),
-          sg = model.values(Deps.SIGNALS, predicate.signals || EMPTY);
+      db = model.values(Deps.DATA, predicate.data || EMPTY);
+      sg = model.values(Deps.SIGNALS, predicate.signals || EMPTY);
       reeval = predicate.call(predicate, {}, db, sg, model._predicates);
+    }
+
+    if (exprTrigger !== null) {
+      sg = model.values(Deps.SIGNALS, exprTrigger.globals || EMPTY);
+      reeval = exprTrigger.fn();
     }
 
     log.debug(input, [def.type+"ing", reeval]);
     if (!reeval || (!isClear && !input.signals[signalName])) return input;
 
-    var datum = {},
-        value = signal ? model.signalRef(def.signal) : null,
+    var value = signal ? model.signalRef(def.signal) : null,
         d = model.data(ds.name),
-        t = null;
+        t = null, add = [], rem = [], up = 0, datum;
 
-    datum[def.field] = value;
+    if (dl.isObject(value)) {
+      datum = value;
+      if (!def.field) {
+        fields = dl.keys(datum);
+        getters = fields.map(dl.accessor);
+        setters = fields.map(dl.mutator);
+      }
+    } else {
+      datum = {};
+      setters.forEach(function(f) { f(datum, value); });
+    }
 
     // We have to modify ds._data so that subsequent pulses contain
     // our dynamic data. W/o modifying ds._data, only the output
     // collector will contain dynamic tuples.
     if (def.type === Types.INSERT) {
-      t = Tuple.ingest(datum);
-      input.add.push(t);
-      d._data.push(t);
+      insert(input, datum, d);
     } else if (def.type === Types.REMOVE) {
-      filter(def.field, value, input.add, input.rem);
-      filter(def.field, value, input.mod, input.rem);
-      d._data = d._data.filter(function(x) { return x[def.field] !== value; });
-    } else if (def.type === Types.TOGGLE) {
-      var add = [], rem = [];
-      filter(def.field, value, input.rem, add);
-      filter(def.field, value, input.add, rem);
-      filter(def.field, value, input.mod, rem);
-      if (!(add.length || rem.length)) add.push(Tuple.ingest(datum));
+      filter(getters, value, input.mod, input.rem);
+      filter(getters, value, input.add, rem);
+      filter(getters, value, d._data, rem);
+    } else if (def.type === Types.UPSERT) {
+      input.mod.forEach(function(x) {
+        var every = getters.every(function(f) {
+          return f(x) === f(datum);
+        });
 
-      input.add.push.apply(input.add, add);
-      d._data.push.apply(d._data, add);
+        if (every) up = (dl.extend(x, datum), up+1);
+      });
+
+      if (up === 0) insert(input, datum, d);
+    } else if (def.type === Types.TOGGLE) {
+      // If tuples are in mod, remove them.
+      filter(getters, value, input.mod, rem);
       input.rem.push.apply(input.rem, rem);
-      d._data = d._data.filter(function(x) { return rem.indexOf(x) === -1; });
+
+      // If tuples are in add, they've been added to backing data source,
+      // but no downstream operators will have seen it yet.
+      filter(getters, value, input.add, add);
+
+      if (add.length || rem.length) {
+        d._data = d._data.filter(function(x) {
+          return rem.indexOf(x) < 0 && add.indexOf(x) < 0;
+        });
+      } else {
+        // If the tuples aren't seen in the changeset, add a new tuple.
+        // Note, tuple might be in input.rem, but we ignore this and just
+        // re-add a new tuple for simplicity.
+        input.add.push(t=Tuple.ingest(datum));
+        d._data.push(t);
+      }
     } else if (def.type === Types.CLEAR) {
-      input.rem.push.apply(input.rem, input.add);
-      input.rem.push.apply(input.rem, input.mod);
-      input.add = [];
-      input.mod = [];
-      d._data  = [];
+      input.rem.push.apply(input.rem, input.mod.splice(0));
+      input.add.splice(0);
+      d._data.splice(0);
     }
 
-    input.fields[def.field] = 1;
+    fields.forEach(function(f) { input.fields[f] = 1; });
     return input;
   };
 
@@ -14623,11 +15583,16 @@ function parseModify(model, def, ds) {
     node.dependency(Deps.SIGNALS, predicate.signals);
   }
 
+  if (exprTrigger) {
+    node.dependency(Deps.SIGNALS, exprTrigger.globals);
+    node.dependency(Deps.DATA,    exprTrigger.dataSources);
+  }
+
   return node;
 }
 
 module.exports = parseModify;
-},{"datalib":26,"vega-dataflow":41,"vega-logging":47}],102:[function(require,module,exports){
+},{"datalib":26,"vega-dataflow":41,"vega-logging":48}],102:[function(require,module,exports){
 var dl = require('datalib');
 
 function parsePadding(pad) {
@@ -14846,6 +15811,7 @@ function properties(model, mark, spec) {
   var config = model.config(),
       code = "",
       names = dl.keys(spec),
+      exprs = [], // parsed expressions injected in the generated code
       i, len, name, ref, vars = {},
       deps = {
         signals: {},
@@ -14857,7 +15823,7 @@ function properties(model, mark, spec) {
         reflow:  false
       };
 
-  code += "var o = trans ? {} : item, d=0, set=this.tpl.set, tmpl=signals||{}, t;\n" +
+  code += "var o = trans ? {} : item, d=0, exprs=this.exprs, set=this.tpl.set, tmpl=signals||{}, t;\n" +
           // Stash for dl.template
           "tmpl.datum  = item.datum;\n" +
           "tmpl.group  = group;\n" +
@@ -14880,12 +15846,15 @@ function properties(model, mark, spec) {
     ref = spec[name = names[i]];
     code += (i > 0) ? "\n  " : "  ";
     if (ref.rule) {
-      ref = rule(model, name, ref.rule);
+      // a production rule valueref
+      ref = rule(model, name, ref.rule, exprs);
       code += "\n  " + ref.code;
     } else if (dl.isArray(ref)) {
-      ref = rule(model, name, ref);
+      // a production rule valueref as an array
+      ref = rule(model, name, ref, exprs);
       code += "\n  " + ref.code;
     } else {
+      // a simple valueref
       ref = valueRef(config, name, ref);
       code += "d += set(o, "+dl.str(name)+", "+ref.val+");";
     }
@@ -14959,7 +15928,9 @@ function properties(model, mark, spec) {
     /* jshint evil:true */
     var encoder = Function('item', 'group', 'trans', 'db',
       'signals', 'predicates', code);
+
     encoder.tpl  = Tuple;
+    encoder.exprs = exprs;
     encoder.util = dl;
     encoder.d3   = d3; // For color spaces
     dl.extend(encoder, dl.template.context);
@@ -15001,50 +15972,64 @@ function hasPath(mark, vars) {
        vars.tension || vars.interpolate));
 }
 
-function rule(model, name, rules) {
+function rule(model, name, rules, exprs) {
   var config  = model.config(),
       deps = dependencies(),
-      inputs  = [], code = '';
+      inputs  = [],
+      code = '';
 
   (rules||[]).forEach(function(r, i) {
-    var def = r.predicate,
-        predName = def && (def.name || def),
-        pred = model.predicate(predName),
-        p = 'predicates['+dl.str(predName)+']',
-        input = [], args = name+'_arg'+i,
-        ref;
-
-    if (dl.isObject(def)) {
-      dl.keys(def).forEach(function(k) {
-        if (k === 'name') return;
-        var ref = valueRef(config, i, def[k]);
-        input.push(dl.str(k)+': '+ref.val);
-        dependencies(deps, ref);
-      });
-    }
-
-    ref = valueRef(config, name, r);
+    var ref = valueRef(config, name, r);
     dependencies(deps, ref);
 
-    if (predName) {
-      deps.signals.push.apply(deps.signals, pred.signals);
-      deps.data.push.apply(deps.data, pred.data);
-      inputs.push(args+" = {\n    "+input.join(",\n    ")+"\n  }");
-      code += "if ("+p+".call("+p+","+args+", db, signals, predicates)) {" +
-        "\n    d += set(o, "+dl.str(name)+", "+ref.val+");";
+    if (r.test) {
+      // rule uses an expression instead of a predicate.
+      var exprFn = model.expr(r.test);
+      deps.signals.push.apply(deps.signals, exprFn.globals);
+      deps.data.push.apply(deps.data, exprFn.dataSources);
+
+      code += "if (exprs[" + exprs.length + "](item.datum, null)) {" +
+          "\n    d += set(o, "+dl.str(name)+", " +ref.val+");";
       code += rules[i+1] ? "\n  } else " : "  }";
+
+      exprs.push(exprFn.fn);
     } else {
-      code += "{" +
-        "\n    d += set(o, "+dl.str(name)+", "+ref.val+");"+
-        "\n  }\n";
+      var def = r.predicate,
+          predName = def && (def.name || def),
+          pred = model.predicate(predName),
+          p = 'predicates['+dl.str(predName)+']',
+          input = [], args = name+'_arg'+i;
+
+      if (dl.isObject(def)) {
+        dl.keys(def).forEach(function(k) {
+          if (k === 'name') return;
+          var ref = valueRef(config, i, def[k], true);
+          input.push(dl.str(k)+': '+ref.val);
+          dependencies(deps, ref);
+        });
+      }
+
+      if (predName) {
+        // append the predicates dependencies to our dependencies
+        deps.signals.push.apply(deps.signals, pred.signals);
+        deps.data.push.apply(deps.data, pred.data);
+        inputs.push(args+" = {\n    "+input.join(",\n    ")+"\n  }");
+        code += "if ("+p+".call("+p+","+args+", db, signals, predicates)) {" +
+          "\n    d += set(o, "+dl.str(name)+", "+ref.val+");";
+        code += rules[i+1] ? "\n  } else " : "  }";
+      } else {
+        code += "{" +
+          "\n    d += set(o, "+dl.str(name)+", "+ref.val+");"+
+          "\n  }\n";
+      }
     }
   });
 
-  code = "var " + inputs.join(",\n      ") + ";\n  " + code;
+  if (inputs.length) code = "var " + inputs.join(",\n      ") + ";\n  " + code;
   return (deps.code = code, deps);
 }
 
-function valueRef(config, name, ref) {
+function valueRef(config, name, ref, predicateArg) {
   if (ref == null) return null;
 
   if (name==='fill' || name==='stroke') {
@@ -15108,10 +16093,10 @@ function valueRef(config, name, ref) {
 
     // run through scale function if val specified.
     // if no val, scale function is predicate arg.
-    if (val !== null || ref.band || ref.mult || ref.offset) {
+    if (val !== null || ref.band || ref.mult || ref.offset || !predicateArg) {
       val = scale + (ref.band ? '.rangeBand()' :
         '('+(val !== null ? val : 'item.datum.data')+')');
-    } else {
+    } else if (predicateArg) {
       val = scale;
     }
   }
@@ -15200,13 +16185,13 @@ function scaleRef(ref) {
 module.exports = properties;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"datalib":26,"vega-dataflow":41,"vega-logging":47}],105:[function(require,module,exports){
+},{"datalib":26,"vega-dataflow":41,"vega-logging":48}],105:[function(require,module,exports){
 var dl = require('datalib'),
-    SIGNALS = require('vega-dataflow').Dependencies.SIGNALS,
-    expr = require('./expr');
+    expr = require('./expr'),
+    SIGNALS = require('vega-dataflow').Dependencies.SIGNALS;
 
 var RESERVED = ['datum', 'event', 'signals', 'width', 'height', 'padding']
-  .concat(dl.keys(expr.codegen.functions));
+    .concat(dl.keys(expr.codegen.functions));
 
 function parseSignals(model, spec) {
   // process each signal definition
@@ -15220,12 +16205,12 @@ function parseSignals(model, spec) {
       .verbose(s.verbose);
 
     if (s.init && s.init.expr) {
-      s.init.expr = expr(s.init.expr);
+      s.init.expr = model.expr(s.init.expr);
       signal.value(exprVal(model, s.init));
     }
 
     if (s.expr) {
-      s.expr = expr(s.expr);
+      s.expr = model.expr(s.expr);
       signal.evaluate = function(input) {
         var val = exprVal(model, s),
             sg  = input.signals;
@@ -15246,9 +16231,8 @@ function parseSignals(model, spec) {
 }
 
 function exprVal(model, spec) {
-  var e = spec.expr,
-      val = e.fn(null, null, model.values(SIGNALS, e.globals));
-  return spec.scale ? parseSignals.scale(model, spec, val) : val;
+  var e = spec.expr, v = e.fn();
+  return spec.scale ? parseSignals.scale(model, spec, v) : v;
 }
 
 parseSignals.scale = function scale(model, spec, value, datum, evt) {
@@ -15260,95 +16244,133 @@ parseSignals.scale = function scale(model, spec, value, datum, evt) {
     if (scope.signal) {
       scope = model.signalRef(scope.signal);
     } else if (dl.isString(scope)) { // Scope is an expression
-      e = def._expr = (def._expr || expr(scope));
-      scope = e.fn(datum, evt, model.values(SIGNALS, e.globals));
+      e = def._expr = (def._expr || model.expr(scope));
+      scope = e.fn(datum, evt);
     }
   }
 
-  if (!scope || !scope.scale) {
-    scope = (scope && scope.mark) ? scope.mark.group : model.scene().items[0];
-  }
-
-  var s = scope.scale(name);
-  return !s ? value : (def.invert ? s.invert(value) : s(value));
+  return expr.scale(model, def.invert, name, value, scope);
 };
 
 module.exports = parseSignals;
 },{"./expr":96,"datalib":26,"vega-dataflow":41}],106:[function(require,module,exports){
-var dl = require('datalib'),
+var dl  = require('datalib'),
     log = require('vega-logging'),
     Model = require('../core/Model'),
-    View = require('../core/View');
+    View  = require('../core/View');
 
-function parseSpec(spec, callback) {
-  var vf = arguments[arguments.length-1],
-      viewFactory = arguments.length > 2 && dl.isFunction(vf) ? vf : View.factory,
-      config = arguments[2] !== viewFactory ? arguments[2] : {},
-      model = new Model(config);
+/**
+ * Parse graph specification
+ * @param spec (object)
+ * @param config (optional object)
+ * @param viewFactory (optional function)
+ * @param callback (error, model)
+ */
+ function parseSpec(spec /*, [config,] [viewFactory,] callback */) {
+  // do not assign any values to callback, as it will change arguments
+  var arglen = arguments.length,
+      argidx = 2,
+      cb = arguments[arglen-1],
+      model = new Model(),
+      viewFactory = View.factory;
 
-  function parse(spec) {
-    // protect against subsequent spec modification
-    spec = dl.duplicate(spec);
-
-    var parsers = require('./'),
-        create  = function() { callback(viewFactory(model)); },
-        width   = spec.width || 500,
-        height  = spec.height || 500,
-        padding = parsers.padding(spec.padding);
-
-    // create signals for width, height and padding
-    model.signal('width', width);
-    model.signal('height', height);
-    model.signal('padding', padding);
-
-    // initialize model
-    model.defs({
-      width:      width,
-      height:     height,
-      padding:    padding,
-      viewport:   spec.viewport || null,
-      background: parsers.background(spec.background),
-      signals:    parsers.signals(model, spec.signals),
-      predicates: parsers.predicates(model, spec.predicates),
-      marks:      parsers.marks(model, spec, width, height),
-      data:       parsers.data(model, spec.data, create)
-    });
+  if (arglen > argidx && dl.isFunction(arguments[arglen - argidx])) {
+    viewFactory = arguments[arglen - argidx];
+    ++argidx;
+  }
+  if (arglen > argidx && dl.isObject(arguments[arglen - argidx])) {
+    model.config(arguments[arglen - argidx]);
   }
 
   if (dl.isObject(spec)) {
     parse(spec);
   } else if (dl.isString(spec)) {
     var opts = dl.extend({url: spec}, model.config().load);
-    dl.load(opts, function(err, data) {
-      if (err) {
-        log.error('LOADING SPECIFICATION FAILED: ' + err.statusText);
-      } else {
-        try {
-          parse(JSON.parse(data));
-        } catch (e) {
-          log.error('INVALID SPECIFICATION: Must be a valid JSON object. '+e);
-        }
-      }
+    dl.json(opts, function(err, spec) {
+      if (err) done('SPECIFICATION LOAD FAILED: ' + err);
+      else parse(spec);
     });
   } else {
-    log.error('INVALID SPECIFICATION: Must be a valid JSON object or URL.');
+    done('INVALID SPECIFICATION: Must be a valid JSON object or URL.');
+  }
+
+  function parse(spec) {
+    try {
+      // protect against subsequent spec modification
+      spec = dl.duplicate(spec);
+
+      var parsers = require('./'),
+          width   = spec.width || 500,
+          height  = spec.height || 500,
+          padding = parsers.padding(spec.padding);
+
+      // create signals for width, height, padding, and cursor
+      model.signal('width', width);
+      model.signal('height', height);
+      model.signal('padding', padding);
+      cursor(spec);
+
+      // initialize model
+      model.defs({
+        width:      width,
+        height:     height,
+        padding:    padding,
+        viewport:   spec.viewport || null,
+        background: parsers.background(spec.background),
+        signals:    parsers.signals(model, spec.signals),
+        predicates: parsers.predicates(model, spec.predicates),
+        marks:      parsers.marks(model, spec, width, height),
+        data:       parsers.data(model, spec.data, done)
+      });
+    } catch (err) { done(err); }
+  }
+
+  function cursor(spec) {
+    var signals = spec.signals || (spec.signals=[]),  def;
+    signals.some(function(sg) {
+      return (sg.name === 'cursor') ? (def=sg, true) : false;
+    });
+
+    if (!def) signals.push(def={name: 'cursor', streams: []});
+
+    // Add a stream def at the head, so that custom defs can override it.
+    def.init = def.init || {};
+    def.streams.unshift({
+      type: 'mousemove',
+      expr: 'eventItem().cursor === cursor.default ? cursor : {default: eventItem().cursor}'
+    });
+  }
+
+  function done(err) {
+    var view;
+    if (err) {
+      log.error(err);
+    } else {
+      view = viewFactory(model.buildIndexes());
+    }
+
+    if (cb) {
+      if (cb.length > 1) cb(err, view);
+      else if (!err) cb(view);
+      cb = null;
+    }
   }
 }
 
 module.exports = parseSpec;
-},{"../core/Model":88,"../core/View":89,"./":97,"datalib":26,"vega-logging":47}],107:[function(require,module,exports){
+},{"../core/Model":89,"../core/View":90,"./":97,"datalib":26,"vega-logging":48}],107:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
     df = require('vega-dataflow'),
-    SIGNALS = df.Dependencies.SIGNALS,
-    parseSignals = require('./signals'),
-    selector = require('./events'),
-    expr = require('./expr');
+    selector = require('vega-event-selector'),
+    parseSignals = require('./signals');
 
-var GATEKEEPER = '_vgGATEKEEPER';
+var GATEKEEPER = '_vgGATEKEEPER',
+    EVALUATOR  = '_vgEVALUATOR';
 
 var vgEvent = {
+  getItem: function() { return this.item; },
   getGroup: function(name) { return name ? this.name[name] : this.group; },
   getXY: function(item) {
       var p = {x: this.x, y: this.y};
@@ -15367,18 +16389,20 @@ var vgEvent = {
 
 function parseStreams(view) {
   var model = view.model(),
-      spec  = model.defs().signals,
+      trueFn  = model.expr('true'),
+      falseFn = model.expr('false'),
+      spec    = model.defs().signals,
       registry = {handlers: {}, nodes: {}},
       internal = dl.duplicate(registry),  // Internal event processing
       external = dl.duplicate(registry);  // External event processing
 
-  (spec || []).forEach(function(sig) {
+  dl.array(spec).forEach(function(sig) {
     var signal = model.signal(sig.name);
     if (sig.expr) return;  // Cannot have an expr and stream definition.
 
-    (sig.streams || []).forEach(function(stream) {
+    dl.array(sig.streams).forEach(function(stream) {
       var sel = selector.parse(stream.type),
-          exp = expr(stream.expr);
+          exp = model.expr(stream.expr);
       mergedStream(signal, sel, exp, stream);
     });
   });
@@ -15421,7 +16445,7 @@ function parseStreams(view) {
     dl.keys(external.handlers).forEach(function(type) {
       var h = external.handlers[type],
           t = type.split(':'),
-          elt = h.elements || [];
+          elt = dl.array(h.elements);
 
       for (var i=0; i<elt.length; ++i) {
         elt[i].removeEventListener(t[1], h.listener);
@@ -15466,7 +16490,7 @@ function parseStreams(view) {
         val, i, n, h;
 
     function invoke(f) {
-      return !f.fn(datum, evt, model.values(SIGNALS, f.globals));
+      return !f.fn(datum, evt);
     }
 
     for (i=0, n=handlers.length; i<n; ++i) {
@@ -15474,7 +16498,7 @@ function parseStreams(view) {
       filtered = h.filters.some(invoke);
       if (filtered) continue;
 
-      val = h.exp.fn(datum, evt, model.values(SIGNALS, h.exp.globals));
+      val = h.exp.fn(datum, evt);
       if (h.spec.scale) {
         val = parseSignals.scale(model, h.spec, val, datum, evt);
       }
@@ -15493,7 +16517,12 @@ function parseStreams(view) {
       if (s.event)       domEvent(sig, s, exp, spec);
       else if (s.signal) signal(sig, s, exp, spec);
       else if (s.start)  orderedStream(sig, s, exp, spec);
-      else if (s.stream) mergedStream(sig, s.stream, exp, spec);
+      else if (s.stream) {
+        if (s.filters) s.stream.forEach(function(ms) {
+          ms.filters = dl.array(ms.filters).concat(s.filters);
+        });
+        mergedStream(sig, s.stream, exp, spec);
+      }
     });
   }
 
@@ -15502,7 +16531,7 @@ function parseStreams(view) {
         name = selector.name,
         mark = selector.mark,
         target   = selector.target,
-        filters  = selector.filters || [],
+        filters  = dl.array(selector.filters),
         registry = target ? external : internal,
         type = target ? target+':'+evt : evt,
         node = registry.nodes[type] || (registry.nodes[type] = new df.Node(model)),
@@ -15518,39 +16547,37 @@ function parseStreams(view) {
       signal: sig,
       exp: exp,
       spec: spec,
-      filters: filters.map(function(f) { return expr(f); })
+      filters: filters.map(function(f) { return model.expr(f); })
     });
 
     node.addListener(sig);
   }
 
   function signal(sig, selector, exp, spec) {
-    var n = new df.Node(model);
-    n.evaluate = function(input) {
+    var n = sig.name(), s = model.signal(n+EVALUATOR, null);
+    s.evaluate = function(input) {
       if (!input.signals[selector.signal]) return model.doNotPropagate;
-      var val = exp.fn(null, null, model.values(SIGNALS, exp.globals));
+      var val = exp.fn();
       if (spec.scale) {
         val = parseSignals.scale(model, spec, val);
       }
 
       if (val !== sig.value() || sig.verbose()) {
         sig.value(val);
-        input.signals[sig.name()] = 1;
+        input.signals[n] = 1;
         input.reflow = true;
       }
 
       return input;
     };
-    n.dependency(df.Dependencies.SIGNALS, selector.signal);
-    n.addListener(sig);
-    model.signal(selector.signal).addListener(n);
+    s.dependency(df.Dependencies.SIGNALS, selector.signal);
+    s.addListener(sig);
+    model.signal(selector.signal).addListener(s);
   }
 
   function orderedStream(sig, selector, exp, spec) {
     var name = sig.name(),
         gk = name + GATEKEEPER,
-        trueFn  = expr('true'),
-        falseFn = expr('false'),
         middle  = selector.middle,
         filters = middle.filters || (middle.filters = []),
         gatekeeper = model.signal(gk) || model.signal(gk, false);
@@ -15569,13 +16596,17 @@ function parseStreams(view) {
 module.exports = parseStreams;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./events":95,"./expr":96,"./signals":105,"datalib":26,"vega-dataflow":41}],108:[function(require,module,exports){
+},{"./signals":105,"datalib":26,"vega-dataflow":41,"vega-event-selector":42}],108:[function(require,module,exports){
 var dl = require('datalib'),
     transforms = require('../transforms/index');
 
 function parseTransforms(model, def) {
-  var tx = new transforms[def.type](model);
+  var transform = transforms[def.type],
+      tx;
 
+  if (!transform) throw new Error('"' + def.type + '" is not a valid transformation');
+
+  tx = new transform(model);
   // We want to rename output fields before setting any other properties,
   // as subsequent properties may require output to be set (e.g. group by).
   if(def.output) tx.output(def.output);
@@ -15589,12 +16620,14 @@ function parseTransforms(model, def) {
 }
 
 module.exports = parseTransforms;
-},{"../transforms/index":144,"datalib":26}],109:[function(require,module,exports){
+},{"../transforms/index":145,"datalib":26}],109:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
+    scene = require('vega-scenegraph'),
     Node = df.Node, // jshint ignore:line
     log = require('vega-logging'),
-    bound = require('vega-scenegraph').bound,
+    bound = scene.bound,
+    Bounds = scene.Bounds,
     Encoder = require('./Encoder');
 
 function Bounder(graph, mark) {
@@ -15610,18 +16643,32 @@ var proto = (Bounder.prototype = new Node());
 proto.evaluate = function(input) {
   log.debug(input, ['bounds', this._mark.marktype]);
 
-  var type  = this._mark.marktype,
+  var mark  = this._mark,
+      type  = mark.marktype,
       isGrp = type === 'group',
-      items = this._mark.items,
-      hasLegends = dl.array(this._mark.def.legends).length > 0,
+      items = mark.items,
+      hasLegends = dl.array(mark.def.legends).length > 0,
+      bounds  = mark.bounds,
+      rebound = !bounds || input.rem.length,
       i, ilen, j, jlen, group, legend;
 
-  if (input.add.length || input.rem.length || !items.length ||
-      input.mod.length === items.length ||
-      type === 'area' || type === 'line') {
-    bound.mark(this._mark, null, isGrp && !hasLegends);
+  if (type === 'line' || type === 'area') {
+    bound.mark(mark, null, isGrp && !hasLegends);
   } else {
-    input.mod.forEach(function(item) { bound.item(item); });
+    input.add.forEach(function(item) {
+      bound.item(item);
+      rebound = rebound || (bounds && !bounds.encloses(item.bounds));
+    });
+
+    input.mod.forEach(function(item) {
+      rebound = rebound || (bounds && bounds.alignsWith(item.bounds));
+      bound.item(item);
+    });
+
+    if (rebound) {
+      bounds = mark.bounds && mark.bounds.clear() || (mark.bounds = new Bounds());
+      for (i=0, ilen=items.length; i<ilen; ++i) bounds.union(items[i].bounds);
+    }
   }
 
   if (isGrp && hasLegends) {
@@ -15635,14 +16682,14 @@ proto.evaluate = function(input) {
       }
     }
 
-    bound.mark(this._mark, null, true);
+    bound.mark(mark, null, true);
   }
 
   return df.ChangeSet.create(input, true);
 };
 
 module.exports = Bounder;
-},{"./Encoder":111,"datalib":26,"vega-dataflow":41,"vega-logging":47,"vega-scenegraph":48}],110:[function(require,module,exports){
+},{"./Encoder":111,"datalib":26,"vega-dataflow":41,"vega-logging":48,"vega-scenegraph":49}],110:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     Item = require('vega-scenegraph').Item,
@@ -15718,10 +16765,12 @@ proto.init = function(graph, def, mark, parent, parent_id, inheritFrom) {
 function inlineDs() {
   var from = this._def.from,
       geom = from.mark,
-      src, name, spec, sibling, output, input;
+      src, name, spec, sibling, output, input, node;
 
   if (geom) {
-    name = ['vg', this._parent_id, geom].join('_');
+    sibling = this.sibling(geom);
+    src  = sibling._isSuper ? sibling : sibling._bounder;
+    name = ['vg', this._parent_id, geom, src.listeners(true).length].join('_');
     spec = {
       name: name,
       transform: from.transform,
@@ -15729,6 +16778,7 @@ function inlineDs() {
     };
   } else {
     src = this._graph.data(this._from);
+    if (!src) throw Error('Data source "'+this._from+'" is not defined.');
     name = ['vg', this._from, this._def.type, src.listeners(true).length].join('_');
     spec = {
       name: name,
@@ -15740,21 +16790,21 @@ function inlineDs() {
 
   this._from = name;
   this._ds = parseData.datasource(this._graph, spec);
-  var node;
 
   if (geom) {
-    sibling = this.sibling(geom);
-
     // Bounder reflows, so we need an intermediary node to propagate
     // the output constructed by the Builder.
     node = new Node(this._graph).addListener(this._ds.listener());
-    node.evaluate = function() { return sibling._output; };
+    node.evaluate = function(input) {
+      var out  = ChangeSet.create(input),
+          sout = sibling._output;
 
-    if (sibling._isSuper) {
-      sibling.addListener(node);
-    } else {
-      sibling._bounder.addListener(node);
-    }
+      out.add = sout.add;
+      out.mod = sout.mod;
+      out.rem = sout.rem;
+      return out;
+    };
+    src.addListener(node);
   } else {
     // At this point, we have a new datasource but it is empty as
     // the propagation cycle has already crossed the datasources.
@@ -15947,7 +16997,7 @@ function keyFunction(key) {
 }
 
 module.exports = Builder;
-},{"../parse/data":94,"./Bounder":109,"./Encoder":111,"datalib":26,"vega-dataflow":41,"vega-logging":47,"vega-scenegraph":48}],111:[function(require,module,exports){
+},{"../parse/data":95,"./Bounder":109,"./Encoder":111,"datalib":26,"vega-dataflow":41,"vega-logging":48,"vega-scenegraph":49}],111:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     df = require('vega-dataflow'),
@@ -16134,11 +17184,12 @@ Encoder.update = function(graph, trans, request, items, dirty) {
 };
 
 module.exports = Encoder;
-},{"./Builder":110,"datalib":26,"vega-dataflow":41,"vega-logging":47,"vega-scenegraph":48}],112:[function(require,module,exports){
+},{"./Builder":110,"datalib":26,"vega-dataflow":41,"vega-logging":48,"vega-scenegraph":49}],112:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
-    Node = df.Node, // jshint ignore:line
-    Deps = df.Dependencies,
+    Node  = df.Node, // jshint ignore:line
+    Deps  = df.Dependencies,
+    Tuple = df.Tuple,
     Collector = df.Collector,
     log = require('vega-logging'),
     Builder = require('./Builder'),
@@ -16197,10 +17248,25 @@ proto.init = function(graph, def) {
 };
 
 proto.evaluate = function() {
-  var output = Builder.prototype.evaluate.apply(this, arguments),
-      builder = this;
+  var output  = Builder.prototype.evaluate.apply(this, arguments),
+      model   = this._graph,
+      builder = this,
+      scales = this._scales,
+      items  = this._mark.items;
+
+  // If scales need to be reevaluated, we need to send all group items forward.
+  if (output.mod.length < items.length) {
+    var fullUpdate = dl.keys(scales).some(function(s) {
+      return scales[s].reevaluate(output);
+    });
+
+    if (fullUpdate) {
+      output.mod = output.mod.concat(Tuple.idFilter(items, output.mod));
+    }
+  }
 
   output.add.forEach(function(group) { buildGroup.call(builder, output, group); });
+  output.rem.forEach(function(group) { model.group(group._id, null); });
   return output;
 };
 
@@ -16343,6 +17409,9 @@ function buildGroup(input, group) {
 
   group.legends = group.legends || [];
   group.legendItems = group.legendItems || [];
+
+  // Index group by ID to enable safe scoped scale lookups.
+  this._graph.group(group._id, group);
 }
 
 function buildMarks(input, group) {
@@ -16376,7 +17445,7 @@ function buildAxes(input, group) {
         def = a.def(),
         b = null;
 
-    axisItems[i] = {group: group, axis: true, layer: def.layer};
+    axisItems[i] = {group: group, axis: a, layer: def.layer};
     b = (def.type === Types.GROUP) ? new GroupBuilder() : new Builder();
     b.init(builder._graph, def, axisItems[i], builder)
       .dependency(Deps.SCALES, scale);
@@ -16395,7 +17464,7 @@ function buildLegends(input, group) {
         def = l.def(),
         b = null;
 
-    legendItems[i] = {group: group, legend: true};
+    legendItems[i] = {group: group, legend: l};
     b = (def.type === Types.GROUP) ? new GroupBuilder() : new Builder();
     b.init(builder._graph, def, legendItems[i], builder)
       .dependency(Deps.SCALES, scale);
@@ -16404,7 +17473,7 @@ function buildLegends(input, group) {
 }
 
 module.exports = GroupBuilder;
-},{"../parse/axes":92,"../parse/legends":98,"./Builder":110,"./Scale":113,"datalib":26,"vega-dataflow":41,"vega-logging":47}],113:[function(require,module,exports){
+},{"../parse/axes":93,"../parse/legends":98,"./Builder":110,"./Scale":113,"datalib":26,"vega-dataflow":41,"vega-logging":48}],113:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -16542,8 +17611,8 @@ function ordinal(scale, rng, group) {
   // range
   if (!dl.equal(prev.range, rng)) {
     // width-defined range
-    if (def.bandWidth) {
-      var bw = signal.call(this, def.bandWidth),
+    if (def.bandSize) {
+      var bw = signal.call(this, def.bandSize),
           len = domain.length,
           space = def.points ? (pad*bw) : (pad*bw*(len-1) + 2*outer),
           start;
@@ -16554,6 +17623,8 @@ function ordinal(scale, rng, group) {
         start = rng[0] || 0;
         rng = [start, start + (bw * len + space)];
       }
+
+      if (def.reverse) rng = rng.reverse();
     }
 
     str = typeof rng[0] === 'string';
@@ -16636,14 +17707,12 @@ function quantitative(scale, rng, group) {
   // range
   // vertical scales should flip by default, so use XOR here
   if (signal.call(this, def.range) === 'height') rng = rng.reverse();
-  if (dl.equal(prev.range, rng)) return;
-  scale[round && scale.rangeRound ? 'rangeRound' : 'range'](rng);
-  prev.range = rng;
-  this._updated = true;
+  if (rng && !dl.equal(prev.range, rng)) {
+    scale[round && scale.rangeRound ? 'rangeRound' : 'range'](rng);
+    prev.range = rng;
+    this._updated = true;
+  }
 
-  // TODO: Support signals for these properties. Until then, only eval
-  // them once.
-  if (this._stamp > 0) return;
   if (exponent && def.type===Types.POWER) scale.exponent(exponent);
   if (clamp) scale.clamp(true);
   if (nice) {
@@ -16768,7 +17837,7 @@ function dataRef(which, def, scale, group) {
       cache = getCache.apply(this, arguments),
       sort  = def.sort,
       uniques = isUniques(scale),
-      i, rlen, j, flen, ref, fields, field, data, from, so, cmp;
+      i, rlen, j, flen, ref, fields, field, data, from, cmp;
 
   function addDep(s) {
     self.dependency(Deps.SIGNALS, s);
@@ -16804,8 +17873,7 @@ function dataRef(which, def, scale, group) {
     data = cache.aggr().result();
     if (uniques) {
       if (dl.isObject(sort)) {
-        cmp = (so = sort.order) && so.signal ? graph.signalRef(so.signal) : so;
-        cmp = (cmp == DataRef.DESC ? '-' : '+') + sort.op + '_' + DataRef.VALUE;
+        cmp = sort.op + '_' + DataRef.VALUE;
         cmp = dl.comparator(cmp);
       } else if (sort === true) {
         cmp = dl.comparator(DataRef.GROUPBY);
@@ -16917,7 +17985,7 @@ function range(group) {
 module.exports = Scale;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../transforms/Aggregate":118,"datalib":26,"vega-dataflow":41,"vega-logging":47}],114:[function(require,module,exports){
+},{"../transforms/Aggregate":118,"datalib":26,"vega-dataflow":41,"vega-logging":48}],114:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     bound = require('vega-scenegraph').bound,
@@ -17024,18 +18092,14 @@ function step(elapsed) {
 module.exports = Transition;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./Builder":110,"vega-dataflow":41,"vega-scenegraph":48}],115:[function(require,module,exports){
+},{"./Builder":110,"vega-dataflow":41,"vega-scenegraph":49}],115:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
-    parseMark = require('../parse/mark');
+    parseMark = require('../parse/mark'),
+    util = require('../util');
 
 var axisBounds = new (require('vega-scenegraph').Bounds)();
-
-var TIME    = 'time',
-    UTC     = 'utc',
-    STRING  = 'string',
-    ORDINAL = 'ordinal',
-    NUMBER  = 'number';
+var ORDINAL = 'ordinal';
 
 function axs(model) {
   var scale,
@@ -17081,57 +18145,6 @@ function axs(model) {
     return {data: d};
   }
 
-  function getTickFormat() {
-    var formatType = tickFormatType || inferFormatType();
-    return getFormatter(formatType, tickFormatString);
-  }
-
-  function inferFormatType() {
-    switch (scale.type) {
-      case TIME:    return TIME;
-      case UTC:     return UTC;
-      case ORDINAL: return STRING;
-      default:      return NUMBER;
-    }
-  }
-
-  // Adapted from d3 log scale
-  // TODO customize? replace with range-size-aware filtering?
-  function logFilter(domain, count, f) {
-    if (count == null) return f;
-    var base = scale.base(),
-        k = Math.min(base, scale.ticks().length / count),
-        v = domain[0] > 0 ? (e = 1e-12, Math.ceil) : (e = -1e-12, Math.floor),
-        e;
-    function log(x) {
-      return (domain[0] < 0 ?
-        -Math.log(x > 0 ? 0 : -x) :
-        Math.log(x < 0 ? 0 : x)) / Math.log(base);
-    }
-    function pow(x) {
-      return domain[0] < 0 ? -Math.pow(base, -x) : Math.pow(base, x);
-    }
-    return function(d) {
-      return pow(v(log(d) + e)) / d >= k ? f(d) : '';
-    };
-  }
-
-  function getFormatter(formatType, str) {
-    var fmt = dl.format,
-        log = scale.type === 'log',
-        domain, f;
-
-    switch (formatType) {
-      case NUMBER:
-         domain = scale.domain();
-         f = fmt.auto.number(domain, tickCount, str || (log ? '.1r' : null));
-         return log ? logFilter(domain, tickCount, f) : f;
-      case TIME: return (str ? fmt : fmt.auto).time(str);
-      case UTC:  return (str ? fmt : fmt.auto).utc(str);
-      default:   return String;
-    }
-  }
-
   function getTicks(format) {
     var major = tickValues || (scale.ticks ? scale.ticks(tickCount) : scale.domain()),
         minor = axisSubdivide(scale, major, tickSubdivide).map(ingest);
@@ -17142,8 +18155,9 @@ function axs(model) {
   axis.def = function() {
     if (!axisDef.type) axis_def(scale);
 
-    var ticks = getTicks(getTickFormat());
-    var tdata = title ? [title].map(ingest) : [];
+    var format = util.getTickFormat(scale, tickCount, tickFormatType, tickFormatString),
+        ticks  = getTicks(format),
+        tdata  = title ? [title].map(ingest) : [];
 
     axisDef.marks[0].from = function() { return grid ? ticks[0] : []; };
     axisDef.marks[1].from = function() { return ticks[0]; };
@@ -17212,7 +18226,7 @@ function axs(model) {
     m.gridLines.properties.enter.strokeOpacity = {value: config.gridOpacity};
 
     // extend axis marks based on axis orientation
-    axisTicksExtend(orient, m.gridLines, oldScale, newScale, Infinity);
+    axisTicksExtend(orient, m.gridLines, oldScale, newScale, Infinity, offset);
     axisTicksExtend(orient, m.majorTicks, oldScale, newScale, tickMajorSize);
     axisTicksExtend(orient, m.minorTicks, oldScale, newScale, tickMinorSize);
     axisLabelExtend(orient, m.tickLabels, oldScale, newScale, tickMajorSize, tickPadding);
@@ -17479,14 +18493,14 @@ function axisLabelExtend(orient, labels, oldScale, newScale, size, pad) {
   }
 }
 
-function axisTicksExtend(orient, ticks, oldScale, newScale, size) {
+function axisTicksExtend(orient, ticks, oldScale, newScale, size, offset) {
   var sign = (orient === 'left' || orient === 'top') ? -1 : 1;
   if (size === Infinity) {
     size = (orient === 'top' || orient === 'bottom') ?
-      {field: {group: 'height', level: 2}, mult: -sign} :
-      {field: {group: 'width',  level: 2}, mult: -sign};
+      {field: {group: 'height', level: 2}, mult: -sign, offset: offset*-sign} :
+      {field: {group: 'width',  level: 2}, mult: -sign, offset: offset*-sign};
   } else {
-    size = {value: sign * size};
+    size = {value: sign * size, offset: offset};
   }
   if (orient === 'top' || orient === 'bottom') {
     dl.extend(ticks.properties.enter, {
@@ -17527,11 +18541,11 @@ function axisTitleExtend(orient, title, range, offset) {
   if (orient === 'bottom' || orient === 'top') {
     update.x = {value: mid};
     update.angle = {value: 0};
-    if (offset >= 0) update.y = sign * offset;
+    if (offset >= 0) update.y = {value: sign * offset};
   } else {
     update.y = {value: mid};
     update.angle = {value: orient === 'left' ? -90 : 90};
-    if (offset >= 0) update.x = sign * offset;
+    if (offset >= 0) update.x = {value: sign * offset};
   }
 }
 
@@ -17656,25 +18670,26 @@ function axisDomain(config) {
 }
 
 module.exports = axs;
-},{"../parse/mark":99,"datalib":26,"vega-dataflow":41,"vega-scenegraph":48}],116:[function(require,module,exports){
+},{"../parse/mark":99,"../util":148,"datalib":26,"vega-dataflow":41,"vega-scenegraph":49}],116:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
     Gradient = require('vega-scenegraph').Gradient,
     parseProperties = require('../parse/properties'),
-    parseMark = require('../parse/mark');
+    parseMark = require('../parse/mark'),
+    util = require('../util');
 
 function lgnd(model) {
-  var size = null,
+  var size  = null,
       shape = null,
-      fill = null,
-      stroke = null,
+      fill  = null,
+      stroke  = null,
       spacing = null,
-      values = null,
-      format = null,
+      values  = null,
       formatString = null,
+      formatType   = null,
+      title  = null,
       config = model.config().legend,
-      title,
       orient = config.orient,
       offset = config.offset,
       padding = config.padding,
@@ -17700,9 +18715,6 @@ function lgnd(model) {
   legend.def = function() {
     var scale = size || shape || fill || stroke;
 
-    format = !formatString ? null : ((scale.type === 'time') ?
-      dl.format.time(formatString) : dl.format.number(formatString));
-
     if (!legendDef.type) {
       legendDef = (scale===fill || scale===stroke) && !discrete(scale.type) ?
         quantDef(scale) : ordinalDef(scale);
@@ -17726,7 +18738,8 @@ function lgnd(model) {
     var data = (values == null ?
       (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) :
       values).map(ingest);
-    var fmt = format==null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : String) : format;
+
+    var fmt = util.getTickFormat(scale, data.length, formatType, formatString);
 
     // determine spacing between legend entries
     var fs, range, offset, pad=5, domain = d3.range(data.length);
@@ -17820,7 +18833,7 @@ function lgnd(model) {
         dom = scale.domain(),
         data  = (values == null ? dom : values).map(ingest),
         width = (gradientStyle.width && gradientStyle.width.value) || config.gradientWidth,
-        fmt = format==null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : String) : format;
+        fmt = util.getTickFormat(scale, data.length, formatType, formatString);
 
     // build scale for label layout
     def.scales = def.scales || [{}];
@@ -17956,6 +18969,15 @@ function lgnd(model) {
     return legend;
   };
 
+  legend.formatType = function(x) {
+    if (!arguments.length) return formatType;
+    if (formatType !== x) {
+      formatType = x;
+      reset();
+    }
+    return legend;
+  };
+
   legend.spacing = function(x) {
     if (!arguments.length) return spacing;
     if (spacing !== +x) { spacing = +x; reset(); }
@@ -18018,16 +19040,17 @@ function lgnd(model) {
   return legend;
 }
 
-var LEGEND_ORIENT = {right: 1, left: 1};
+var LEGEND_ORIENT = {left: 'x1', right: 'x2'};
 
 function legendPosition(item, group, trans, db, signals, predicates) {
-  var o = trans ? {} : item, i, aw = 0,
-      def    = item.mark.def,
+  var o = trans ? {} : item, i,
+      def = item.mark.def,
       offset = def.offset,
       orient = def.orient,
-      pad    = def.padding * 2,
-      lw     = ~~item.bounds.width() + (item.width ? 0 : pad),
-      lh     = ~~item.bounds.height() + (item.height ? 0 : pad),
+      pad = def.padding * 2,
+      ao  = orient === 'left' ? 0 : group.width,
+      lw  = ~~item.bounds.width() + (item.width ? 0 : pad),
+      lh  = ~~item.bounds.height() + (item.height ? 0 : pad),
       pos = group._legendPositions ||
         (group._legendPositions = {right: 0.5, left: 0.5});
 
@@ -18036,16 +19059,20 @@ function legendPosition(item, group, trans, db, signals, predicates) {
   o.y = pos[orient];
   pos[orient] += (o.height = lh) + def.margin;
 
-  for (i=0; i<group.axes.length; ++i) {
-    if (group.axes[i].orient() === orient) {
-      aw = Math.max(aw, group.axisItems[i].bounds.width());
+  // Calculate axis offset. 
+  var axes  = group.axes, 
+      items = group.axisItems,
+      bound = LEGEND_ORIENT[orient];
+  for (i=0; i<axes.length; ++i) {
+    if (axes[i].orient() === orient) {
+      ao = Math.max(ao, Math.abs(items[i].bounds[bound]));
     }
   }
 
   if (orient === 'left') {
-    o.x -= aw + offset + lw;
+    o.x -= ao + offset + lw;
   } else {
-    o.x += group.width + aw + offset;
+    o.x += ao + offset;
   }
 
   if (trans) trans.interpolate(item, o);
@@ -18193,7 +19220,7 @@ function hLegendLabels(config) {
 module.exports = lgnd;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../parse/mark":99,"../parse/properties":104,"datalib":26,"vega-scenegraph":48}],117:[function(require,module,exports){
+},{"../parse/mark":99,"../parse/properties":104,"../util":148,"datalib":26,"vega-scenegraph":49}],117:[function(require,module,exports){
 module.exports = function visit(node, func) {
   var i, n, s, m, items;
   if (func(node)) return true;
@@ -18324,7 +19351,7 @@ prototype.aggr = function() {
 
   if (!fields.length) fields = {'*': 'values'};
 
-  // Instatiate our aggregator instance.
+  // Instantiate our aggregator instance.
   // Facetor is a special subclass that can facet into data pipelines.
   var aggr = this._aggr = new Facetor()
     .groupby(groupby)
@@ -18369,7 +19396,7 @@ prototype.transform = function(input, reset) {
       args = this._args,
       reeval = true,
       p = Tuple.prev,
-      add, rem, mod, i;
+      add, rem, mod, mark, i;
 
   // Upon reset, retract prior tuples and re-initialize.
   if (reset) {
@@ -18381,18 +19408,20 @@ prototype.transform = function(input, reset) {
 
   // Get update methods according to input type.
   if (this._type === TYPES.TUPLE) {
-    add = function(x) { aggr._add(x); Tuple.prev_init(x); };
-    rem = function(x) { aggr._rem(p(x)); };
-    mod = function(x) { aggr._mod(x, p(x)); };
+    add  = function(x) { aggr._add(x); Tuple.prev_init(x); };
+    rem  = function(x) { aggr._rem(p(x)); };
+    mod  = function(x) { aggr._mod(x, p(x)); };
+    mark = function(x) { aggr._markMod(x, p(x)); };
   } else {
     var gby = this._acc.groupby,
         val = this._acc.value,
         get = this._type === TYPES.VALUE ? val : function(x) {
           return { _id: x._id, groupby: gby(x), value: val(x) };
         };
-    add = function(x) { aggr._add(get(x)); Tuple.prev_init(x); };
-    rem = function(x) { aggr._rem(get(p(x))); };
-    mod = function(x) { aggr._mod(get(x), get(p(x))); };
+    add  = function(x) { aggr._add(get(x)); Tuple.prev_init(x); };
+    rem  = function(x) { aggr._rem(get(p(x))); };
+    mod  = function(x) { aggr._mod(get(x), get(p(x))); };
+    mark = function(x) { aggr._mark(get(x), get(p(x))); };
   }
 
   input.add.forEach(add);
@@ -18407,7 +19436,7 @@ prototype.transform = function(input, reset) {
     if (args) for (i=0, reeval=false; i<args.length; ++i) {
       if (input.fields[args[i]]) { reeval = true; break; }
     }
-    if (reeval) input.mod.forEach(mod);
+    input.mod.forEach(reeval ? mod : mark);
   }
 
   // Indicate output fields and return aggregate tuples.
@@ -18418,7 +19447,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Aggregate;
-},{"./Facetor":124,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],119:[function(require,module,exports){
+},{"./Facetor":124,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],119:[function(require,module,exports){
 var Base = require('./Transform').prototype;
 
 function BatchTransform() {
@@ -18443,7 +19472,7 @@ prototype.batchTransform = function(/* input, data, reset */) {
 };
 
 module.exports = BatchTransform;
-},{"./Transform":139}],120:[function(require,module,exports){
+},{"./Transform":140}],120:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -18528,7 +19557,7 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Bin;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],121:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],121:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
     log = require('vega-logging'),
@@ -18653,12 +19682,11 @@ prototype._rem = function(tuples, get) {
 };
 
 module.exports = CountPattern;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],122:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],122:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
     ChangeSet = df.ChangeSet,
     Tuple = df.Tuple,
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform'),
     BatchTransform = require('./BatchTransform');
@@ -18672,10 +19700,9 @@ function Cross(graph) {
   });
 
   this._output = {'left': 'a', 'right': 'b'};
-  this._lastRem  = null; // Most recent stamp that rem occured.
-  this._lastWith = null; // Last time we crossed w/withds.
-  this._ids   = {};
-  this._cache = {}; 
+  this._lastWith = null; // Last time we crossed w/with-ds.
+  this._cids  = {};
+  this._cache = {};
 
   return this.router(true).produces(true);
 }
@@ -18683,159 +19710,174 @@ function Cross(graph) {
 var prototype = (Cross.prototype = Object.create(BatchTransform.prototype));
 prototype.constructor = Cross;
 
-// Each cached incoming tuple also has a stamp to track if we need to do lazy
-// tuple removal, and a flag to determine whether any tuples were filtered.
-function cache(x, t) {
+// Each cached incoming tuple also has a flag to determine whether
+// any tuples were filtered.
+function _cache(x, t) {
   var c = this._cache,
-      s = this._stamp,
-      cross = c[x._id] || (c[x._id] = {c: [], s: s, f: false});
+      cross = c[x._id] || (c[x._id] = {c: [], f: false});
   cross.c.push(t);
 }
 
-function add(output, left, data, diag, test, x) {
-  var c   = this._cache,
-      as  = this._output,
-      ids = this._ids,
-      oadd  = output.add, 
+function _cid(left, x, y) {
+  return left ? x._id+'_'+y._id : y._id+'_'+x._id;
+}
+
+function add(output, left, data, diag, test, mids, x) {
+  var as = this._output,
+      cache = this._cache,
+      cids  = this._cids,
+      oadd  = output.add,
       fltrd = false,
       i = 0, len = data.length,
-      t = {}, y, id;
+      t = {}, y, cid;
 
   for (; i<len; ++i) {
     y = data[i];
-    id = left ? x._id+'_'+y._id : y._id+'_'+x._id;
-    if (ids[id]) continue;
-    if (x._id == y._id && !diag) continue;
+    cid = _cid(left, x, y);
+    if (cids[cid]) continue;
+    if (x._id === y._id && !diag) continue;
 
-    t[as.left]  = left ? x : y;
-    t[as.right] = left ? y : x;
+    Tuple.set(t, as.left, left ? x : y);
+    Tuple.set(t, as.right, left ? y : x);
 
     // Only ingest a tuple if we keep it around. Otherwise, flag the
-    // caches as filtered. 
+    // caches as filtered.
     if (!test || test(t)) {
       oadd.push(t=Tuple.ingest(t));
-      cache.call(this, x, t);
-      cache.call(this, y, t);
-      ids[id] = 1;
+      _cache.call(this, x, t);
+      if (x._id !== y._id) _cache.call(this, y, t);
+      mids[t._id] = 1;
+      cids[cid] = true;
       t = {};
     } else {
-      if (c[y._id]) c[y._id].f = true;
+      if (cache[y._id]) cache[y._id].f = true;
       fltrd = true;
     }
   }
 
-  if (c[x._id]) c[x._id].f = fltrd;
+  if (cache[x._id]) cache[x._id].f = fltrd;
 }
 
-function mod(output, left, data, diag, test, x) {
-  var cache = this._cache,
+function mod(output, left, data, diag, test, mids, rids, x) {
+  var as = this._output,
+      cache = this._cache,
+      cids  = this._cids,
       cross = cache[x._id],
-      other = this._output[left ? 'right' : 'left'],
       tpls  = cross && cross.c,
-      lazy  = cross && this._lastRem > cross.s,
       fltrd = !cross || cross.f,
       omod  = output.mod,
       orem  = output.rem,
-      i, t, y;
+      i, t, y, l, cid;
 
   // If we have cached values, iterate through them for lazy
-  // removal, and to re-run the filter. 
+  // removal, and to re-run the filter.
   if (tpls) {
-    if (lazy || test) {
-      for (i=tpls.length-1; i>=0; --i) {
-        t = tpls[i];
-        y = t[other];
+    for (i=tpls.length-1; i>=0; --i) {
+      t = tpls[i];
+      l = x === t[as.left]; // Cache has tpls w/x both on left & right.
+      y = l ? t[as.right] : t[as.left];
+      cid = _cid(l, x, y);
 
-        if (lazy && !cache[y._id]) {
-          tpls.splice(i, 1);
-          continue;
-        }
-
-        if (!test || test(t)) {
-          omod.push(t);
-        } else {
-          orem.push.apply(orem, tpls.splice(i, 1));
-          cross.f = true;
-        }
+      // Lazy removal: y was previously rem'd, so clean up the cache.
+      if (!cache[y._id]) {
+        cids[cid] = false;
+        tpls.splice(i, 1);
+        continue;
       }
 
-      cross.s = this._lastRem;
-    } else {
-      omod.push.apply(omod, tpls);
+      if (!test || test(t)) {
+        if (mids[t._id]) continue;
+        omod.push(t);
+        mids[t._id] = 1;
+      } else {
+        if (!rids[t._id]) orem.push.apply(orem, tpls.splice(i, 1));
+        rids[t._id] = 1;
+        cids[cid] = false;
+        cross.f = true;
+      }
     }
   }
 
   // If we have a filter param, call add to catch any tuples that may
   // have previously been filtered.
-  if (test && fltrd) add.call(this, output, left, data, diag, test, x); 
+  if (test && fltrd) add.call(this, output, left, data, diag, test, mids, x);
 }
 
-function rem(output, x) {
-  var cross = this._cache[x._id];
+function rem(output, left, rids, x) {
+  var as = this._output,
+      cross = this._cache[x._id],
+      cids  = this._cids,
+      orem  = output.rem,
+      i, len, t, y, l;
   if (!cross) return;
-  output.rem.push.apply(output.rem, cross.c);
+
+  for (i=0, len=cross.c.length; i<len; ++i) {
+    t = cross.c[i];
+    l = x === t[as.left];
+    y = l ? t[as.right] : t[as.left];
+    cids[_cid(l, x, y)] = false;
+    if (!rids[t._id]) {
+      orem.push(t);
+      rids[t._id] = 1;
+    }
+  }
+
   this._cache[x._id] = null;
-  this._lastRem = this._stamp;
 }
 
-function purge(output) {
+function purge(output, rids) {
   var cache = this._cache,
       keys  = dl.keys(cache),
       rem = output.rem,
-      ids = {},
       i, len, j, jlen, cross, t;
 
   for (i=0, len=keys.length; i<len; ++i) {
     cross = cache[keys[i]];
     for (j=0, jlen=cross.c.length; j<jlen; ++j) {
       t = cross.c[j];
-      if (ids[t._id]) continue;
+      if (rids[t._id]) continue;
       rem.push(t);
-      ids[t._id] = 1;
+      rids[t._id] = 1;
     }
   }
 
   this._cache = {};
-  this._ids = {};
+  this._cids = {};
   this._lastWith = null;
-  this._lastRem  = null;
 }
 
 prototype.batchTransform = function(input, data, reset) {
   log.debug(input, ['crossing']);
 
-  var g = this._graph,
-      w = this.param('with'),
-      f = this.param('filter'),
+  var w = this.param('with'),
       diag = this.param('diagonal'),
       as = this._output,
-      sg = g.values(SIGNALS, this.dependency(SIGNALS)),
-      test = f ? function(x) {return f(x, null, sg); } : null,
+      test = this.param('filter') || null,
       selfCross = (!w.name),
       woutput = selfCross ? input : w.source.last(),
       wdata   = selfCross ? data : w.source.values(),
       output  = ChangeSet.create(input),
-      r = rem.bind(this, output);
+      mids = {}, rids = {}; // Track IDs to prevent dupe mod/rem tuples.
 
   // If signal values (for diag or test) have changed, purge the cache
   // and re-run cross in batch mode. Otherwise stream cross values.
   if (reset) {
-    purge.call(this, output);
-    data.forEach(add.bind(this, output, true, wdata, diag, test));
+    purge.call(this, output, rids);
+    data.forEach(add.bind(this, output, true, wdata, diag, test, mids));
     this._lastWith = woutput.stamp;
   } else {
-    input.rem.forEach(r);
-    input.add.forEach(add.bind(this, output, true, wdata, diag, test));
+    input.rem.forEach(rem.bind(this, output, true, rids));
+    input.add.forEach(add.bind(this, output, true, wdata, diag, test, mids));
 
     if (woutput.stamp > this._lastWith) {
-      woutput.rem.forEach(r);
-      woutput.add.forEach(add.bind(this, output, false, data, diag, test));
-      woutput.mod.forEach(mod.bind(this, output, false, data, diag, test));
+      woutput.rem.forEach(rem.bind(this, output, false, rids));
+      woutput.add.forEach(add.bind(this, output, false, data, diag, test, mids));
+      woutput.mod.forEach(mod.bind(this, output, false, data, diag, test, mids, rids));
       this._lastWith = woutput.stamp;
     }
 
     // Mods need to come after all removals have been run.
-    input.mod.forEach(mod.bind(this, output, true, wdata, diag, test));
+    input.mod.forEach(mod.bind(this, output, true, wdata, diag, test, mids, rids));
   }
 
   output.fields[as.left]  = 1;
@@ -18844,7 +19886,7 @@ prototype.batchTransform = function(input, data, reset) {
 };
 
 module.exports = Cross;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],123:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],123:[function(require,module,exports){
 var Transform = require('./Transform'),
     Aggregate = require('./Aggregate');
 
@@ -18891,7 +19933,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Facet;
-},{"../parse/transforms":108,"./Aggregate":118,"./Transform":139}],124:[function(require,module,exports){
+},{"../parse/transforms":108,"./Aggregate":118,"./Transform":140}],124:[function(require,module,exports){
 var dl = require('datalib'),
     Aggregator = dl.Aggregator,
     Base = Aggregator.prototype,
@@ -18990,9 +20032,8 @@ prototype._on_keep = function(cell) {
 };
 
 module.exports = Facetor;
-},{"datalib":26,"vega-dataflow":41,"vega-logging":47}],125:[function(require,module,exports){
+},{"datalib":26,"vega-dataflow":41,"vega-logging":48}],125:[function(require,module,exports){
 var df = require('vega-dataflow'),
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform');
 
@@ -19011,10 +20052,8 @@ prototype.transform = function(input) {
   log.debug(input, ['filtering']);
 
   var output = df.ChangeSet.create(input),
-      graph = this._graph,
       skip = this._skip,
-      test = this.param('test'),
-      signals = graph.values(SIGNALS, this.dependency(SIGNALS));
+      test = this.param('test');
 
   input.rem.forEach(function(x) {
     if (skip[x._id] !== 1) output.rem.push(x);
@@ -19022,12 +20061,12 @@ prototype.transform = function(input) {
   });
 
   input.add.forEach(function(x) {
-    if (test(x, null, signals)) output.add.push(x);
+    if (test(x)) output.add.push(x);
     else skip[x._id] = 1;
   });
 
   input.mod.forEach(function(x) {
-    var b = test(x, null, signals),
+    var b = test(x),
         s = (skip[x._id] === 1);
     if (b && s) {
       skip[x._id] = 0;
@@ -19046,7 +20085,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Filter;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],126:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],126:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
     log = require('vega-logging'),
@@ -19118,7 +20157,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Fold;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],127:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],127:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     df = require('vega-dataflow'),
@@ -19328,10 +20367,9 @@ prototype.update = function(active) {
 module.exports = Force;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./Transform":139,"./screen":145,"vega-dataflow":41,"vega-logging":47}],128:[function(require,module,exports){
+},{"./Transform":140,"./screen":146,"vega-dataflow":41,"vega-logging":48}],128:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform');
 
@@ -19351,13 +20389,11 @@ prototype.constructor = Formula;
 prototype.transform = function(input) {
   log.debug(input, ['formulating']);
 
-  var g = this._graph,
-      field = this.param('field'),
-      expr = this.param('expr'),
-      signals = g.values(SIGNALS, this.dependency(SIGNALS));
+  var field = this.param('field'),
+      expr = this.param('expr');
 
   function set(x) {
-    Tuple.set(x, field, expr(x, null, signals));
+    Tuple.set(x, field, expr(x));
   }
 
   input.add.forEach(set);
@@ -19371,7 +20407,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Formula;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],129:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],129:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -19462,7 +20498,7 @@ prototype.transform = function(input) {
 module.exports = Geo;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./Transform":139,"./screen":145,"datalib":26,"vega-dataflow":41,"vega-logging":47}],130:[function(require,module,exports){
+},{"./Transform":140,"./screen":146,"datalib":26,"vega-dataflow":41,"vega-logging":48}],130:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -19512,7 +20548,7 @@ prototype.transform = function(input) {
 module.exports = GeoPath;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./Geo":129,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],131:[function(require,module,exports){
+},{"./Geo":129,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],131:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -19615,7 +20651,7 @@ prototype.batchTransform = function(input, data) {
 module.exports = Hierarchy;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./BatchTransform":119,"./Transform":139,"./screen":145,"datalib":26,"vega-dataflow":41,"vega-logging":47}],132:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"./screen":146,"datalib":26,"vega-dataflow":41,"vega-logging":48}],132:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     Tuple = require('vega-dataflow').Tuple,
@@ -19718,7 +20754,7 @@ function partition(data, groupby, orderby) {
 }
 
 module.exports = Impute;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],133:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],133:[function(require,module,exports){
 var Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
     Transform = require('./Transform');
@@ -19845,7 +20881,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = LinkPath;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],134:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],134:[function(require,module,exports){
 var Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
     Transform = require('./Transform');
@@ -19917,10 +20953,9 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Lookup;
-},{"./Transform":139,"vega-dataflow":41,"vega-logging":47}],135:[function(require,module,exports){
+},{"./Transform":140,"vega-dataflow":41,"vega-logging":48}],135:[function(require,module,exports){
 var dl = require('datalib'),
-    Deps = require('vega-dataflow').Dependencies,
-    expr = require('../parse/expr');
+    Deps = require('vega-dataflow').Dependencies;
 
 var arrayType = /array/i,
     dataType  = /data/i,
@@ -19991,6 +21026,7 @@ prototype.get = function() {
 
 prototype.set = function(value) {
   var p = this,
+      graph = p._transform._graph,
       isExpr = exprType.test(this._type),
       isData  = dataType.test(this._type),
       isField = fieldType.test(this._type);
@@ -20000,9 +21036,10 @@ prototype.set = function(value) {
     var e;
     if (dl.isString(v)) {
       if (isExpr) {
-        e = expr(v);
+        e = graph.expr(v);
         p._transform.dependency(Deps.FIELDS,  e.fields);
         p._transform.dependency(Deps.SIGNALS, e.globals);
+        p._transform.dependency(Deps.DATA,    e.dataSources);
         return e.fn;
       } else if (isField) {  // Backwards compatibility
         p._accessors[i] = dl.accessor(v);
@@ -20028,13 +21065,11 @@ prototype.set = function(value) {
       return v.signal;
     } else if (v.expr !== undefined) {
       p._resolution = true;
-      e = expr(v.expr);
+      e = graph.expr(v.expr);
       p._transform.dependency(Deps.SIGNALS, e.globals);
       p._signals.push({
         index: i,
-        value: function(graph) {
-          return e.fn(null, null, graph.values(Deps.SIGNALS, e.globals));
-        }
+        value: function() { return e.fn(); }
       });
       return v.expr;
     }
@@ -20046,7 +21081,7 @@ prototype.set = function(value) {
 };
 
 module.exports = Parameter;
-},{"../parse/expr":96,"datalib":26,"vega-dataflow":41}],136:[function(require,module,exports){
+},{"datalib":26,"vega-dataflow":41}],136:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -20112,7 +21147,61 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Pie;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],137:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],137:[function(require,module,exports){
+var Tuple = require('vega-dataflow').Tuple,
+    log = require('vega-logging'),
+    Transform = require('./Transform'),
+    BatchTransform = require('./BatchTransform');
+
+function Rank(graph) {
+  BatchTransform.prototype.init.call(this, graph);
+  Transform.addParameters(this, {
+    field: {type: 'field', default: null},
+    normalize: {type: 'value', default: false}
+  });
+
+  this._output = {
+    'rank': 'rank'
+  };
+
+  return this.mutates(true);
+}
+
+var prototype = (Rank.prototype = Object.create(BatchTransform.prototype));
+prototype.constructor = Rank;
+
+prototype.batchTransform = function(input, data) {
+  log.debug(input, ['rank']);
+
+  var rank  = this._output.rank,
+      norm  = this.param('normalize'),
+      field = this.param('field').accessor,
+      keys = {}, 
+      i, len = data.length, klen, d, f;
+
+  // If we have a field accessor, first compile distinct keys.
+  if (field) {
+    for (i=0, klen=0; i<len; ++i) {
+      d = data[i];
+      keys[f=field(d)] = keys[f] || (keys[f] = ++klen);
+    }
+  }
+
+  // Assign ranks to all tuples.
+  for (i=0; i<len && (d=data[i]); ++i) {
+    if (field && (f=field(d))) {
+      Tuple.set(d, rank, norm ? keys[f] / klen : keys[f]);
+    } else {
+      Tuple.set(d, rank, norm ? (i+1) / len : (i+1));
+    }
+  }
+
+  input.fields[rank] = 1;
+  return input;
+};
+
+module.exports = Rank;
+},{"./BatchTransform":119,"./Transform":140,"vega-dataflow":41,"vega-logging":48}],138:[function(require,module,exports){
 var dl = require('datalib'),
     log  = require('vega-logging'),
     Transform = require('./Transform');
@@ -20136,7 +21225,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Sort;
-},{"./Transform":139,"datalib":26,"vega-logging":47}],138:[function(require,module,exports){
+},{"./Transform":140,"datalib":26,"vega-logging":48}],139:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -20234,7 +21323,7 @@ function partition(data, groupby, sortby, field) {
 }
 
 module.exports = Stack;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],139:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],140:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Base = df.Node.prototype, // jshint ignore:line
     Deps = df.Dependencies,
@@ -20295,7 +21384,7 @@ prototype.output = function(map) {
 };
 
 module.exports = Transform;
-},{"./Parameter":135,"vega-dataflow":41}],140:[function(require,module,exports){
+},{"./Parameter":135,"vega-dataflow":41}],141:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -20360,7 +21449,7 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Treeify;
-},{"./BatchTransform":119,"./Transform":139,"datalib":26,"vega-dataflow":41,"vega-logging":47}],141:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"datalib":26,"vega-dataflow":41,"vega-logging":48}],142:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -20450,7 +21539,7 @@ prototype.batchTransform = function(input, data) {
 module.exports = Treemap;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./BatchTransform":119,"./Transform":139,"./screen":145,"datalib":26,"vega-dataflow":41,"vega-logging":47}],142:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"./screen":146,"datalib":26,"vega-dataflow":41,"vega-logging":48}],143:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     Tuple = require('vega-dataflow/src/Tuple'),
@@ -20501,17 +21590,16 @@ prototype.batchTransform = function(input, data) {
 module.exports = Voronoi;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./BatchTransform":119,"./Transform":139,"./screen":145,"vega-dataflow/src/Tuple":40,"vega-logging":47}],143:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"./screen":146,"vega-dataflow/src/Tuple":40,"vega-logging":48}],144:[function(require,module,exports){
 (function (global){
 var dl = require('datalib'),
     d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
-    d3_cloud = require('d3-cloud'),
+    d3_cloud = (typeof window !== "undefined" ? window['d3']['layout']['cloud'] : typeof global !== "undefined" ? global['d3']['layout']['cloud'] : null),
     canvas = require('vega-scenegraph').canvas,
     Tuple = require('vega-dataflow/src/Tuple'),
     log = require('vega-logging'),
     Transform = require('./Transform'),
-    BatchTransform = require('./BatchTransform'),
-    Parameter = require('./Parameter');
+    BatchTransform = require('./BatchTransform');
 
 function Wordcloud(graph) {
   BatchTransform.prototype.init.call(this, graph);
@@ -20615,7 +21703,7 @@ prototype.batchTransform = function(input, data) {
 module.exports = Wordcloud;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./BatchTransform":119,"./Parameter":135,"./Transform":139,"./screen":145,"d3-cloud":3,"datalib":26,"vega-dataflow/src/Tuple":40,"vega-logging":47,"vega-scenegraph":48}],144:[function(require,module,exports){
+},{"./BatchTransform":119,"./Transform":140,"./screen":146,"datalib":26,"vega-dataflow/src/Tuple":40,"vega-logging":48,"vega-scenegraph":49}],145:[function(require,module,exports){
 module.exports = {
   aggregate:    require('./Aggregate'),
   bin:          require('./Bin'),
@@ -20633,6 +21721,7 @@ module.exports = {
   impute:       require('./Impute'),
   lookup:       require('./Lookup'),
   pie:          require('./Pie'),
+  rank:         require('./Rank'),
   sort:         require('./Sort'),
   stack:        require('./Stack'),
   treeify:      require('./Treeify'),
@@ -20640,7 +21729,7 @@ module.exports = {
   voronoi:      require('./Voronoi'),
   wordcloud:    require('./Wordcloud')
 };
-},{"./Aggregate":118,"./Bin":120,"./CountPattern":121,"./Cross":122,"./Facet":123,"./Filter":125,"./Fold":126,"./Force":127,"./Formula":128,"./Geo":129,"./GeoPath":130,"./Hierarchy":131,"./Impute":132,"./LinkPath":133,"./Lookup":134,"./Pie":136,"./Sort":137,"./Stack":138,"./Treeify":140,"./Treemap":141,"./Voronoi":142,"./Wordcloud":143}],145:[function(require,module,exports){
+},{"./Aggregate":118,"./Bin":120,"./CountPattern":121,"./Cross":122,"./Facet":123,"./Filter":125,"./Fold":126,"./Force":127,"./Formula":128,"./Geo":129,"./GeoPath":130,"./Hierarchy":131,"./Impute":132,"./LinkPath":133,"./Lookup":134,"./Pie":136,"./Rank":137,"./Sort":138,"./Stack":139,"./Treeify":141,"./Treemap":142,"./Voronoi":143,"./Wordcloud":144}],146:[function(require,module,exports){
 module.exports = {
   size:   [{signal: 'width'}, {signal: 'height'}],
   mid:    [{expr: 'width/2'}, {expr: 'height/2'}],
@@ -20649,6 +21738,76 @@ module.exports = {
     {expr: '[width+padding.right, height+padding.bottom]'}
   ]
 };
-},{}]},{},[1])(1)
+},{}],147:[function(require,module,exports){
+var dl = require('datalib');
+
+var TIME    = 'time',
+    UTC     = 'utc',
+    STRING  = 'string',
+    ORDINAL = 'ordinal',
+    NUMBER  = 'number';
+
+function getTickFormat(scale, tickCount, tickFormatType, tickFormatString) {
+  var formatType = tickFormatType || inferFormatType(scale);
+  return getFormatter(scale, tickCount, formatType, tickFormatString);
+}
+
+function inferFormatType(scale) {
+  switch (scale.type) {
+    case TIME:    return TIME;
+    case UTC:     return UTC;
+    case ORDINAL: return STRING;
+    default:      return NUMBER;
+  }
+}
+
+// Adapted from d3 log scale
+// TODO customize? replace with range-size-aware filtering?
+function logFilter(scale, domain, count, f) {
+  if (count == null) return f;
+  var base = scale.base(),
+      k = Math.min(base, scale.ticks().length / count),
+      v = domain[0] > 0 ? (e = 1e-12, Math.ceil) : (e = -1e-12, Math.floor),
+      e;
+  function log(x) {
+    return (domain[0] < 0 ?
+      -Math.log(x > 0 ? 0 : -x) :
+      Math.log(x < 0 ? 0 : x)) / Math.log(base);
+  }
+  function pow(x) {
+    return domain[0] < 0 ? -Math.pow(base, -x) : Math.pow(base, x);
+  }
+  return function(d) {
+    return pow(v(log(d) + e)) / d >= k ? f(d) : '';
+  };
+}
+
+function getFormatter(scale, tickCount, formatType, str) {
+  var fmt = dl.format,
+      log = scale.type === 'log',
+      domain;
+
+  switch (formatType) {
+    case NUMBER:
+      domain = scale.domain();
+      return log ?
+        logFilter(scale, domain, tickCount, fmt.auto.number(str || null)) :
+        fmt.auto.linear(domain, tickCount, str || null);
+    case TIME: return (str ? fmt : fmt.auto).time(str);
+    case UTC:  return (str ? fmt : fmt.auto).utc(str);
+    default:   return String;
+  }
+}
+
+module.exports = {
+  getTickFormat: getTickFormat
+};
+},{"datalib":26}],148:[function(require,module,exports){
+var dl = require('datalib'),
+    u  = {};
+
+dl.extend(u, require('./format'));
+module.exports = dl.extend(u, dl);
+},{"./format":147,"datalib":26}]},{},[1])(1)
 });
 //# sourceMappingURL=vega.js.map

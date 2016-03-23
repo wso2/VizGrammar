@@ -59,29 +59,11 @@ var line = function(dataTable, config) {
       if (config.title != "table") {
           legendTitle = config.title;
       }
-
-      var legends = [
-                {
-                  "fill": "color",
-                  "title": "Legend",
-                  "offset": 0,
-                  "properties": {
-                        "symbols": {
-                            "stroke": {"value": "transparent"}
-                        },
-                        "title": {
-                            "fill": {"value": config.legendTitleColor},
-                            "fontSize": {"value": config.legendTitleFontSize}
-                        },
-                        "labels": {
-                            "fill": {"value": config.legendTextColor},
-                            "fontSize": {"value": config.ledgendTextFontSize}
-                          }
-                    }
-                }
-            ];
-
-            this.spec.legends = legends;
+      
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
+       
       }
       
       this.spec.width = config.width;

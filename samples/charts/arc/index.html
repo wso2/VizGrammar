@@ -16,7 +16,7 @@
     <script src="../../js/d3.min.js"></script>
     <script src="../../js/topojson.js"></script>
     <script src="../../js/vega.js"></script>
-    <script src="../../../dist/VizGrammar.min.js"></script>
+    <script src="../../js/VizGrammar.min.js"></script>
     <script src="../../js/VizGrammarSettings.js"></script>
       
   </head>
@@ -54,7 +54,7 @@
                 </div>
                 <div class="panel-body">
                     <div id="dChart"></div>
-                    <div id="dChartContent"></div>
+                    <div id="dChart2"></div>
                 </div>
 
             </div>
@@ -68,6 +68,39 @@
                 </div>
                 <div class="panel-body">
                     <div id="dChartPie"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+           <div class="row">
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Arc Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartTrue"></div>
+                     
+                </div>
+
+            </div>
+        </div>
+       <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Arc Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                     <div id="dChartFalse"></div>
                 </div>
 
             </div>
@@ -260,6 +293,78 @@
                 donutChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13, EngineType]]);            
                   if (--i) insertLoop(i);
                }, 500)
+        })(iterations);
+
+
+
+
+
+        var dataT =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [0, 37, 12,"YES"], 
+                [0, 63, 12,"NO"]
+                            ]
+            }
+          ];
+
+        var dataF =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+                [0, 63, 12,"YES"], 
+                [0, 37, 12,"NO"]
+                            ]
+            }
+          ];
+
+        var configT = {
+            charts : [{type: "arc",  x : "torque", color : "EngineType"}],
+
+            tooltip: {"enabled":false},
+             legend:false, percentage:true, colorScale:["steelblue", "#80ccff"],
+            width: 400,
+            height: 400
+          }
+
+      var configF = {
+             charts : [{type: "arc",  x : "torque", color : "EngineType"}],
+
+            tooltip: {"enabled":false},
+             legend:false, percentage:true, colorScale:["#b30000", "#ffb3b3"],
+            width: 400,
+            height: 400
+          }
+
+
+        var chartT = new vizg(dataT, configT);
+        chartT.draw("#dChartTrue");
+
+        var chartF = new vizg(dataF, configF);
+        chartF.draw("#dChartFalse");
+
+
+
+        var iterations = 1000;
+        (function insertLoop (i) {      
+                  
+            setTimeout(function () { 
+
+              var percentage = Number((Math.random() * 100).toFixed(2));
+              chartT.insert([[iterations-i + 1, percentage, 13, "YES"]]);
+              chartT.insert([[iterations-i + 1, 100 - percentage, 13, "NO"]]);
+
+              chartF.insert([[iterations-i + 1, percentage, 13, "NO"]]);
+              chartF.insert([[iterations-i + 1, 100 - percentage, 13, "YES"]]);            
+                  if (--i) insertLoop(i);
+               }, 1000)
         })(iterations);
         </script>
       </div>
