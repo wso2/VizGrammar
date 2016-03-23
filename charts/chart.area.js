@@ -2,6 +2,7 @@
 var area = function(dataTable, config) {
       this.metadata = dataTable[0].metadata;
       var marks =[];
+      var signals = [];
       this.spec = {};
 
       config = checkConfig(config, this.metadata);
@@ -46,28 +47,9 @@ var area = function(dataTable, config) {
             legendTitle = config.title;
         }
 
-        var legends = [
-            {
-                "fill": "color",
-                "title": "Legend",
-                "offset": 0,
-                "properties": {
-                    "symbols": {
-                        "stroke": {"value": "transparent"}
-                    },
-                    "title": {
-                        "fill": {"value": config.legendTitleColor},
-                        "fontSize": {"value": config.legendTitleFontSize}
-                    },
-                    "labels": {
-                        "fill": {"value": config.legendTextColor},
-                        "fontSize": {"value": config.ledgendTextFontSize}
-                    }
-                }
-            }
-        ];
-
-        this.spec.legends = legends;
+      if (this.config.legend) {
+         this.spec.legends = getLegend(this.config);
+      }
     }
 
 
@@ -77,6 +59,11 @@ var area = function(dataTable, config) {
       config.fillOpacity  = 0;
       config.markSize = 1000;
       marks.push(getSymbolMark(config, this.metadata));
+
+      if (config.range) {
+         signals = getRangeSignals(config, signals);
+         marks = getRangeMark(config, marks);
+      }
       
       this.spec.width = config.width;
       this.spec.height = config.height;
@@ -85,26 +72,10 @@ var area = function(dataTable, config) {
       this.spec.scales = scales;
       this.spec.padding = config.padding;
       this.spec.marks = marks;
+      this.spec.signals = signals;
 };
 
 area.prototype.draw = function(div, callbacks) {
-
-    var viewUpdateFunction = (function(chart) {
-      if(this.config.tooltip.enabled){
-         createTooltip(div);
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-         bindTooltip(div,this.view,this.config,this.metadata);
-      } else {
-         this.view = chart({el:div}).renderer(this.config.renderer).update();
-      }
-
-      if (callbacks != null) {
-          for (var i = 0; i<callbacks.length; i++) {
-            this.view.on(callbacks[i].type, callbacks[i].callback);
-          }
-      }
-
-    }).bind(this);
 
     if(this.config.maxLength != -1){
         var dataset = this.spec.data[0].values;
@@ -119,7 +90,8 @@ area.prototype.draw = function(div, callbacks) {
         }
     }
 
-    vg.parse.spec(this.spec, viewUpdateFunction);
+     drawChart(div, this, callbacks);
+
 };
 
 area.prototype.insert = function(data) {
