@@ -51,6 +51,7 @@ function checkConfig(config, metadata){
 
         //Legend Configs
         legend:true,
+        legendTitle: "Legend",
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
@@ -457,7 +458,7 @@ function getLegend(config) {
   var legends = [
           {
             "fill": "color",
-            "title": "Legend",
+            "title": config.legendTitle,
             "offset": 0,
             "properties": {
                   "symbols": {
