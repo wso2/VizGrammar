@@ -46,6 +46,8 @@ function checkConfig(config, metadata){
         range:false,
         rangeColor:"#222",
 
+        mapColor:"#888",
+
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
 

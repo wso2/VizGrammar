@@ -1235,7 +1235,7 @@ function getMapMark(config, metadata){
                                 "scale": "color",
                                 "field": "zipped.v"
                             },
-                            {"value": "grey"}
+                            {"value": config.mapColor}
                         ]
                     }
                 },
@@ -1865,6 +1865,8 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+
+        mapColor:"#888",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
