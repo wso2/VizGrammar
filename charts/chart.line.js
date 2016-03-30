@@ -54,15 +54,15 @@ var line = function(dataTable, config) {
 
       if (config.color != -1) {
 
-      var legendTitle = "Legend";
+          var legendTitle = "Legend";
 
-      if (config.title != "table") {
-          legendTitle = config.title;
-      }
-      
-      if (this.config.legend) {
-         this.spec.legends = getLegend(this.config);
-      }
+          if (config.title != "table") {
+              legendTitle = config.title;
+          }
+
+          if (this.config.legend) {
+              this.spec.legends = getLegend(this.config);
+          }
        
       }
       
@@ -120,6 +120,7 @@ function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
           mark =  {
+                  "name": "line-group",
                   "type": "group",
                   "from": {
                     "data":  config.title,
