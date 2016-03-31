@@ -241,6 +241,10 @@ bar.prototype.getSpec = function() {
   return this.spec;
 };
 
+bar.prototype.setSpec = function(spec) {
+  this.spec = spec;
+}
+
 
 function getBarMark(config, metadata){
   var markContent;
