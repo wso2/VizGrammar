@@ -2378,26 +2378,17 @@ var stack = function(dataTable, config) {
       textMark.properties.update.x.offset = 10;
       textMark.properties.update.y.offset = -5;
       textMark.properties.update.fill = {"value": config.legendTitleColor};
-      //textMark.properties.update.y2 = "";
-
       delete textMark.properties.update.y2;
       delete textMark.properties.hover;
-
       spec.marks.push(textMark);
 
       delete spec.marks[0].properties.hover;
       spec.marks[0].properties.update.fill = [
             {
               "test": "indata('selectedPoints', datum._id, 'id')",
-              "value": "grey"
+              "value": config.selectionColor
             },spec.marks[0].properties.update.fill
           ];
-
-
-
-
-
-
 
       this.barChart.setSpec(spec);
 
