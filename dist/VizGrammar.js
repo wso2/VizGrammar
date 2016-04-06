@@ -661,7 +661,7 @@ function getBarMark(config, metadata){
   if (config.orientation == "left") {
     markContent = {
                     "y": {"scale": "x", "field": metadata.names[config.x]},
-                    "height": {"scale": "x", "band": true, "offset": -10},
+                    "height": {"scale": "x", "band": true, "offset": -1 * (config.width/30)},
                     "x": {"scale": "y", "field": metadata.names[config.y]},
                     "x2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
@@ -670,7 +670,7 @@ function getBarMark(config, metadata){
   } else {
     markContent = {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
-                    "width": {"scale": "x", "band": true, "offset": -10},
+                    "width": {"scale": "x", "band": true, "offset": -1 * (config.width/30)},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "y2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
@@ -711,7 +711,7 @@ function getStackBarMark(config, metadata){
         "properties": {
           "update": {
             "y": {"scale": "x", "field": metadata.names[config.x]},
-            "height": {"scale": "x", "band": true, "offset": -10},
+            "height": {"scale": "x", "band": true, "offset": -1 * (config.width/30)},
             "x": {"scale": "y", "field": "layout_start"},
             "x2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
@@ -723,6 +723,7 @@ function getStackBarMark(config, metadata){
         }
       };
   } else {
+
     mark = {
         "type": "rect",
         "from": {
@@ -737,7 +738,7 @@ function getStackBarMark(config, metadata){
         "properties": {
           "update": {
             "x": {"scale": "x", "field": metadata.names[config.x]},
-            "width": {"scale": "x", "band": true, "offset": -10},
+            "width": {"scale": "x", "band": true, "offset": -1 * (config.width/30)},
             "y": {"scale": "y", "field": "layout_start"},
             "y2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
