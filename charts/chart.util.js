@@ -46,6 +46,8 @@ function checkConfig(config, metadata){
         range:false,
         rangeColor:"#222",
 
+        barWidth:1,
+
         mapColor:"#888",
 
         //Tool Configs
