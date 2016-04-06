@@ -45,12 +45,15 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+        barGap:1,
+        mapColor:"#888",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
 
         //Legend Configs
         legend:true,
+        legendTitle: "Legend",
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
@@ -456,7 +459,7 @@ function getLegend(config) {
           {
             "name": "legend",
             "fill": "color",
-            "title": "Legend",
+            "title": config.legendTitle,
             "offset": 0,
             "properties": {
                   "symbols": {

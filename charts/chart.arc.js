@@ -190,8 +190,8 @@ function getPieMidText(config, metadata){
                                     ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "fontSize":{"value": config.width/7},
-                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
+                              "fontSize":{"value": config.width/9},
+                              "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                              }
                           }
@@ -213,7 +213,7 @@ function getPieText(config, metadata){
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
+                              "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                             }
                           }
