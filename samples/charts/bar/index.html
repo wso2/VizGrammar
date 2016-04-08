@@ -284,6 +284,7 @@
         var config = {
             type: "bar",
             x : "rpm",
+            highlight : "multi",
             charts : [{type: "bar",  y : "torque"}],
             maxLength: 6,
             width: 500,
@@ -360,14 +361,14 @@
                 barChart.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
                 barChartStack.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
-                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
-                barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);     
+                // barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                // barChartGroup.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);     
 
                 barChartH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]); 
                 barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
                 barChartStackH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
-                barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
-                barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);     
+                // barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                // barChartGroupH.insert([[xVal, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]);    
                   if (--i) insertLoop(i);
                }, 1000)
         })(iterations);
