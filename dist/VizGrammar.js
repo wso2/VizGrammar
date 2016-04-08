@@ -205,8 +205,8 @@ function getPieMidText(config, metadata){
                                     ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "fontSize":{"value": config.width/7},
-                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
+                              "fontSize":{"value": config.width/9},
+                              "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                              }
                           }
@@ -228,7 +228,7 @@ function getPieText(config, metadata){
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "text": {"template": "{{datum.percentage | number:'.1f'}}%"}
+                              "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                             }
                           }
@@ -527,6 +527,47 @@ var bar = function(dataTable, config) {
          marks = getRangeMark(config, marks);
       }
 
+      if (config.highlight == "single" || config.highlight == "multi") {
+
+        var multiTest;
+
+        if (config.highlight == "multi") {
+          multiTest = "!multi";
+        } else {
+          multiTest = "multi";
+        }
+
+
+        dataTable.push(   
+          {
+            "name": "selectedPoints",
+            "modify": [
+              {"type": "clear", "test": multiTest},
+              {"type": "toggle", "signal": "clickedPoint", "field": "id"}
+            ]
+          });
+
+          signals.push(    {
+              "name": "clickedPoint",
+              "init": 0,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            },
+            {
+              "name": "multi",
+              "init": false,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            });
+
+          marks[0].properties.update.fill = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": config.selectionColor
+            },marks[0].properties.update.fill
+          ];
+      }
+
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -651,13 +692,17 @@ bar.prototype.getSpec = function() {
   return this.spec;
 };
 
+bar.prototype.setSpec = function(spec) {
+  this.spec = spec;
+}
+
 
 function getBarMark(config, metadata){
   var markContent;
   if (config.orientation == "left") {
     markContent = {
                     "y": {"scale": "x", "field": metadata.names[config.x]},
-                    "height": {"scale": "x", "band": true, "offset": -1},
+                    "height": {"scale": "x", "band": true, "offset": calculateBarGap(config)},
                     "x": {"scale": "y", "field": metadata.names[config.y]},
                     "x2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
@@ -666,7 +711,7 @@ function getBarMark(config, metadata){
   } else {
     markContent = {
                     "x": {"scale": "x", "field": metadata.names[config.x]},
-                    "width": {"scale": "x", "band": true, "offset": -1},
+                    "width": {"scale": "x", "band": true, "offset": calculateBarGap(config)},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "y2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
@@ -690,7 +735,6 @@ function getBarMark(config, metadata){
 }
 
 function getStackBarMark(config, metadata){
-
   var markContent;
   if (config.orientation == "left") {
     mark = {
@@ -707,7 +751,7 @@ function getStackBarMark(config, metadata){
         "properties": {
           "update": {
             "y": {"scale": "x", "field": metadata.names[config.x]},
-            "height": {"scale": "x", "band": true, "offset": -1},
+            "height": {"scale": "x", "band": true, "offset": calculateBarGap(config)},
             "x": {"scale": "y", "field": "layout_start"},
             "x2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
@@ -719,6 +763,7 @@ function getStackBarMark(config, metadata){
         }
       };
   } else {
+
     mark = {
         "type": "rect",
         "from": {
@@ -733,7 +778,7 @@ function getStackBarMark(config, metadata){
         "properties": {
           "update": {
             "x": {"scale": "x", "field": metadata.names[config.x]},
-            "width": {"scale": "x", "band": true, "offset": -1},
+            "width": {"scale": "x", "band": true, "offset": calculateBarGap(config)},
             "y": {"scale": "y", "field": "layout_start"},
             "y2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
@@ -840,7 +885,10 @@ function getGroupBarMark(config, metadata){
   return mark;
 }
 
-;var vizg = function(dataTable, config) {
+function calculateBarGap(config){
+  return  -config.barGap * (config.width/30);
+
+};var vizg = function(dataTable, config) {
 	dataTable = buildTable(dataTable); 
 	if (typeof config.charts !== "undefined" && config.charts.length == 1) {
 		//Set chart config properties for main
@@ -920,15 +968,15 @@ vizg.prototype.getSpec = function() {
 
       if (config.color != -1) {
 
-      var legendTitle = "Legend";
+          var legendTitle = "Legend";
 
-      if (config.title != "table") {
-          legendTitle = config.title;
-      }
-      
-      if (this.config.legend) {
-         this.spec.legends = getLegend(this.config);
-      }
+          if (config.title != "table") {
+              legendTitle = config.title;
+          }
+
+          if (this.config.legend) {
+              this.spec.legends = getLegend(this.config);
+          }
        
       }
       
@@ -986,6 +1034,7 @@ function getLineMark(config, metadata){
         var mark;
         if (config.color != -1) {
           mark =  {
+                  "name": "line-group",
                   "type": "group",
                   "from": {
                     "data":  config.title,
@@ -1235,7 +1284,7 @@ function getMapMark(config, metadata){
                                 "scale": "color",
                                 "field": "zipped.v"
                             },
-                            {"value": "grey"}
+                            {"value": config.mapColor}
                         ]
                     }
                 },
@@ -1865,12 +1914,16 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+        selectionColor:"#222",
+        barGap:1,
+        mapColor:"#888",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
 
         //Legend Configs
         legend:true,
+        legendTitle: "Legend",
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
@@ -1948,7 +2001,8 @@ function getSymbolMark(config, metadata) {
       fill = {"value":config.markColor};
   }
 
-var  mark = {
+var mark = {
+      "name": "points-group",
       "type": "symbol",
       "from": {"data": config.title},
       "properties": {
@@ -1964,8 +2018,6 @@ var  mark = {
 
     return mark;
 }
-
-
 
 function getSignals(config, metadata){
 
@@ -2063,8 +2115,6 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
         }
     })
 };
-
-
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
@@ -2211,7 +2261,8 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     }
 
     var axes =  [
-      { "type": xAxesType, 
+      { 
+        "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
@@ -2254,7 +2305,7 @@ function getRangeSignals(config, signals) {
 }
 
 function getRangeMark(config, marks) {
-      marks.push( {
+      marks.push({
           "type": "rect",
           "properties":{
             "enter":{
@@ -2276,8 +2327,9 @@ function getRangeMark(config, marks) {
 function getLegend(config) {
   var legends = [
           {
+            "name": "legend",
             "fill": "color",
-            "title": "Legend",
+            "title": config.legendTitle,
             "offset": 0,
             "properties": {
                   "symbols": {
@@ -2333,3 +2385,69 @@ function drawChart(div, obj, callbacks) {
 
     vg.parse.spec(obj.spec, viewUpdateFunction);
 }
+;
+var stack = function(dataTable, config) {
+      this.barChart = new bar(dataTable, config);
+      this.metadata = this.barChart.metadata;
+
+      var spec = this.barChart.getSpec();
+
+      spec.axes = [spec.axes[0]];
+      spec.axes[0].grid = false;
+
+      spec.data.push(   
+                {
+                  "name": "selectedPoints",
+                  "modify": [
+                    {"type": "clear", "test": "!multi"},
+                    {"type": "toggle", "signal": "clickedPoint", "field": "id"}
+                  ]
+                });
+
+      spec.signals.push(    {
+                    "name": "clickedPoint",
+                    "init": 0,
+                    "verbose": true,
+                    "streams": [{"type": "click", "expr": "datum._id"}]
+                  },
+                  {
+                    "name": "multi",
+                    "init": false,
+                    "verbose": true,
+                    "streams": [{"type": "click", "expr": "datum._id"}]
+                  });
+
+      var textMark =  JSON.parse(JSON.stringify(spec.marks[0]));
+      textMark.type = "text";
+      textMark.properties.update.text = {"field" :spec.marks[0].properties.update.fill.field};
+      textMark.properties.update.x.offset = 10;
+      textMark.properties.update.y.offset = -5;
+      textMark.properties.update.fill = {"value": config.legendTitleColor};
+      delete textMark.properties.update.y2;
+      delete textMark.properties.hover;
+      spec.marks.push(textMark);
+
+      delete spec.marks[0].properties.hover;
+      spec.marks[0].properties.update.fill = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": config.selectionColor
+            },spec.marks[0].properties.update.fill
+          ];
+
+      this.barChart.setSpec(spec);
+
+};
+
+stack.prototype.draw = function(div, callbacks) {
+       this.barChart.draw(div, callbacks); 
+};
+
+stack.prototype.insert = function(data) {
+     this.barChart.insert(data); 
+};
+
+stack.prototype.getSpec = function() {
+  return  this.barChart.getSpec();
+};
+

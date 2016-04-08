@@ -201,7 +201,7 @@ function getMapMark(config, metadata){
                                 "scale": "color",
                                 "field": "zipped.v"
                             },
-                            {"value": "grey"}
+                            {"value": config.mapColor}
                         ]
                     }
                 },

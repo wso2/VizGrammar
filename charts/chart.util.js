@@ -45,12 +45,16 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+        selectionColor:"#222",
+        barGap:1,
+        mapColor:"#888",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
 
         //Legend Configs
         legend:true,
+        legendTitle: "Legend",
         legendTitleColor: "#222",
         legendTitleFontSize: 13,
         legendTextColor: "#888",
@@ -128,7 +132,8 @@ function getSymbolMark(config, metadata) {
       fill = {"value":config.markColor};
   }
 
-var  mark = {
+var mark = {
+      "name": "points-group",
       "type": "symbol",
       "from": {"data": config.title},
       "properties": {
@@ -144,8 +149,6 @@ var  mark = {
 
     return mark;
 }
-
-
 
 function getSignals(config, metadata){
 
@@ -243,8 +246,6 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
         }
     })
 };
-
-
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
@@ -391,7 +392,8 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     }
 
     var axes =  [
-      { "type": xAxesType, 
+      { 
+        "type": xAxesType, 
         "scale": xScale,
         "grid": config.grid, 
         "format" : config.xFormat, 
@@ -434,7 +436,7 @@ function getRangeSignals(config, signals) {
 }
 
 function getRangeMark(config, marks) {
-      marks.push( {
+      marks.push({
           "type": "rect",
           "properties":{
             "enter":{
@@ -456,8 +458,9 @@ function getRangeMark(config, marks) {
 function getLegend(config) {
   var legends = [
           {
+            "name": "legend",
             "fill": "color",
-            "title": "Legend",
+            "title": config.legendTitle,
             "offset": 0,
             "properties": {
                   "symbols": {
