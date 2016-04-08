@@ -45,6 +45,7 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+        selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
 

@@ -527,6 +527,47 @@ var bar = function(dataTable, config) {
          marks = getRangeMark(config, marks);
       }
 
+      if (config.highlight == "single" || config.highlight == "multi") {
+
+        var multiTest;
+
+        if (config.highlight == "multi") {
+          multiTest = "!multi";
+        } else {
+          multiTest = "multi";
+        }
+
+
+        dataTable.push(   
+          {
+            "name": "selectedPoints",
+            "modify": [
+              {"type": "clear", "test": multiTest},
+              {"type": "toggle", "signal": "clickedPoint", "field": "id"}
+            ]
+          });
+
+          signals.push(    {
+              "name": "clickedPoint",
+              "init": 0,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            },
+            {
+              "name": "multi",
+              "init": false,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            });
+
+          marks[0].properties.update.fill = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": config.selectionColor
+            },marks[0].properties.update.fill
+          ];
+      }
+
       this.spec.width = config.width;
       this.spec.height = config.height;
       this.spec.axes = axes;
@@ -1873,6 +1914,7 @@ function checkConfig(config, metadata){
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
+        selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
 
