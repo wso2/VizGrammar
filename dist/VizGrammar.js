@@ -1503,6 +1503,11 @@ number.prototype.insert = function(data) {
 
     marks.push(getScatterMark(config, this.metadata));
 
+    if (this.config.legend 
+        && this.metadata.types[config.color] != "linear") {
+         this.spec.legends = getLegend(this.config);
+    }
+
     this.spec.width = config.width;
     this.spec.height = config.height;
     this.spec.axes = axes;
