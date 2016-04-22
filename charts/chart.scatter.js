@@ -9,22 +9,6 @@ var scatter = function(dataTable, config) {
     this.config = config;
     dataTable[0].name = config.title;
 
-    var xScale = {
-        "name": "x",
-        "type": this.metadata.types[config.x],
-        "range": "width",
-        "zero": config.zero,
-        "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-    };
-
-    var yScale = {
-        "name": "y",
-        "type": this.metadata.types[config.y],
-        "range": "height",
-        "zero": config.zero,
-        "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-    };
-
     var rScale = {
         "name": "size",
         "type": "linear",
@@ -39,7 +23,10 @@ var scatter = function(dataTable, config) {
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
 
-    var scales =  [xScale, yScale, rScale, cScale];
+    var scales =  getXYScales(config, this.metadata);
+    scales.push(rScale);
+    scales.push(cScale);
+
     var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));

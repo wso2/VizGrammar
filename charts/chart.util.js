@@ -41,7 +41,7 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
@@ -413,6 +413,26 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     ];
 
     return axes;
+}
+
+function getXYScales(config, metadata) {
+    var xScale = {
+        "name": "x",
+        "type": metadata.types[config.x],
+        "range": "width",
+        "zero": config.zero,
+        "domain": {"data":  config.title, "field": metadata.names[config.x]}
+    };
+
+  var yScale = {
+        "name": "y",
+        "type": metadata.types[config.y],
+        "range": "height",
+        "zero": config.zero,
+        "domain": {"data":  config.title, "field": metadata.names[config.y]}
+    };
+
+  return [xScale, yScale];
 }
 
 function getRangeSignals(config, signals) {
