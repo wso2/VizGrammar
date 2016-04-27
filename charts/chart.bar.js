@@ -315,7 +315,8 @@ function getBarMark(config, metadata){
                   "properties": {
                     "update": markContent,
                     "hover": {
-                      "fillOpacity": {"value": 0.5}
+                      "fillOpacity": {"value": 0.5},
+                      "cursor": {"value": config.hoverCursor}
                     }
                   }
               };
@@ -348,7 +349,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -375,7 +377,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -424,7 +427,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -465,7 +469,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }

@@ -179,7 +179,8 @@ function getPieMark(config, metadata){
                         },
 
                         "hover": {
-                          "fillOpacity": {"value": 0.8}
+                          "fillOpacity": {"value": 0.8},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     };
@@ -248,6 +249,8 @@ var area = function(dataTable, config) {
     dataTable[0].name= config.title;
 
     var scales =  getXYScales(config, this.metadata);
+    //Make Y scale zero false as area should filled to minimum value
+    delete scales[1].zero;
 
     if (config.color != -1) {
 
@@ -709,7 +712,8 @@ function getBarMark(config, metadata){
                   "properties": {
                     "update": markContent,
                     "hover": {
-                      "fillOpacity": {"value": 0.5}
+                      "fillOpacity": {"value": 0.5},
+                      "cursor": {"value": "pointer"}
                     }
                   }
               };
@@ -742,7 +746,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -769,7 +774,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -818,7 +824,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -859,7 +866,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -1020,7 +1028,8 @@ function getLineMark(config, metadata){
                           "strokeOpacity": {"value": 1}
                         },
                         "hover": {
-                          "strokeOpacity": {"value": 0.5}
+                          "strokeOpacity": {"value": 0.5},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     }
@@ -1242,6 +1251,7 @@ function getMapMark(config, metadata){
             "properties": {
                 "enter": {"path": {"field": "layout_path"}},
                 "update": {
+                    "fillOpacity": {"value": 1},
                     "fill":{
                         "rule": [
                             {
@@ -1256,7 +1266,10 @@ function getMapMark(config, metadata){
                         ]
                     }
                 },
-                "hover": {"fill": {"value": "#989898"}}
+                "hover": {
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
+                }
             }
         },
         {
@@ -1647,7 +1660,8 @@ function getScatterMark(config, metadata){
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                    "fillOpacity": {"value": 0.5}
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
                 }
             }
 
@@ -1877,6 +1891,8 @@ function checkConfig(config, metadata){
         selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
+        hoverCursor:"pointer",
+        rangeCursor:"grab",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -1972,6 +1988,9 @@ var mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
+        }, 
+        "hover" : {
+          "cursor": {"value": config.hoverCursor}
         }
       }
     }
@@ -2347,6 +2366,7 @@ function drawChart(div, obj, callbacks) {
               var range_end;
               var callback = callbacks[i].callback;
                 if (obj.config.range) {
+                  document.getElementById(div.replace("#", "")).style.cursor="grab";
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });

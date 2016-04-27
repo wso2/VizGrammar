@@ -48,6 +48,8 @@ function checkConfig(config, metadata){
         selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
+        hoverCursor:"pointer",
+        rangeCursor:"grab",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -143,6 +145,9 @@ var mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
+        }, 
+        "hover" : {
+          "cursor": {"value": config.hoverCursor}
         }
       }
     }
@@ -518,6 +523,7 @@ function drawChart(div, obj, callbacks) {
               var range_end;
               var callback = callbacks[i].callback;
                 if (obj.config.range) {
+                  document.getElementById(div.replace("#", "")).style.cursor="grab";
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });

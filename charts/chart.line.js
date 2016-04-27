@@ -122,7 +122,8 @@ function getLineMark(config, metadata){
                           "strokeOpacity": {"value": 1}
                         },
                         "hover": {
-                          "strokeOpacity": {"value": 0.5}
+                          "strokeOpacity": {"value": 0.5},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     }

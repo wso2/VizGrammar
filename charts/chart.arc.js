@@ -164,7 +164,8 @@ function getPieMark(config, metadata){
                         },
 
                         "hover": {
-                          "fillOpacity": {"value": 0.8}
+                          "fillOpacity": {"value": 0.8},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     };
