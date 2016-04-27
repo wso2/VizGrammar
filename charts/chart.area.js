@@ -10,6 +10,8 @@ var area = function(dataTable, config) {
     dataTable[0].name= config.title;
 
     var scales =  getXYScales(config, this.metadata);
+    //Make Y scale zero false as area should filled to minimum value
+    delete scales[1].zero;
 
     if (config.color != -1) {
 
