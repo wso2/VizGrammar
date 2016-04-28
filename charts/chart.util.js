@@ -41,13 +41,15 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
         selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
+        hoverCursor:"pointer",
+        rangeCursor:"grab",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -75,7 +77,10 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+
+        xScaleDomain: null,
+        yScaleDomain: null
 
 
     };
@@ -94,9 +99,17 @@ function checkConfig(config, metadata){
       config.markColor = config.colorScale[0];
     }
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    
+    if (config.xScaleDomain == null) {
+      config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
+    }
 
+    if (config.yScaleDomain == null) {
+      config.yScaleDomain = {"data":  config.title, "field": metadata.names[config.y]};
+    }
+    
     return config;
 }
 
@@ -143,6 +156,9 @@ var mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
+        }, 
+        "hover" : {
+          "cursor": {"value": config.hoverCursor}
         }
       }
     }
@@ -415,6 +431,26 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     return axes;
 }
 
+function getXYScales(config, metadata) {
+    var xScale = {
+        "name": "x",
+        "type": metadata.types[config.x],
+        "range": "width",
+        "zero": config.zero,
+        "domain": config.xScaleDomain
+    };
+
+  var yScale = {
+        "name": "y",
+        "type": metadata.types[config.y],
+        "range": "height",
+        "zero": config.zero,
+        "domain": config.yScaleDomain
+    };
+
+  return [xScale, yScale];
+}
+
 function getRangeSignals(config, signals) {
     signals.push({
             "name": "range_start",
@@ -498,6 +534,7 @@ function drawChart(div, obj, callbacks) {
               var range_end;
               var callback = callbacks[i].callback;
                 if (obj.config.range) {
+                  document.getElementById(div.replace("#", "")).style.cursor="grab";
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });

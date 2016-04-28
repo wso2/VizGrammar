@@ -179,7 +179,8 @@ function getPieMark(config, metadata){
                         },
 
                         "hover": {
-                          "fillOpacity": {"value": 0.8}
+                          "fillOpacity": {"value": 0.8},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     };
@@ -238,32 +239,18 @@ function getPieText(config, metadata){
 };
 ;
 var area = function(dataTable, config) {
-      this.metadata = dataTable[0].metadata;
-      var marks =[];
-      var signals = [];
-      this.spec = {};
+    this.metadata = dataTable[0].metadata;
+    var marks =[];
+    var signals = [];
+    this.spec = {};
 
-      config = checkConfig(config, this.metadata);
-      this.config = config;
-      dataTable[0].name= config.title;
+    config = checkConfig(config, this.metadata);
+    this.config = config;
+    dataTable[0].name= config.title;
 
-      var xScale = {
-                    "name": "x",
-                    "type": this.metadata.types[config.x],
-                    "range": "width",
-                    "zero": config.zero,
-                    "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-                    };
-
-      var yScale = {
-                "name": "y",
-                "type": this.metadata.types[config.y],
-                "range": "height",
-                "zero": "false",
-                "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-                };
-      
-      var scales =  [xScale, yScale];
+    var scales =  getXYScales(config, this.metadata);
+    //Make Y scale zero false as area should filled to minimum value
+    delete scales[1].zero;
 
     if (config.color != -1) {
 
@@ -493,18 +480,22 @@ var bar = function(dataTable, config) {
               "name": "x",
               "type": "ordinal",
               "range": xRange,
-              "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+              "domain": config.xScaleDomain
               };
 
     if (config.mode == "group") {
         xScale.padding = 0.2;
       }
 
+      if (config.yScaleDomain.constructor !== Array) {
+          config.yScaleDomain = {"data": yDomain, "field": yColumn};
+      }
+
       var yScale = {
           "name": "y",
           "type": this.metadata.types[config.y],
           "range": yRange,
-          "domain": {"data": yDomain, "field": yColumn}
+          "domain": config.yScaleDomain
           };
 
 
@@ -725,7 +716,8 @@ function getBarMark(config, metadata){
                   "properties": {
                     "update": markContent,
                     "hover": {
-                      "fillOpacity": {"value": 0.5}
+                      "fillOpacity": {"value": 0.5},
+                      "cursor": {"value": config.hoverCursor}
                     }
                   }
               };
@@ -758,7 +750,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -785,7 +778,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -834,7 +828,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -875,7 +870,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -921,24 +917,8 @@ vizg.prototype.getSpec = function() {
       config = checkConfig(config, this.metadata);
       this.config = config;
       dataTable[0].name= config.title;
-
-      var xScale = {
-            "name": "x",
-            "type": this.metadata.types[config.x],
-            "range": "width",
-            "zero": config.zero,
-            "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-        };
-
-      var yScale = {
-            "name": "y",
-            "type": this.metadata.types[config.y],
-            "range": "height",
-            "zero": config.zero,
-            "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-        };
       
-      var scales =  [xScale, yScale];
+      var scales =  getXYScales(config, this.metadata);
 
       if (config.color != -1) {
 
@@ -1052,7 +1032,8 @@ function getLineMark(config, metadata){
                           "strokeOpacity": {"value": 1}
                         },
                         "hover": {
-                          "strokeOpacity": {"value": 0.5}
+                          "strokeOpacity": {"value": 0.5},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     }
@@ -1274,6 +1255,7 @@ function getMapMark(config, metadata){
             "properties": {
                 "enter": {"path": {"field": "layout_path"}},
                 "update": {
+                    "fillOpacity": {"value": 1},
                     "fill":{
                         "rule": [
                             {
@@ -1288,7 +1270,10 @@ function getMapMark(config, metadata){
                         ]
                     }
                 },
-                "hover": {"fill": {"value": "#989898"}}
+                "hover": {
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
+                }
             }
         },
         {
@@ -1468,22 +1453,6 @@ number.prototype.insert = function(data) {
     this.config = config;
     dataTable[0].name = config.title;
 
-    var xScale = {
-        "name": "x",
-        "type": this.metadata.types[config.x],
-        "range": "width",
-        "zero": config.zero,
-        "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-    };
-
-    var yScale = {
-        "name": "y",
-        "type": this.metadata.types[config.y],
-        "range": "height",
-        "zero": config.zero,
-        "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-    };
-
     var rScale = {
         "name": "size",
         "type": "linear",
@@ -1498,10 +1467,18 @@ number.prototype.insert = function(data) {
         "domain": {"data":  config.title, "field": this.metadata.names[config.color]}
     };
 
-    var scales =  [xScale, yScale, rScale, cScale];
+    var scales =  getXYScales(config, this.metadata);
+    scales.push(rScale);
+    scales.push(cScale);
+
     var axes =  getXYAxes(config, "x", "x", "y", "y");
 
     marks.push(getScatterMark(config, this.metadata));
+
+    if (this.config.legend 
+        && this.metadata.types[config.color] != "linear") {
+         this.spec.legends = getLegend(this.config);
+    }
 
     this.spec.width = config.width;
     this.spec.height = config.height;
@@ -1687,7 +1664,8 @@ function getScatterMark(config, metadata){
                     "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                    "fillOpacity": {"value": 0.5}
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
                 }
             }
 
@@ -1910,13 +1888,15 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
         selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
+        hoverCursor:"pointer",
+        rangeCursor:"grab",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -1944,7 +1924,10 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+
+        xScaleDomain: null,
+        yScaleDomain: null
 
 
     };
@@ -1963,9 +1946,17 @@ function checkConfig(config, metadata){
       config.markColor = config.colorScale[0];
     }
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    
+    if (config.xScaleDomain == null) {
+      config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
+    }
 
+    if (config.yScaleDomain == null) {
+      config.yScaleDomain = {"data":  config.title, "field": metadata.names[config.y]};
+    }
+    
     return config;
 }
 
@@ -2012,6 +2003,9 @@ var mark = {
           "fill": fill,
           "size": {"value": config.markSize},
           "fillOpacity": {"value": config.fillOpacity}
+        }, 
+        "hover" : {
+          "cursor": {"value": config.hoverCursor}
         }
       }
     }
@@ -2284,6 +2278,26 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     return axes;
 }
 
+function getXYScales(config, metadata) {
+    var xScale = {
+        "name": "x",
+        "type": metadata.types[config.x],
+        "range": "width",
+        "zero": config.zero,
+        "domain": config.xScaleDomain
+    };
+
+  var yScale = {
+        "name": "y",
+        "type": metadata.types[config.y],
+        "range": "height",
+        "zero": config.zero,
+        "domain": config.yScaleDomain
+    };
+
+  return [xScale, yScale];
+}
+
 function getRangeSignals(config, signals) {
     signals.push({
             "name": "range_start",
@@ -2367,6 +2381,7 @@ function drawChart(div, obj, callbacks) {
               var range_end;
               var callback = callbacks[i].callback;
                 if (obj.config.range) {
+                  document.getElementById(div.replace("#", "")).style.cursor="grab";
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });

@@ -191,6 +191,7 @@ function getMapMark(config, metadata){
             "properties": {
                 "enter": {"path": {"field": "layout_path"}},
                 "update": {
+                    "fillOpacity": {"value": 1},
                     "fill":{
                         "rule": [
                             {
@@ -205,7 +206,10 @@ function getMapMark(config, metadata){
                         ]
                     }
                 },
-                "hover": {"fill": {"value": "#989898"}}
+                "hover": {
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
+                }
             }
         },
         {
