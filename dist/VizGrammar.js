@@ -480,18 +480,22 @@ var bar = function(dataTable, config) {
               "name": "x",
               "type": "ordinal",
               "range": xRange,
-              "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+              "domain": config.xScaleDomain
               };
 
     if (config.mode == "group") {
         xScale.padding = 0.2;
       }
 
+      if (config.yScaleDomain.constructor !== Array) {
+          config.yScaleDomain = {"data": yDomain, "field": yColumn};
+      }
+
       var yScale = {
           "name": "y",
           "type": this.metadata.types[config.y],
           "range": yRange,
-          "domain": {"data": yDomain, "field": yColumn}
+          "domain": config.yScaleDomain
           };
 
 
@@ -713,7 +717,7 @@ function getBarMark(config, metadata){
                     "update": markContent,
                     "hover": {
                       "fillOpacity": {"value": 0.5},
-                      "cursor": {"value": "pointer"}
+                      "cursor": {"value": config.hoverCursor}
                     }
                   }
               };
@@ -1920,7 +1924,10 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+
+        xScaleDomain: null,
+        yScaleDomain: null
 
 
     };
@@ -1939,9 +1946,17 @@ function checkConfig(config, metadata){
       config.markColor = config.colorScale[0];
     }
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    
+    if (config.xScaleDomain == null) {
+      config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
+    }
 
+    if (config.yScaleDomain == null) {
+      config.yScaleDomain = {"data":  config.title, "field": metadata.names[config.y]};
+    }
+    
     return config;
 }
 
@@ -2269,7 +2284,7 @@ function getXYScales(config, metadata) {
         "type": metadata.types[config.x],
         "range": "width",
         "zero": config.zero,
-        "domain": {"data":  config.title, "field": metadata.names[config.x]}
+        "domain": config.xScaleDomain
     };
 
   var yScale = {
@@ -2277,7 +2292,7 @@ function getXYScales(config, metadata) {
         "type": metadata.types[config.y],
         "range": "height",
         "zero": config.zero,
-        "domain": {"data":  config.title, "field": metadata.names[config.y]}
+        "domain": config.yScaleDomain
     };
 
   return [xScale, yScale];

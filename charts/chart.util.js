@@ -77,7 +77,10 @@ function checkConfig(config, metadata){
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+
+        xScaleDomain: null,
+        yScaleDomain: null
 
 
     };
@@ -96,9 +99,17 @@ function checkConfig(config, metadata){
       config.markColor = config.colorScale[0];
     }
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    
+    if (config.xScaleDomain == null) {
+      config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
+    }
 
+    if (config.yScaleDomain == null) {
+      config.yScaleDomain = {"data":  config.title, "field": metadata.names[config.y]};
+    }
+    
     return config;
 }
 
@@ -426,7 +437,7 @@ function getXYScales(config, metadata) {
         "type": metadata.types[config.x],
         "range": "width",
         "zero": config.zero,
-        "domain": {"data":  config.title, "field": metadata.names[config.x]}
+        "domain": config.xScaleDomain
     };
 
   var yScale = {
@@ -434,7 +445,7 @@ function getXYScales(config, metadata) {
         "type": metadata.types[config.y],
         "range": "height",
         "zero": config.zero,
-        "domain": {"data":  config.title, "field": metadata.names[config.y]}
+        "domain": config.yScaleDomain
     };
 
   return [xScale, yScale];
