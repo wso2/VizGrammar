@@ -23,15 +23,35 @@ var arc = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
-      dataTable[0].transform = [{
-                                  "type": "pie",
-                                   "field": this.metadata.names[config.x]
-                                },
-                                {
-                                  "type": "formula",
-                                  "field": "percentage",
-                                  "expr": "datum."+this.metadata.names[config.x]+" "
-                                }];
+      var summarize = {};
+      summarize[this.metadata.names[config.x]] = "sum";
+      console.log(summarize);
+
+      dataTable.push({
+      "name": "summary",
+      "source": config.title,
+      "transform": [
+        {
+          "type": "aggregate",
+          "summarize": summarize
+        }
+      ]
+      });
+
+      dataTable.push( {
+      "name": "layout",
+      "source": "table",
+      "transform": [
+        {"type": "cross", "with": "summary"},
+        {"type": "pie","field": "a." + this.metadata.names[config.x]},
+        {
+          "type": "formula",
+          "field": "percentage",
+          "expr": "datum.a."+this.metadata.names[config.x]
+          +" / datum.b.sum_"+this.metadata.names[config.x]+" * 100"
+        }
+      ]
+    });
       
       var scales =  []; 
 
@@ -53,6 +73,7 @@ var arc = function(dataTable, config) {
         (config.mode == "pie" || config.mode == "donut")) {
         marks.push(getPieText(config, this.metadata));
       } else if (config.percentage) {
+        //Push complimentary value to fill the arc
         dataTable.push(    
             {
           "name": "arc",
@@ -163,9 +184,17 @@ function getPieMark(config, metadata){
           var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
         }
 
+        var title = config.title;
+        var fieldAlias = ""
+
+        if (config.type != null) {
+          title = "layout";
+          fieldAlias = "a.";
+        }
+
         var mark =  {
                       "type": "arc",
-                      "from":  {"data": config.title},
+                      "from":  {"data": title},
                       "properties": {
                         "update": {
                           "x": {"field": {"group": "width"}, "mult": 0.5},
@@ -174,7 +203,7 @@ function getPieMark(config, metadata){
                           "endAngle": {"field": "layout_end"},
                           "innerRadius": {"value": innerRadius},
                           "outerRadius":  {"value": config.width * 0.4},
-                          "fill": {"scale": "color", "field": metadata.names[config.color]},
+                          "fill": {"scale": "color", "field": fieldAlias + metadata.names[config.color]},
                           "fillOpacity": {"value": 1}
                         },
 
@@ -190,7 +219,7 @@ function getPieMark(config, metadata){
 function getPieMidText(config, metadata){
         var mark =      {
                           "type": "text",
-                          "from": {"data": config.title},
+                          "from": {"data": "layout"},
                           "properties": {
                             "update": {
                               "x": {"field": {"group": "width"}, "mult": 0.5},
@@ -199,7 +228,7 @@ function getPieMidText(config, metadata){
                               "theta": {"field": "layout_mid"},
                               "fill": [
                                       {
-                                        "test": "indata('arc', datum.EngineType, 'type')",
+                                        "test": "indata('arc', datum.a."+metadata.names[config.color]+", 'type')",
                                         "scale": "color", "field": metadata.names[config.color]
                                       },
                                       {}
@@ -219,7 +248,7 @@ function getPieMidText(config, metadata){
 function getPieText(config, metadata){
         var mark =      {
                           "type": "text",
-                          "from": {"data": config.title},
+                          "from": {"data": "layout"},
                           "properties": {
                             "update": {
                               "x": {"field": {"group": "width"}, "mult": 0.5},
@@ -1106,7 +1135,10 @@ function getLineMark(config, metadata){
 
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
-    legends.push(getMapLegends(config,this.metadata));
+
+    if (config.legend) {
+        legends.push(getMapLegends(config,this.metadata));
+    }
 
     var cScale = {
         "name": "color",
