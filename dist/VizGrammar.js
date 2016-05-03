@@ -2150,26 +2150,31 @@ function createTooltip(div) {
 function bindTooltip(div, view, config, metadata){
 
     view.on("mouseover", function(event, item) {
-      if (item != null && item.mark.marktype == config.tooltip.type) { 
+      if (item != null && item.mark.marktype == config.tooltip.type) {
+        var row =  item.datum;
+        if (item.datum != null && item.datum.a != null) {
+           row = item.datum.a; 
+        }
+
         var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
         var tooltipContent = "";
     
-        if (item.datum[metadata.names[config.x]]!= null) {
+        if (row[metadata.names[config.x]]!= null) {
           var content;
 
         //Default tooltip content if tooltip content is not defined
         if (config.tooltip.content == null) {
               if (metadata.types[config.x]== "time") {
                 var dFormat =  d3.time.format(config.dateFormat);
-                content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                content =  dFormat(new Date(parseInt(row[metadata.names[config.x]])));
               } else {
-                content = item.datum[metadata.names[config.x]];
+                content = row[metadata.names[config.x]];
               }
 
               tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
 
-            if (item.datum[metadata.names[config.y]] != null) {
-                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" 
+            if (row[metadata.names[config.y]] != null) {
+                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+row[metadata.names[config.y]]+"<br/>" 
                 }
             
             } else {
@@ -2177,9 +2182,9 @@ function bindTooltip(div, view, config, metadata){
                 for (var i = 0; i < config.tooltip.content.length; i++) {
                     if (metadata.types[metadata.names.indexOf(config.tooltip.content[i])]=== "time") {
                         var dFormat =  d3.time.format(config.dateFormat);
-                        content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                        content =  dFormat(new Date(parseInt(row[metadata.names[config.x]])));
                     } else {
-                        content = item.datum[config.tooltip.content[i]];
+                        content = row[config.tooltip.content[i]];
                     }
 
                     if (config.tooltip.label != false) {
