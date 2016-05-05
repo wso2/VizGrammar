@@ -547,6 +547,34 @@ var bar = function(dataTable, config) {
          marks = getRangeMark(config, marks);
       }
 
+      if (config.orientation == "left" && config.text != null) {
+
+        var xVal = {"value": 2};
+
+        if (config.textAlign == "right") {
+          var xVal = {"scale": "y","field": this.metadata.names[config.y], "offset": 2};
+        }
+
+        marks.push({
+                "type": "text",
+                "from": {"data": "table"},
+                "properties": {
+                  "update": {
+                      "x": xVal,
+                    "dy": {
+                      "scale": "x",
+                      "band": true,
+                      "mult": 0.5
+                    },
+                    "y": {"scale": "x","field": this.metadata.names[config.x]},
+                    "align":{"value": "left"},
+                    "text": {"field": this.metadata.names[config.x]},
+                    "fill": {"value": config.textColor}
+                  }
+                }
+              });
+      }
+
       if (config.highlight == "single" || config.highlight == "multi") {
 
         var multiTest;
@@ -911,7 +939,16 @@ function getGroupBarMark(config, metadata){
 }
 
 function calculateBarGap(config){
-  return  -config.barGap * (config.width/30);
+
+  var xWidth;
+
+  if (config.orientation == "left") {
+    xWidth = config.height;
+  } else {
+    xWidth = config.width
+  }
+
+  return  -config.barGap * (xWidth/30);
 
 };var vizg = function(dataTable, config) {
 	dataTable = buildTable(dataTable); 
@@ -1930,6 +1967,8 @@ function checkConfig(config, metadata){
         hoverCursor:"pointer",
         rangeCursor:"grab",
 
+        textColor:"#888",
+
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
 
@@ -1946,11 +1985,21 @@ function checkConfig(config, metadata){
         yTitle: config.y,
         xAxisAngle:false,
         yAxisAngle:false,
-        axesColor:"#222",
-        axesSize:1,
-        axesFontSize:10,
-        titleFontSize:12,
-        titleFontColor:"#222",
+
+        xAxisStrokeSize:0,
+        xAxisColor:"#222",
+        xAxisSize:1,
+        xAxisFontSize:10,
+        xAxisTitleFontSize:12,
+        xAxisTitleFontColor:"#222",
+
+        yAxisStrokeSize:0,
+        yAxisColor:"#222",
+        yAxisSize:1,
+        yAxisFontSize:10,
+        yAxisTitleFontSize:12,
+        yAxisTitleFontColor:"#222",
+
         grid: true,
         zero: false,
         xTicks: 0,
@@ -2247,36 +2296,36 @@ function cumulativeOffset(element) {
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     var xProp = {"ticks": {
-                   "stroke": {"value": config.axesColor}, 
-                   "strokeWidth":{"value":config.axesSize}
+                   "stroke": {"value": config.xAxisColor}, 
+                   "strokeWidth":{"value":config.xAxisStrokeSize}
                  },
                  "labels": {
-                   "fill": {"value": config.axesColor},
-                    "fontSize": {"value": config.axesFontSize}
+                   "fill": {"value": config.xAxisColor},
+                    "fontSize": {"value": config.xAxisFontSize}
                  },
                  "title": {
-                   "fontSize": {"value": config.titleFontSize},
-                    "fill": {"value": config.titleFontColor}
+                   "fontSize": {"value": config.xAxisTitleFontSize},
+                    "fill": {"value": config.xAxisTitleFontColor}
                  },
                  "axis": {
-                   "stroke": {"value": config.axesColor},
-                   "strokeWidth": {"value": config.axesSize}
+                   "stroke": {"value": config.xAxisColor},
+                   "strokeWidth": {"value": config.xAxisSize}
                  }};
     var yProp =  {"ticks": {
-                   "stroke": {"value": config.axesColor}, 
-                   "strokeWidth":{"value":config.axesSize}
+                   "stroke": {"value": config.yAxisColor}, 
+                   "strokeWidth":{"value":config.yAxisStrokeSize}
                  },
                  "labels": {
-                   "fill": {"value": config.axesColor},
-                    "fontSize": {"value": config.axesFontSize}
+                   "fill": {"value": config.yAxisColor},
+                    "fontSize": {"value": config.yAxisFontSize}
                  },
                  "title": {
-                   "fontSize": {"value": config.titleFontSize},
-                    "fill": {"value": config.titleFontColor}
+                   "fontSize": {"value": config.yAxisTitleFontSize},
+                    "fill": {"value": config.yAxisTitleFontColor}
                  },
                  "axis": {
-                   "stroke": {"value": config.axesColor},
-                   "strokeWidth": {"value": config.axesSize}
+                   "stroke": {"value": config.yAxisColor},
+                   "strokeWidth": {"value": config.yAxisSize}
                  }};
     
     if (config.xAxisAngle) {
