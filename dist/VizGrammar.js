@@ -549,7 +549,7 @@ var bar = function(dataTable, config) {
 
       if (config.orientation == "left" && config.text != null) {
 
-        var xVal = {"value": 2};
+        var xVal = {"value": 5};
 
         if (config.textAlign == "right") {
           var xVal = {"scale": "y","field": this.metadata.names[config.y], "offset": 2};
