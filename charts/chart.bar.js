@@ -121,6 +121,34 @@ var bar = function(dataTable, config) {
          marks = getRangeMark(config, marks);
       }
 
+      if (config.orientation == "left" && config.text != null) {
+
+        var xVal = {"value": 5};
+
+        if (config.textAlign == "right") {
+          var xVal = {"scale": "y","field": this.metadata.names[config.y], "offset": 2};
+        }
+
+        marks.push({
+                "type": "text",
+                "from": {"data": "table"},
+                "properties": {
+                  "update": {
+                      "x": xVal,
+                    "dy": {
+                      "scale": "x",
+                      "band": true,
+                      "mult": 0.5
+                    },
+                    "y": {"scale": "x","field": this.metadata.names[config.x]},
+                    "align":{"value": "left"},
+                    "text": {"field": this.metadata.names[config.x]},
+                    "fill": {"value": config.textColor}
+                  }
+                }
+              });
+      }
+
       if (config.highlight == "single" || config.highlight == "multi") {
 
         var multiTest;
@@ -485,6 +513,15 @@ function getGroupBarMark(config, metadata){
 }
 
 function calculateBarGap(config){
-  return  -config.barGap * (config.width/30);
+
+  var xWidth;
+
+  if (config.orientation == "left") {
+    xWidth = config.height;
+  } else {
+    xWidth = config.width
+  }
+
+  return  -config.barGap * (xWidth/30);
 
 }
