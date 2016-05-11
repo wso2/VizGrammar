@@ -142,7 +142,7 @@ var bar = function(dataTable, config) {
                     },
                     "y": {"scale": "x","field": this.metadata.names[config.x]},
                     "align":{"value": "left"},
-                    "text": {"field": this.metadata.names[config.x]},
+                    "text": {"field": this.metadata.names[config.text]},
                     "fill": {"value": config.textColor}
                   }
                 }
