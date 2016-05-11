@@ -113,6 +113,7 @@ function checkConfig(config, metadata){
 
 	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    config.text = metadata.names.indexOf(config.text);
     
     if (config.xScaleDomain == null) {
       config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};

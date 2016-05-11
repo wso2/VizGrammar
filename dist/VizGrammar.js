@@ -568,7 +568,7 @@ var bar = function(dataTable, config) {
                     },
                     "y": {"scale": "x","field": this.metadata.names[config.x]},
                     "align":{"value": "left"},
-                    "text": {"field": this.metadata.names[config.x]},
+                    "text": {"field": this.metadata.names[config.text]},
                     "fill": {"value": config.textColor}
                   }
                 }
@@ -2029,6 +2029,7 @@ function checkConfig(config, metadata){
 
 	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    config.text = metadata.names.indexOf(config.text);
     
     if (config.xScaleDomain == null) {
       config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
