@@ -7,24 +7,8 @@ var line = function(dataTable, config) {
       config = checkConfig(config, this.metadata);
       this.config = config;
       dataTable[0].name= config.title;
-
-      var xScale = {
-            "name": "x",
-            "type": this.metadata.types[config.x],
-            "range": "width",
-            "zero": config.zero,
-            "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
-        };
-
-      var yScale = {
-            "name": "y",
-            "type": this.metadata.types[config.y],
-            "range": "height",
-            "zero": config.zero,
-            "domain": {"data":  config.title, "field": this.metadata.names[config.y]}
-        };
       
-      var scales =  [xScale, yScale];
+      var scales =  getXYScales(config, this.metadata);
 
       if (config.color != -1) {
 
@@ -138,7 +122,8 @@ function getLineMark(config, metadata){
                           "strokeOpacity": {"value": 1}
                         },
                         "hover": {
-                          "strokeOpacity": {"value": 0.5}
+                          "strokeOpacity": {"value": 0.5},
+                          "cursor": {"value": config.hoverCursor}
                         }
                       }
                     }
