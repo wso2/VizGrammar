@@ -79,6 +79,34 @@
             </div>
         </div>
 
+          <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Group Area Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartGroup"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6" class="tile">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Stack Area Chart Sample
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div id="dChartStack"></div>
+                </div>
+
+            </div>
+        </div>
+
                 <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -207,7 +235,20 @@
                   "types" : ["linear","linear", "ordinal","ordinal"]
                 },
               "data": [
-                [0, 10, 12]
+           
+                            ]
+            }
+          ];
+
+
+        var dataStack =  [
+            {
+              "metadata" : {
+                  "names" : ["rpm","torque","horsepower", "EngineType"],
+                  "types" : ["linear","linear", "ordinal","ordinal"]
+                },
+              "data": [
+           
                             ]
             }
           ];
@@ -220,21 +261,53 @@
         };
 
 
+        var configStack = {
+            charts : [{type: "area", range:true, x : "rpm", y : "torque"}],
+            maxLength: 10,
+            width: 500,
+            height: 250,
+            color:"EngineType",
+            mode:"stack"
+          }
+
+        var configGroup = {
+            charts : [{type: "area", range:true, x : "rpm", y : "torque"}],
+            maxLength: 10,
+            width: 500,
+            height: 250,
+            color:"EngineType",
+            mode:"group"
+        }
+
         var config = {
             charts : [{type: "area", range:true, x : "rpm", y : "torque"}],
             maxLength: 10,
             width: 500,
             height: 250
-          }
+        }
 
-        var lineChart = new vizg(data, config);
-        lineChart.draw("#dChart", [{type:"range", callback:callbackmethod}]);
+         var areac = new vizg(data, config);
+         areac.draw("#dChart", [{type:"range", callback:callbackmethod}]);
+
+        var areaStack = new vizg(dataStack, configStack);
+        areaStack.draw("#dChartStack", [{type:"range", callback:callbackmethod}]);
+
+        var areaGroup = new vizg(dataStack, configGroup);
+        areaGroup.draw("#dChartGroup", [{type:"range", callback:callbackmethod}]);
 
         var iterations = 1000;
         (function insertLoop (i) {      
                   
                setTimeout(function () {   
-                lineChart.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(2)), 13]]);            
+   
+                areac.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                areaStack.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                areaStack.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
+
+                areaGroup.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(0))%15, 20, "Piston"]]);  
+                areaGroup.insert([[iterations-i + 1, Number((Math.random() * 100).toFixed(0))%15, 20, "Rotary"]]); 
+
+
                   if (--i) insertLoop(i);
                }, 500)
         })(iterations);

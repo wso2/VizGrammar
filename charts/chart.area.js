@@ -10,6 +10,29 @@ var area = function(dataTable, config) {
     dataTable[0].name= config.title;
 
     var scales =  getXYScales(config, this.metadata);
+
+ if (config.mode == "stack") {
+            var aggregateData = {
+              "name": "stack",
+              "source": config.title,
+              "transform": [
+                {
+                  "type": "aggregate",
+                  "groupby": [this.metadata.names[config.x]],
+                  "summarize": [{"field": this.metadata.names[config.y], "ops": ["sum"]}]
+                }
+              ]
+            };
+
+            dataTable.push(aggregateData);
+            yColumn = "sum_"+ this.metadata.names[config.y];
+            yDomain = "stack";
+
+            scales[1].domain = {"data": yDomain, "field": yColumn};
+
+        }
+
+
     //Make Y scale zero false as area should filled to minimum value
     delete scales[1].zero;
 
@@ -105,8 +128,37 @@ area.prototype.getSpec = function() {
 function getAreaMark(config, metadata){
 
     var mark;
-    if (config.color != -1) {
+    if (config.color != -1 && config.mode == "stack") {
         mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [
+                {"type": "stack", "groupby": [metadata.names[config.x]], "sortby": [metadata.names[config.color]], "field":  metadata.names[config.y]},
+                {"type": "facet", "groupby": [metadata.names[config.color]]}
+                ]
+            },
+            "marks": [
+                {
+                    "type": "area",
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "field": metadata.names[config.x]},
+                            "y": {"scale": "y", "field": "layout_start"},
+                            "y2": {"scale": "y", "field": "layout_end"},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
+                            "strokeWidth": {"value": 2},
+                            "strokeOpacity": {"value": 1}
+                        },
+                        "hover": {
+                            "strokeOpacity": {"value": 0.5}
+                        }
+                    }
+                }
+            ]
+        };
+    } else if (config.color != -1) {
+      mark =  {
             "type": "group",
             "from": {
                 "data":  config.title,
@@ -131,7 +183,8 @@ function getAreaMark(config, metadata){
                 }
             ]
         };
-    }else{
+
+    } else{
         mark = {
             "type": "area",
             "from": {"data": config.title},

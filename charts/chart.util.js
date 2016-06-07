@@ -31,7 +31,7 @@ function checkConfig(config, metadata){
     var defaults = {
         title: "table",
         mapType: -1,
-        mode: "stack",
+        mode: "group",
         //color hex array or string: category10, 10c, category20, category20b, category20c
         colorScale: "category10", 
         colorDomain: -1,
@@ -158,25 +158,57 @@ function getSymbolMark(config, metadata) {
       fill = {"value":config.markColor};
   }
 
-var mark = {
-      "name": "points-group",
-      "type": "symbol",
-      "from": {"data": config.title},
-      "properties": {
-        "update": {
-          "x": {"scale": "x", "field": metadata.names[config.x]},
-          "y": {"scale": "y", "field": metadata.names[config.y]},
-          "fill": fill,
-          "size": {"value": config.markSize},
-          "fillOpacity": {"value": config.fillOpacity}
-        }, 
-        "hover" : {
-          "cursor": {"value": config.hoverCursor}
+  var mark;
+
+  if (config.mode == "stack") {
+    mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [
+                {"type": "stack", "groupby": [metadata.names[config.x]], "sortby": [metadata.names[config.color]], "field":  metadata.names[config.y]},
+                {"type": "facet", "groupby": [metadata.names[config.color]]}
+                ]
+            },
+            "marks": [
+                {
+                    "type": "symbol",
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "field": metadata.names[config.x]},
+                            "y": {"scale": "y", "field": "layout_start"},
+                            "y2": {"scale": "y", "field": "layout_end"},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
+                            "size": {"value": config.markSize},
+                            "fillOpacity": {"value": config.fillOpacity}
+                        },
+                        "hover": {
+                            "cursor": {"value": config.hoverCursor}
+                        }
+                    }
+                }
+            ]
+        };
+  } else {
+      mark = {
+        "name": "points-group",
+        "type": "symbol",
+        "from": {"data": config.title},
+        "properties": {
+          "update": {
+            "x": {"scale": "x", "field": metadata.names[config.x]},
+            "y": {"scale": "y", "field": metadata.names[config.y]},
+            "fill": fill,
+            "size": {"value": config.markSize},
+            "fillOpacity": {"value": config.fillOpacity}
+          }, 
+          "hover" : {
+            "cursor": {"value": config.hoverCursor}
+          }
         }
       }
-    }
-
-    return mark;
+  }
+  return mark;
 }
 
 function getSignals(config, metadata){
