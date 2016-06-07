@@ -83,18 +83,22 @@ var bar = function(dataTable, config) {
               "name": "x",
               "type": "ordinal",
               "range": xRange,
-              "domain": {"data":  config.title, "field": this.metadata.names[config.x]}
+              "domain": config.xScaleDomain
               };
 
     if (config.mode == "group") {
         xScale.padding = 0.2;
       }
 
+      if (config.yScaleDomain.constructor !== Array) {
+          config.yScaleDomain = {"data": yDomain, "field": yColumn};
+      }
+
       var yScale = {
           "name": "y",
           "type": this.metadata.types[config.y],
           "range": yRange,
-          "domain": {"data": yDomain, "field": yColumn}
+          "domain": config.yScaleDomain
           };
 
 
@@ -115,6 +119,34 @@ var bar = function(dataTable, config) {
       if (config.range) {
          signals = getRangeSignals(config, signals);
          marks = getRangeMark(config, marks);
+      }
+
+      if (config.orientation == "left" && config.text != null) {
+
+        var xVal = {"value": 5};
+
+        if (config.textAlign == "right") {
+          var xVal = {"scale": "y","field": this.metadata.names[config.y], "offset": 2};
+        }
+
+        marks.push({
+                "type": "text",
+                "from": {"data": "table"},
+                "properties": {
+                  "update": {
+                      "x": xVal,
+                    "dy": {
+                      "scale": "x",
+                      "band": true,
+                      "mult": 0.5
+                    },
+                    "y": {"scale": "x","field": this.metadata.names[config.x]},
+                    "align":{"value": "left"},
+                    "text": {"field": this.metadata.names[config.text]},
+                    "fill": {"value": config.textColor}
+                  }
+                }
+              });
       }
 
       if (config.highlight == "single" || config.highlight == "multi") {
@@ -315,7 +347,8 @@ function getBarMark(config, metadata){
                   "properties": {
                     "update": markContent,
                     "hover": {
-                      "fillOpacity": {"value": 0.5}
+                      "fillOpacity": {"value": 0.5},
+                      "cursor": {"value": config.hoverCursor}
                     }
                   }
               };
@@ -348,7 +381,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -375,7 +409,8 @@ function getStackBarMark(config, metadata){
             "fillOpacity": {"value": 1}
           },
           "hover": {
-            "fillOpacity": {"value": 0.5}
+            "fillOpacity": {"value": 0.5},
+            "cursor": {"value": config.hoverCursor}
           }
         }
       };
@@ -424,7 +459,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -465,7 +501,8 @@ function getGroupBarMark(config, metadata){
                   "fillOpacity": {"value": 1}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": 0.5},
+                  "cursor": {"value": config.hoverCursor}
                 }
               }
             }
@@ -476,6 +513,15 @@ function getGroupBarMark(config, metadata){
 }
 
 function calculateBarGap(config){
-  return  -config.barGap * (config.width/30);
+
+  var xWidth;
+
+  if (config.orientation == "left") {
+    xWidth = config.height;
+  } else {
+    xWidth = config.width
+  }
+
+  return  -config.barGap * (xWidth/30);
 
 }

@@ -42,7 +42,10 @@ var map = function(dataTable, config) {
 
     dataTable.push(getTopoJson(config,this.metadata));
     predicates.push(getMapPredicates());
-    legends.push(getMapLegends(config,this.metadata));
+
+    if (config.legend) {
+        legends.push(getMapLegends(config,this.metadata));
+    }
 
     var cScale = {
         "name": "color",
@@ -191,6 +194,7 @@ function getMapMark(config, metadata){
             "properties": {
                 "enter": {"path": {"field": "layout_path"}},
                 "update": {
+                    "fillOpacity": {"value": 1},
                     "fill":{
                         "rule": [
                             {
@@ -205,7 +209,10 @@ function getMapMark(config, metadata){
                         ]
                     }
                 },
-                "hover": {"fill": {"value": "#989898"}}
+                "hover": {
+                    "fillOpacity": {"value": 0.5},
+                    "cursor": {"value": config.hoverCursor}
+                }
             }
         },
         {

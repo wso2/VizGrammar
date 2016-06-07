@@ -31,7 +31,7 @@ function checkConfig(config, metadata){
     var defaults = {
         title: "table",
         mapType: -1,
-        mode: "stack",
+        mode: "group",
         //color hex array or string: category10, 10c, category20, category20b, category20c
         colorScale: "category10", 
         colorDomain: -1,
@@ -41,13 +41,17 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 100},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
         selectionColor:"#222",
         barGap:1,
         mapColor:"#888",
+        hoverCursor:"pointer",
+        rangeCursor:"grab",
+
+        textColor:"#888",
 
         //Tool Configs
         tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
@@ -65,17 +69,30 @@ function checkConfig(config, metadata){
         yTitle: config.y,
         xAxisAngle:false,
         yAxisAngle:false,
-        axesColor:"#222",
-        axesSize:1,
-        axesFontSize:10,
-        titleFontSize:12,
-        titleFontColor:"#222",
+
+        xAxisStrokeSize:0,
+        xAxisColor:"#222",
+        xAxisSize:1,
+        xAxisFontSize:10,
+        xAxisTitleFontSize:12,
+        xAxisTitleFontColor:"#222",
+
+        yAxisStrokeSize:0,
+        yAxisColor:"#222",
+        yAxisSize:1,
+        yAxisFontSize:10,
+        yAxisTitleFontSize:12,
+        yAxisTitleFontColor:"#222",
+
         grid: true,
         zero: false,
         xTicks: 0,
         yTicks: 0,
         xFormat: "",
-        yFormat: ""
+        yFormat: "",
+
+        xScaleDomain: null,
+        yScaleDomain: null
 
 
     };
@@ -94,9 +111,18 @@ function checkConfig(config, metadata){
       config.markColor = config.colorScale[0];
     }
 
-	config.x = metadata.names.indexOf(config.x);
+	  config.x = metadata.names.indexOf(config.x);
     config.y = metadata.names.indexOf(config.y);
+    config.text = metadata.names.indexOf(config.text);
+    
+    if (config.xScaleDomain == null) {
+      config.xScaleDomain = {"data":  config.title, "field": metadata.names[config.x]};
+    }
 
+    if (config.yScaleDomain == null) {
+      config.yScaleDomain = {"data":  config.title, "field": metadata.names[config.y]};
+    }
+    
     return config;
 }
 
@@ -132,22 +158,57 @@ function getSymbolMark(config, metadata) {
       fill = {"value":config.markColor};
   }
 
-var mark = {
-      "name": "points-group",
-      "type": "symbol",
-      "from": {"data": config.title},
-      "properties": {
-        "update": {
-          "x": {"scale": "x", "field": metadata.names[config.x]},
-          "y": {"scale": "y", "field": metadata.names[config.y]},
-          "fill": fill,
-          "size": {"value": config.markSize},
-          "fillOpacity": {"value": config.fillOpacity}
+  var mark;
+
+  if (config.mode == "stack") {
+    mark =  {
+            "type": "group",
+            "from": {
+                "data":  config.title,
+                "transform": [
+                {"type": "stack", "groupby": [metadata.names[config.x]], "sortby": [metadata.names[config.color]], "field":  metadata.names[config.y]},
+                {"type": "facet", "groupby": [metadata.names[config.color]]}
+                ]
+            },
+            "marks": [
+                {
+                    "type": "symbol",
+                    "properties": {
+                        "update": {
+                            "x": {"scale": "x", "field": metadata.names[config.x]},
+                            "y": {"scale": "y", "field": "layout_start"},
+                            "y2": {"scale": "y", "field": "layout_end"},
+                            "fill": {"scale": "color", "field": metadata.names[config.color]},
+                            "size": {"value": config.markSize},
+                            "fillOpacity": {"value": config.fillOpacity}
+                        },
+                        "hover": {
+                            "cursor": {"value": config.hoverCursor}
+                        }
+                    }
+                }
+            ]
+        };
+  } else {
+      mark = {
+        "name": "points-group",
+        "type": "symbol",
+        "from": {"data": config.title},
+        "properties": {
+          "update": {
+            "x": {"scale": "x", "field": metadata.names[config.x]},
+            "y": {"scale": "y", "field": metadata.names[config.y]},
+            "fill": fill,
+            "size": {"value": config.markSize},
+            "fillOpacity": {"value": config.fillOpacity}
+          }, 
+          "hover" : {
+            "cursor": {"value": config.hoverCursor}
+          }
         }
       }
-    }
-
-    return mark;
+  }
+  return mark;
 }
 
 function getSignals(config, metadata){
@@ -255,26 +316,31 @@ function createTooltip(div) {
 function bindTooltip(div, view, config, metadata){
 
     view.on("mouseover", function(event, item) {
-      if (item != null && item.mark.marktype == config.tooltip.type) { 
+      if (item != null && item.mark.marktype == config.tooltip.type) {
+        var row =  item.datum;
+        if (item.datum != null && item.datum.a != null) {
+           row = item.datum.a; 
+        }
+
         var tooltipDiv = document.getElementById(div.replace("#", "")+"-tooltip");
         var tooltipContent = "";
     
-        if (item.datum[metadata.names[config.x]]!= null) {
+        if (row[metadata.names[config.x]]!= null) {
           var content;
 
         //Default tooltip content if tooltip content is not defined
         if (config.tooltip.content == null) {
               if (metadata.types[config.x]== "time") {
                 var dFormat =  d3.time.format(config.dateFormat);
-                content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                content =  dFormat(new Date(parseInt(row[metadata.names[config.x]])));
               } else {
-                content = item.datum[metadata.names[config.x]];
+                content = row[metadata.names[config.x]];
               }
 
               tooltipContent += "<b>"+ metadata.names[config.x] +"</b> : "+content+"<br/>" ;
 
-            if (item.datum[metadata.names[config.y]] != null) {
-                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+item.datum[metadata.names[config.y]]+"<br/>" 
+            if (row[metadata.names[config.y]] != null) {
+                    tooltipContent += "<b>"+ metadata.names[config.y] + "</b> : "+row[metadata.names[config.y]]+"<br/>" 
                 }
             
             } else {
@@ -282,9 +348,9 @@ function bindTooltip(div, view, config, metadata){
                 for (var i = 0; i < config.tooltip.content.length; i++) {
                     if (metadata.types[metadata.names.indexOf(config.tooltip.content[i])]=== "time") {
                         var dFormat =  d3.time.format(config.dateFormat);
-                        content =  dFormat(new Date(parseInt(item.datum[metadata.names[config.x]])));
+                        content =  dFormat(new Date(parseInt(row[metadata.names[config.x]])));
                     } else {
-                        content = item.datum[config.tooltip.content[i]];
+                        content = row[config.tooltip.content[i]];
                     }
 
                     if (config.tooltip.label != false) {
@@ -347,36 +413,36 @@ function cumulativeOffset(element) {
 
 function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     var xProp = {"ticks": {
-                   "stroke": {"value": config.axesColor}, 
-                   "strokeWidth":{"value":config.axesSize}
+                   "stroke": {"value": config.xAxisColor}, 
+                   "strokeWidth":{"value":config.xAxisStrokeSize}
                  },
                  "labels": {
-                   "fill": {"value": config.axesColor},
-                    "fontSize": {"value": config.axesFontSize}
+                   "fill": {"value": config.xAxisColor},
+                    "fontSize": {"value": config.xAxisFontSize}
                  },
                  "title": {
-                   "fontSize": {"value": config.titleFontSize},
-                    "fill": {"value": config.titleFontColor}
+                   "fontSize": {"value": config.xAxisTitleFontSize},
+                    "fill": {"value": config.xAxisTitleFontColor}
                  },
                  "axis": {
-                   "stroke": {"value": config.axesColor},
-                   "strokeWidth": {"value": config.axesSize}
+                   "stroke": {"value": config.xAxisColor},
+                   "strokeWidth": {"value": config.xAxisSize}
                  }};
     var yProp =  {"ticks": {
-                   "stroke": {"value": config.axesColor}, 
-                   "strokeWidth":{"value":config.axesSize}
+                   "stroke": {"value": config.yAxisColor}, 
+                   "strokeWidth":{"value":config.yAxisStrokeSize}
                  },
                  "labels": {
-                   "fill": {"value": config.axesColor},
-                    "fontSize": {"value": config.axesFontSize}
+                   "fill": {"value": config.yAxisColor},
+                    "fontSize": {"value": config.yAxisFontSize}
                  },
                  "title": {
-                   "fontSize": {"value": config.titleFontSize},
-                    "fill": {"value": config.titleFontColor}
+                   "fontSize": {"value": config.yAxisTitleFontSize},
+                    "fill": {"value": config.yAxisTitleFontColor}
                  },
                  "axis": {
-                   "stroke": {"value": config.axesColor},
-                   "strokeWidth": {"value": config.axesSize}
+                   "stroke": {"value": config.yAxisColor},
+                   "strokeWidth": {"value": config.yAxisSize}
                  }};
     
     if (config.xAxisAngle) {
@@ -413,6 +479,26 @@ function getXYAxes(config, xAxesType, xScale, yAxesType, yScale) {
     ];
 
     return axes;
+}
+
+function getXYScales(config, metadata) {
+    var xScale = {
+        "name": "x",
+        "type": metadata.types[config.x],
+        "range": "width",
+        "zero": config.zero,
+        "domain": config.xScaleDomain
+    };
+
+  var yScale = {
+        "name": "y",
+        "type": metadata.types[config.y],
+        "range": "height",
+        "zero": config.zero,
+        "domain": config.yScaleDomain
+    };
+
+  return [xScale, yScale];
 }
 
 function getRangeSignals(config, signals) {
@@ -498,6 +584,7 @@ function drawChart(div, obj, callbacks) {
               var range_end;
               var callback = callbacks[i].callback;
                 if (obj.config.range) {
+                  document.getElementById(div.replace("#", "")).style.cursor="grab";
                   obj.view.onSignal("range_start", function(signalName, signalValue){
                   range_start = signalValue;
                   });
