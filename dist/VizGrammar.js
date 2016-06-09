@@ -1827,6 +1827,10 @@ var table = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
+      if (this.config.columnTitles == null) {
+        this.config.columnTitles = this.config.columns;
+      }
+
 };
 
 table.prototype.draw = function(div) {
