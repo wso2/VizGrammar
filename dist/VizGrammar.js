@@ -1915,7 +1915,7 @@ table.prototype.setupData = function (dataset, config) {
                                 }
                             }
 
-                            if (typeof d.value == "string") {
+                            if (typeof d.value == "string" && (config.color == "*" || column == allColumns[config.color])) {
 
                                       var colorDomain;
 
