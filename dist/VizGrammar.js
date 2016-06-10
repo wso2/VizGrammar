@@ -1827,6 +1827,10 @@ var table = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
+      if (this.config.columnTitles == null) {
+        this.config.columnTitles = this.config.columns;
+      }
+
 };
 
 table.prototype.draw = function(div) {
@@ -1911,7 +1915,7 @@ table.prototype.setupData = function (dataset, config) {
                                 }
                             }
 
-                            if (typeof d.value == "string") {
+                            if (typeof d.value == "string" && (config.color == "*" || column == allColumns[config.color])) {
 
                                       var colorDomain;
 
@@ -1923,8 +1927,15 @@ table.prototype.setupData = function (dataset, config) {
                                   colorDomain = config.colorDomain
                                }
 
+                                var color;
+                                if (typeof config.colorScale == "string") {
+                                  color = window["d3"]["scale"][config.colorScale]().range();
+                                } else {
+                                  color = config.colorScale;
+                                }
+
                                 var colorScale = d3.scale.ordinal()
-                                                .range(config.colorScale)
+                                                .range(color)
                                                 .domain(colorDomain);
                                 return colorScale(d.value); 
 
