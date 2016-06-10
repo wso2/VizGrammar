@@ -108,8 +108,15 @@ table.prototype.setupData = function (dataset, config) {
                                   colorDomain = config.colorDomain
                                }
 
+                                var color;
+                                if (typeof config.colorScale == "string") {
+                                  color = window["d3"]["scale"][config.colorScale]().range();
+                                } else {
+                                  color = config.colorScale;
+                                }
+
                                 var colorScale = d3.scale.ordinal()
-                                                .range(config.colorScale)
+                                                .range(color)
                                                 .domain(colorDomain);
                                 return colorScale(d.value); 
 
