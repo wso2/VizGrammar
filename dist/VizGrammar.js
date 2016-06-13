@@ -2033,8 +2033,15 @@ function checkConfig(config, metadata){
 
         textColor:"#888",
 
-        //Tool Configs
-        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+        //Tooltip Configs
+        tooltip: {
+            "enabled":true,
+            "bgColor":"#000",
+            "textColor":"#fff",
+            "opacity":"0.9",
+            "fontSize":"12px",
+            "type":"symbol"
+        },
 
         //Legend Configs
         legend:true,
@@ -2348,7 +2355,13 @@ function bindTooltip(div, view, config, metadata){
 
         if (tooltipContent != "") {
             tooltipDiv.innerHTML = tooltipContent;
-            tooltipDiv.style.padding = "5px 5px 5px 5px";
+            tooltipDiv.style.padding = "5px";
+            tooltipDiv.style.backgroundColor = config.tooltip.bgColor;
+            tooltipDiv.style.color = config.tooltip.textColor;
+            tooltipDiv.style.fontSize = config.tooltip.fontSize;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.className = "chart-tooltip";
         }
 
         window.onmousemove = function (e) {
