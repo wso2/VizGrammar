@@ -2232,7 +2232,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
             $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
 
-            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $("#wrapper").append("<div id='tip' class='chart-tooltip' style='top:0; left: 0; position: absolute'></div>");
             $tip=$('#tip');
             $tip.empty();
 
@@ -2304,7 +2304,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
-        + "<div id= "+div.replace("#", "")+"-tooltip></div>";
+        + "<div id= "+div.replace("#", "")+"-tooltip class='chart-tooltip'></div>";
 }
 
 function bindTooltip(div, view, config, metadata){
