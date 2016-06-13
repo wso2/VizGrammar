@@ -498,6 +498,11 @@ function getXYScales(config, metadata) {
         "domain": config.yScaleDomain
     };
 
+    if (config.type != "bar") {
+        xScale.padding = 1;
+        yScale.padding = 1;
+    }
+
   return [xScale, yScale];
 }
 
