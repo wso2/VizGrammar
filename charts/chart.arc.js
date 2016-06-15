@@ -10,7 +10,6 @@ var arc = function(dataTable, config) {
 
       var summarize = {};
       summarize[this.metadata.names[config.x]] = "sum";
-      console.log(summarize);
 
       dataTable.push({
       "name": "summary",
@@ -64,7 +63,7 @@ var arc = function(dataTable, config) {
           "name": "arc",
           "values": [{"type": "YES"}]
         });
-        marks.push(getPieMidText(config, this.metadata));;
+        marks.push(getPieMidText(config, this.metadata));
       }
 
       marks.push(getPieMark(config, this.metadata));
@@ -161,12 +160,12 @@ arc.prototype.getSpec = function() {
 function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
-          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
+          var innerRadius = config.height / 5 * ( 1 + config.innerRadius);
         } else if (config.mode == "pie") {
           var innerRadius = 0;
         } else {
           config.innerRadius += 0.5;
-          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
+          var innerRadius = config.height / 5 * ( 1 + config.innerRadius);
         }
 
         var title = config.title;
@@ -187,7 +186,7 @@ function getPieMark(config, metadata){
                           "startAngle": {"field": "layout_start"},
                           "endAngle": {"field": "layout_end"},
                           "innerRadius": {"value": innerRadius},
-                          "outerRadius":  {"value": config.width * 0.4},
+                          "outerRadius":  {"value": config.height * 0.4},
                           "fill": {"scale": "color", "field": fieldAlias + metadata.names[config.color]},
                           "fillOpacity": {"value": 1}
                         },
@@ -220,7 +219,7 @@ function getPieMidText(config, metadata){
                                     ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "fontSize":{"value": config.width/9},
+                              "fontSize":{"value": config.height/9},
                               "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                              }
@@ -238,7 +237,7 @@ function getPieText(config, metadata){
                             "update": {
                               "x": {"field": {"group": "width"}, "mult": 0.5},
                               "y": {"field": {"group": "height"}, "mult": 0.5},
-                              "radius": { "value": config.width * 0.5},
+                              "radius": { "value": config.height * 0.5},
                               "theta": {"field": "layout_mid"},
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
