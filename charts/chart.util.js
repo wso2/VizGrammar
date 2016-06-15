@@ -41,7 +41,7 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 0},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
@@ -102,6 +102,11 @@ function checkConfig(config, metadata){
     }
 
     config = extend(defaults, config);
+
+    if (config.legend) {
+        config.padding.right = 60;
+    }
+
     config.height = config.height  - (config.padding.top + config.padding.bottom);
     config.width = config.width  - (config.padding.left + config.padding.right);
 
