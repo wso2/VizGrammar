@@ -25,7 +25,6 @@ var arc = function(dataTable, config) {
 
       var summarize = {};
       summarize[this.metadata.names[config.x]] = "sum";
-      console.log(summarize);
 
       dataTable.push({
       "name": "summary",
@@ -79,7 +78,7 @@ var arc = function(dataTable, config) {
           "name": "arc",
           "values": [{"type": "YES"}]
         });
-        marks.push(getPieMidText(config, this.metadata));;
+        marks.push(getPieMidText(config, this.metadata));
       }
 
       marks.push(getPieMark(config, this.metadata));
@@ -176,12 +175,12 @@ arc.prototype.getSpec = function() {
 function getPieMark(config, metadata){
         var innerRadius;
         if (config.mode == "donut") { 
-          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
+          var innerRadius = config.height / 5 * ( 1 + config.innerRadius);
         } else if (config.mode == "pie") {
           var innerRadius = 0;
         } else {
           config.innerRadius += 0.5;
-          var innerRadius = config.width / 5 * ( 1 + config.innerRadius);
+          var innerRadius = config.height / 5 * ( 1 + config.innerRadius);
         }
 
         var title = config.title;
@@ -202,7 +201,7 @@ function getPieMark(config, metadata){
                           "startAngle": {"field": "layout_start"},
                           "endAngle": {"field": "layout_end"},
                           "innerRadius": {"value": innerRadius},
-                          "outerRadius":  {"value": config.width * 0.4},
+                          "outerRadius":  {"value": config.height * 0.4},
                           "fill": {"scale": "color", "field": fieldAlias + metadata.names[config.color]},
                           "fillOpacity": {"value": 1}
                         },
@@ -235,7 +234,7 @@ function getPieMidText(config, metadata){
                                     ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
-                              "fontSize":{"value": config.width/9},
+                              "fontSize":{"value": config.height/9},
                               "text": {"template": "{{datum.percentage | number:'.2f'}}%"}
 
                              }
@@ -253,7 +252,7 @@ function getPieText(config, metadata){
                             "update": {
                               "x": {"field": {"group": "width"}, "mult": 0.5},
                               "y": {"field": {"group": "height"}, "mult": 0.5},
-                              "radius": { "value": config.width * 0.5},
+                              "radius": { "value": config.height * 0.5},
                               "theta": {"field": "layout_mid"},
                               "fill": {"value": "#000"},
                               "align": {"value": "center"},
@@ -821,6 +820,7 @@ function getBarMark(config, metadata){
   }
 
   var mark = {
+                  "name": "bars",
                   "type": "rect",
                   "from": {"data": config.title},
                   "properties": {
@@ -840,6 +840,7 @@ function getStackBarMark(config, metadata){
   var markContent;
   if (config.orientation == "left") {
     mark = {
+        "name": "bars",
         "type": "rect",
         "from": {
           "data": config.title,
@@ -868,6 +869,7 @@ function getStackBarMark(config, metadata){
   } else {
 
     mark = {
+        "name": "bars",
         "type": "rect",
         "from": {
           "data": config.title,
@@ -905,6 +907,7 @@ function getGroupBarMark(config, metadata){
   var mark;
   if (config.orientation == "left") {
       mark =  {
+          "name": "bars",
           "type": "group",
           "from": {
             "data": config.title,
@@ -926,7 +929,7 @@ function getGroupBarMark(config, metadata){
           ],
           "marks": [
           {
-              "name": "bars",
+              "name": "bar",
               "type": "rect",
               "properties": {
                 "update": {
@@ -947,6 +950,7 @@ function getGroupBarMark(config, metadata){
         };
   } else {
       mark =  {
+          "name": "bars",
           "type": "group",
           "from": {
             "data": config.title,
@@ -968,7 +972,7 @@ function getGroupBarMark(config, metadata){
           ],
           "marks": [
           {
-              "name": "bars",
+              "name": "bar",
               "type": "rect",
               "properties": {
                 "update": {
@@ -1141,6 +1145,7 @@ function getLineMark(config, metadata){
                   },
                   "marks": [
                     {
+                      "name": "line",
                       "type": "line",
                       "properties": {
                         "update": {
@@ -1160,6 +1165,7 @@ function getLineMark(config, metadata){
                 };
         } else {
             mark = {
+                    "name": "line",
                     "type": "line",
                     "from": {"data": config.title},
                     "properties": {
@@ -1827,6 +1833,10 @@ var table = function(dataTable, config) {
       this.config = config;
       dataTable[0].name= config.title;
 
+      if (this.config.columnTitles == null) {
+        this.config.columnTitles = this.config.columns;
+      }
+
 };
 
 table.prototype.draw = function(div) {
@@ -1911,7 +1921,7 @@ table.prototype.setupData = function (dataset, config) {
                                 }
                             }
 
-                            if (typeof d.value == "string") {
+                            if (typeof d.value == "string" && (config.color == "*" || column == allColumns[config.color])) {
 
                                       var colorDomain;
 
@@ -1923,8 +1933,15 @@ table.prototype.setupData = function (dataset, config) {
                                   colorDomain = config.colorDomain
                                }
 
+                                var color;
+                                if (typeof config.colorScale == "string") {
+                                  color = window["d3"]["scale"][config.colorScale]().range();
+                                } else {
+                                  color = config.colorScale;
+                                }
+
                                 var colorScale = d3.scale.ordinal()
-                                                .range(config.colorScale)
+                                                .range(color)
                                                 .domain(colorDomain);
                                 return colorScale(d.value); 
 
@@ -2010,7 +2027,7 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 0},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
@@ -2022,8 +2039,15 @@ function checkConfig(config, metadata){
 
         textColor:"#888",
 
-        //Tool Configs
-        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+        //Tooltip Configs
+        tooltip: {
+            "enabled":true,
+            "bgColor":"#000",
+            "textColor":"#fff",
+            "opacity":"0.9",
+            "fontSize":"12px",
+            "type":"symbol"
+        },
 
         //Legend Configs
         legend:true,
@@ -2071,6 +2095,11 @@ function checkConfig(config, metadata){
     }
 
     config = extend(defaults, config);
+
+    if (config.legend) {
+        config.padding.right = 60;
+    }
+
     config.height = config.height  - (config.padding.top + config.padding.bottom);
     config.width = config.width  - (config.padding.left + config.padding.right);
 
@@ -2207,7 +2236,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
             $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
 
-            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $("#wrapper").append("<div id='tip' class='chart-tooltip' style='top:0; left: 0; position: absolute'></div>");
             $tip=$('#tip');
             $tip.empty();
 
@@ -2279,7 +2308,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
-        + "<div id= "+div.replace("#", "")+"-tooltip></div>";
+        + "<div id= "+div.replace("#", "")+"-tooltip class='chart-tooltip'></div>";
 }
 
 function bindTooltip(div, view, config, metadata){
@@ -2337,7 +2366,13 @@ function bindTooltip(div, view, config, metadata){
 
         if (tooltipContent != "") {
             tooltipDiv.innerHTML = tooltipContent;
-            tooltipDiv.style.padding = "5px 5px 5px 5px";
+            tooltipDiv.style.padding = "5px";
+            tooltipDiv.style.backgroundColor = config.tooltip.bgColor;
+            tooltipDiv.style.color = config.tooltip.textColor;
+            tooltipDiv.style.fontSize = config.tooltip.fontSize;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.className = "chart-tooltip";
         }
 
         window.onmousemove = function (e) {
@@ -2466,6 +2501,11 @@ function getXYScales(config, metadata) {
         "zero": config.zero,
         "domain": config.yScaleDomain
     };
+
+    if (config.type != "bar") {
+        xScale.padding = 1;
+        yScale.padding = 1;
+    }
 
   return [xScale, yScale];
 }
