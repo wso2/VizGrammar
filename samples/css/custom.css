@@ -1,6 +1,7 @@
 body {
     background: #1E2531;
     color: #fff;
+    padding-top: 80px;
 }
 
 body.widget {
