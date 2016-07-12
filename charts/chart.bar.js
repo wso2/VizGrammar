@@ -182,12 +182,21 @@ var bar = function(dataTable, config) {
               "streams": [{"type": "click", "expr": "datum._id"}]
             });
 
-          marks[0].properties.update.fill = [
+          if (config.selectionColor == "") {
+            marks[0].properties.update.fillOpacity = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": 1
+            },{"value":config.selectionOpacity}
+          ];
+          } else {
+            marks[0].properties.update.fill = [
             {
               "test": "indata('selectedPoints', datum._id, 'id')",
               "value": config.selectionColor
             },marks[0].properties.update.fill
-          ];
+            ];
+          }
       }
 
       this.spec.width = config.width;
@@ -328,7 +337,7 @@ function getBarMark(config, metadata){
                     "x": {"scale": "y", "field": metadata.names[config.y]},
                     "x2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
-                    "fillOpacity": {"value": 1}
+                    "fillOpacity": {"value": config.fillOpacity}
                   };
   } else {
     markContent = {
@@ -337,7 +346,7 @@ function getBarMark(config, metadata){
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "y2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
-                    "fillOpacity": {"value": 1}
+                    "fillOpacity": {"value": config.fillOpacity}
                   };
   }
 
@@ -380,7 +389,7 @@ function getStackBarMark(config, metadata){
             "x": {"scale": "y", "field": "layout_start"},
             "x2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
-            "fillOpacity": {"value": 1}
+            "fillOpacity": {"value": config.fillOpacity}
           },
           "hover": {
             "fillOpacity": {"value": 0.5},
@@ -409,7 +418,7 @@ function getStackBarMark(config, metadata){
             "y": {"scale": "y", "field": "layout_start"},
             "y2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
-            "fillOpacity": {"value": 1}
+            "fillOpacity": {"value": config.fillOpacity}
           },
           "hover": {
             "fillOpacity": {"value": 0.5},
@@ -460,7 +469,7 @@ function getGroupBarMark(config, metadata){
                   "x": {"scale": "y", "field": metadata.names[config.y]},
                   "x2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
-                  "fillOpacity": {"value": 1}
+                  "fillOpacity": {"value": config.fillOpacity}
                 },
                 "hover": {
                   "fillOpacity": {"value": 0.5},
@@ -503,10 +512,10 @@ function getGroupBarMark(config, metadata){
                   "y": {"scale": "y", "field": metadata.names[config.y]},
                   "y2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
-                  "fillOpacity": {"value": 1}
+                  "fillOpacity": {"value": 0.5}
                 },
                 "hover": {
-                  "fillOpacity": {"value": 0.5},
+                  "fillOpacity": {"value": config.fillOpacity},
                   "cursor": {"value": config.hoverCursor}
                 }
               }
