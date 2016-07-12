@@ -46,6 +46,7 @@ function checkConfig(config, metadata){
         range:false,
         rangeColor:"#222",
         selectionColor:"#222",
+        selectionOpacity:0.6,
         barGap:1,
         mapColor:"#888",
         hoverCursor:"pointer",
