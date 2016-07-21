@@ -332,8 +332,8 @@ var area = function(dataTable, config) {
     var axes =  getXYAxes(config, "x", "x", "y", "y");
 
       marks.push(getAreaMark(config, this.metadata));
-      config.fillOpacity  = 0;
-      config.markSize = 1000;
+      config.fillOpacity  = 1;
+      config.markSize = 10;
       marks.push(getSymbolMark(config, this.metadata));
 
       if (config.range) {
@@ -1328,6 +1328,11 @@ map.prototype.insert = function(data) {
     this.view.update();
 
 };
+
+map.prototype.getSpec = function() {
+  return this.spec;
+};
+
 
 function getTopoJson(config, metadata){
 
