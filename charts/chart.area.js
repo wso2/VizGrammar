@@ -64,9 +64,16 @@ var area = function(dataTable, config) {
 
     var axes =  getXYAxes(config, "x", "x", "y", "y");
 
+
+      marks.push(getLineMark(config, this.metadata));
+
+      config.fillOpacity  = 0.7;
       marks.push(getAreaMark(config, this.metadata));
+      config.fillOpacity  = 0;
+      config.markSize = 1000;
+      marks.push(getSymbolMark(config, this.metadata));
       config.fillOpacity  = 1;
-      config.markSize = 10;
+      config.markSize = 15;
       marks.push(getSymbolMark(config, this.metadata));
 
       if (config.range) {
@@ -148,7 +155,7 @@ function getAreaMark(config, metadata){
                             "y2": {"scale": "y", "field": "layout_end"},
                             "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "strokeOpacity": {"value": 1}
+                            "fillOpacity": {"value": config.fillOpacity}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -174,7 +181,7 @@ function getAreaMark(config, metadata){
                             "y2": {"scale": "y", "value": 0},
                             "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "strokeOpacity": {"value": 1}
+                            "fillOpacity": {"value": config.fillOpacity}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -196,7 +203,7 @@ function getAreaMark(config, metadata){
                     "y2": {"scale": "y", "value": 0},
                     "fill": { "value": config.markColor},
                     "strokeWidth": {"value": 2},
-                    "fillOpacity": {"value": 1}
+                    "fillOpacity": {"value": config.fillOpacity}
                 },
                 "hover": {
                     "fillOpacity": {"value": 0.5}
