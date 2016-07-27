@@ -2175,8 +2175,8 @@ function checkConfig(config, metadata){
 
         grid: true,
         zero: false,
-        xTicks: 0,
-        yTicks: 0,
+        xTicks: 10,
+        yTicks: 10,
         xFormat: "",
         yFormat: "",
 
