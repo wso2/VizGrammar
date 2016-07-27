@@ -950,7 +950,7 @@ function getGroupBarMark(config, metadata){
               "properties": {
                 "update": {
                   "y": {"scale": "pos", "field": metadata.names[config.color]},
-                  "height": {"scale": "pos", "band": true},
+                  "height": {"scale": "pos", "band": true, "offset": calculateBarGap(config)},
                   "x": {"scale": "y", "field": metadata.names[config.y]},
                   "x2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
@@ -993,14 +993,14 @@ function getGroupBarMark(config, metadata){
               "properties": {
                 "update": {
                   "x": {"scale": "pos", "field": metadata.names[config.color]},
-                  "width": {"scale": "pos", "band": true},
+                  "width": {"scale": "pos", "band": true, "offset": calculateBarGap(config)},
                   "y": {"scale": "y", "field": metadata.names[config.y]},
                   "y2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
-                  "fillOpacity": {"value": 0.5}
+                  "fillOpacity": {"value": config.fillOpacity}
                 },
                 "hover": {
-                  "fillOpacity": {"value": config.fillOpacity},
+                  "fillOpacity": {"value": 0.5},
                   "cursor": {"value": config.hoverCursor}
                 }
               }
@@ -1014,6 +1014,7 @@ function getGroupBarMark(config, metadata){
 function calculateBarGap(config){
 
   var xWidth;
+  var widthWeight = 30;
 
   if (config.orientation == "left") {
     xWidth = config.height;
@@ -1021,7 +1022,11 @@ function calculateBarGap(config){
     xWidth = config.width
   }
 
-  return  -config.barGap * (xWidth/30);
+  if (config.mode == "group") {
+      widthWeight = 80;
+  }
+
+  return  -config.barGap * (xWidth/widthWeight);
 
 };var vizg = function(dataTable, config) {
 	dataTable = buildTable(dataTable); 
@@ -2170,8 +2175,8 @@ function checkConfig(config, metadata){
 
         grid: true,
         zero: false,
-        xTicks: 0,
-        yTicks: 0,
+        xTicks: 10,
+        yTicks: 10,
         xFormat: "",
         yFormat: "",
 
