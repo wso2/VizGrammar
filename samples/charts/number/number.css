@@ -1,0 +1,30 @@
+p {
+    margin: 0;
+    display: block;
+    text-align: center;
+    font-weight: bold;
+}
+
+.titledChartNumberTorqueContent {
+   	color:steelblue;
+   	font-size:18px;
+    font-weight: normal;
+    padding: 10px 0;
+}
+
+.valdChartNumberTorqueContent {
+   	color:#438CAD;
+   	font-size:50px;
+    font-weight: normal;
+}
+
+
+.diffdChartNumberTorqueContent {
+   	color:#438CAD;
+   	font-size:14px;
+}
+
+.diffPercentagedChartNumberTorqueContent {
+   	color:#ff944d;
+   	font-size:14px;
+}
