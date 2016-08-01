@@ -1648,17 +1648,22 @@ number.prototype.draw = function(div) {
 number.prototype.insert = function(data) {
     var current = data[data.length-1][this.metadata.names[this.config.x]];
     var previous  = document.getElementById("val" + this.view).innerHTML;
-    var difference =  previous - current;
+    var difference =   current - previous;
     var diffPercentage;
+    var sign = "";
 
     if (previous != "" && previous != 0) {
-      diffPercentage = (difference / previous).toFixed(2) + "%";
+      diffPercentage = (difference / previous).toFixed(2) * 100 + "%";
     } else {
       diffPercentage = "";
     }
 
-    document.getElementById("diffPercentage" + this.view).innerHTML = diffPercentage;
-    document.getElementById("diff" + this.view).innerHTML = difference;
+    if (difference > 0) {
+      sign = "+";
+    }
+
+    document.getElementById("diffPercentage" + this.view).innerHTML = sign + diffPercentage;
+    document.getElementById("diff" + this.view).innerHTML = sign + difference;
     document.getElementById("val" + this.view).innerHTML = current;
 
 };
