@@ -17,19 +17,39 @@ number.prototype.draw = function(div) {
   var textContent = "";
 
   if (this.data != null && this.data.length != 0) {
-      textContent = this.data[this.data.length-1][this.metadata.names[this.config.x]];    
+      textContent = this.data[this.data.length - 1][this.metadata.names[this.config.x]];    
   }
 
-  var divContent = "<p style='padding: 0px 0px 0px 20px;'>"+this.config.title+"</p><br/>"
-                  +"<p align='center' style='font-size:60px;padding: 0px 0px 0px 20px;' id='"+contentId+"'>"
-                  +textContent+"</p>";
+  var divContent = "<p class='title" + contentId + "'>" + this.config.title+ "</p>"
+                  + "<p class='val" + contentId + "' id='val"+ contentId+"'>" + textContent + "</p>"
+                 + "<p class='diff" + contentId + "' id='diff"+ contentId+"'>0</p>"
+                 + "<p class='diffPercentage" + contentId + "' id='diffPercentage"+ contentId+"'>0%</p>";
 
    document.getElementById(div).innerHTML = divContent;
    this.view = contentId;
 };
 
 number.prototype.insert = function(data) {
-    document.getElementById(this.view).innerHTML = data[data.length-1][this.metadata.names[this.config.x]];
+    var current = data[data.length-1][this.metadata.names[this.config.x]];
+    var previous  = document.getElementById("val" + this.view).innerHTML;
+    var difference =   current - previous;
+    var diffPercentage;
+    var sign = "";
+
+    if (previous != "" && previous != 0) {
+      diffPercentage = (difference / previous).toFixed(2) * 100 + "%";
+    } else {
+      diffPercentage = "";
+    }
+
+    if (difference > 0) {
+      sign = "+";
+    }
+
+    document.getElementById("diffPercentage" + this.view).innerHTML = sign + diffPercentage;
+    document.getElementById("diff" + this.view).innerHTML = sign + difference;
+    document.getElementById("val" + this.view).innerHTML = current;
+
 };
 
 

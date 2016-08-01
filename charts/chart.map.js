@@ -131,6 +131,11 @@ map.prototype.insert = function(data) {
 
 };
 
+map.prototype.getSpec = function() {
+  return this.spec;
+};
+
+
 function getTopoJson(config, metadata){
 
     var width = config.width;

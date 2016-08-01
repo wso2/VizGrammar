@@ -182,12 +182,21 @@ var bar = function(dataTable, config) {
               "streams": [{"type": "click", "expr": "datum._id"}]
             });
 
-          marks[0].properties.update.fill = [
+          if (config.selectionColor == "") {
+            marks[0].properties.update.fillOpacity = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": 1
+            },{"value":config.selectionOpacity}
+          ];
+          } else {
+            marks[0].properties.update.fill = [
             {
               "test": "indata('selectedPoints', datum._id, 'id')",
               "value": config.selectionColor
             },marks[0].properties.update.fill
-          ];
+            ];
+          }
       }
 
       this.spec.width = config.width;
@@ -328,7 +337,7 @@ function getBarMark(config, metadata){
                     "x": {"scale": "y", "field": metadata.names[config.y]},
                     "x2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
-                    "fillOpacity": {"value": 1}
+                    "fillOpacity": {"value": config.fillOpacity}
                   };
   } else {
     markContent = {
@@ -337,11 +346,12 @@ function getBarMark(config, metadata){
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "y2": {"scale": "y", "value": 0},
                     "fill": {"value": config.markColor},
-                    "fillOpacity": {"value": 1}
+                    "fillOpacity": {"value": config.fillOpacity}
                   };
   }
 
   var mark = {
+                  "name": "bars",
                   "type": "rect",
                   "from": {"data": config.title},
                   "properties": {
@@ -361,6 +371,7 @@ function getStackBarMark(config, metadata){
   var markContent;
   if (config.orientation == "left") {
     mark = {
+        "name": "bars",
         "type": "rect",
         "from": {
           "data": config.title,
@@ -378,7 +389,7 @@ function getStackBarMark(config, metadata){
             "x": {"scale": "y", "field": "layout_start"},
             "x2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
-            "fillOpacity": {"value": 1}
+            "fillOpacity": {"value": config.fillOpacity}
           },
           "hover": {
             "fillOpacity": {"value": 0.5},
@@ -389,6 +400,7 @@ function getStackBarMark(config, metadata){
   } else {
 
     mark = {
+        "name": "bars",
         "type": "rect",
         "from": {
           "data": config.title,
@@ -406,7 +418,7 @@ function getStackBarMark(config, metadata){
             "y": {"scale": "y", "field": "layout_start"},
             "y2": {"scale": "y", "field": "layout_end"},
             "fill": {"scale": "color", "field": metadata.names[config.color]},
-            "fillOpacity": {"value": 1}
+            "fillOpacity": {"value": config.fillOpacity}
           },
           "hover": {
             "fillOpacity": {"value": 0.5},
@@ -426,6 +438,7 @@ function getGroupBarMark(config, metadata){
   var mark;
   if (config.orientation == "left") {
       mark =  {
+          "name": "bars",
           "type": "group",
           "from": {
             "data": config.title,
@@ -447,16 +460,16 @@ function getGroupBarMark(config, metadata){
           ],
           "marks": [
           {
-              "name": "bars",
+              "name": "bar",
               "type": "rect",
               "properties": {
                 "update": {
                   "y": {"scale": "pos", "field": metadata.names[config.color]},
-                  "height": {"scale": "pos", "band": true},
+                  "height": {"scale": "pos", "band": true, "offset": calculateBarGap(config)},
                   "x": {"scale": "y", "field": metadata.names[config.y]},
                   "x2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
-                  "fillOpacity": {"value": 1}
+                  "fillOpacity": {"value": config.fillOpacity}
                 },
                 "hover": {
                   "fillOpacity": {"value": 0.5},
@@ -468,6 +481,7 @@ function getGroupBarMark(config, metadata){
         };
   } else {
       mark =  {
+          "name": "bars",
           "type": "group",
           "from": {
             "data": config.title,
@@ -489,16 +503,16 @@ function getGroupBarMark(config, metadata){
           ],
           "marks": [
           {
-              "name": "bars",
+              "name": "bar",
               "type": "rect",
               "properties": {
                 "update": {
                   "x": {"scale": "pos", "field": metadata.names[config.color]},
-                  "width": {"scale": "pos", "band": true},
+                  "width": {"scale": "pos", "band": true, "offset": calculateBarGap(config)},
                   "y": {"scale": "y", "field": metadata.names[config.y]},
                   "y2": {"scale": "y", "value": 0},
                   "fill": {"scale": "color", "field": metadata.names[config.color]},
-                  "fillOpacity": {"value": 1}
+                  "fillOpacity": {"value": config.fillOpacity}
                 },
                 "hover": {
                   "fillOpacity": {"value": 0.5},
@@ -515,6 +529,7 @@ function getGroupBarMark(config, metadata){
 function calculateBarGap(config){
 
   var xWidth;
+  var widthWeight = 30;
 
   if (config.orientation == "left") {
     xWidth = config.height;
@@ -522,6 +537,10 @@ function calculateBarGap(config){
     xWidth = config.width
   }
 
-  return  -config.barGap * (xWidth/30);
+  if (config.mode == "group") {
+      widthWeight = 80;
+  }
+
+  return  -config.barGap * (xWidth/widthWeight);
 
 }

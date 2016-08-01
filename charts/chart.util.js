@@ -41,11 +41,12 @@ function checkConfig(config, metadata){
         innerRadius:0,
         //string: canvas or svg
         renderer: "svg", 
-        padding: {"top": 10, "left": 50, "bottom": 40, "right": 50},
+        padding: {"top": 10, "left": 50, "bottom": 40, "right": 0},
         dateFormat: "%x %X",
         range:false,
         rangeColor:"#222",
         selectionColor:"#222",
+        selectionOpacity:0.6,
         barGap:1,
         mapColor:"#888",
         hoverCursor:"pointer",
@@ -53,8 +54,15 @@ function checkConfig(config, metadata){
 
         textColor:"#888",
 
-        //Tool Configs
-        tooltip: {"enabled":true, "color":"#e5f2ff", "type":"symbol"},
+        //Tooltip Configs
+        tooltip: {
+            "enabled":true,
+            "bgColor":"#000",
+            "textColor":"#fff",
+            "opacity":"0.9",
+            "fontSize":"12px",
+            "type":"symbol"
+        },
 
         //Legend Configs
         legend:true,
@@ -86,8 +94,8 @@ function checkConfig(config, metadata){
 
         grid: true,
         zero: false,
-        xTicks: 0,
-        yTicks: 0,
+        xTicks: 10,
+        yTicks: 10,
         xFormat: "",
         yFormat: "",
 
@@ -102,6 +110,11 @@ function checkConfig(config, metadata){
     }
 
     config = extend(defaults, config);
+
+    if (config.legend) {
+        config.padding.right = 60;
+    }
+
     config.height = config.height  - (config.padding.top + config.padding.bottom);
     config.width = config.width  - (config.padding.left + config.padding.right);
 
@@ -238,7 +251,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
             $(div).wrap( "<div id='wrapper' style='position: relative'></div>" );
 
-            $("#wrapper").append("<div id='tip' class='tooltipClass' style='top:0; left: 0; position: absolute'></div>");
+            $("#wrapper").append("<div id='tip' class='chart-tooltip' style='top:0; left: 0; position: absolute'></div>");
             $tip=$('#tip');
             $tip.empty();
 
@@ -310,7 +323,7 @@ function bindTooltip(div,markType,eventObj, config, metaData, keyList){
 
 function createTooltip(div) {
    document.getElementById(div.replace("#", "")).innerHTML = document.getElementById(div.replace("#", "")).innerHTML 
-        + "<div id= "+div.replace("#", "")+"-tooltip></div>";
+        + "<div id= "+div.replace("#", "")+"-tooltip class='chart-tooltip'></div>";
 }
 
 function bindTooltip(div, view, config, metadata){
@@ -368,7 +381,13 @@ function bindTooltip(div, view, config, metadata){
 
         if (tooltipContent != "") {
             tooltipDiv.innerHTML = tooltipContent;
-            tooltipDiv.style.padding = "5px 5px 5px 5px";
+            tooltipDiv.style.padding = "5px";
+            tooltipDiv.style.backgroundColor = config.tooltip.bgColor;
+            tooltipDiv.style.color = config.tooltip.textColor;
+            tooltipDiv.style.fontSize = config.tooltip.fontSize;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.style.opacity = config.tooltip.opacity;
+            tooltipDiv.className = "chart-tooltip";
         }
 
         window.onmousemove = function (e) {
@@ -497,6 +516,11 @@ function getXYScales(config, metadata) {
         "zero": config.zero,
         "domain": config.yScaleDomain
     };
+
+    if (config.type != "bar") {
+        xScale.padding = 1;
+        yScale.padding = 1;
+    }
 
   return [xScale, yScale];
 }
