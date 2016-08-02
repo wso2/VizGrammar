@@ -256,15 +256,3 @@ body[media-screen=md] .visible-inline-block-md,
 body[media-screen=lg] .visible-inline-block-lg {
     display: inline-block !important;    
 }
-
-body svg.marks .mark-group .background {
-    fill: #121822 !important;
-}
-
-body svg.marks .mark-group .mark-text text {
-    fill: #7D8596 !important;
-}
-
-body svg.marks .mark-group .mark-rule line {
-    stroke: #E3E5E6 !important;
-}
