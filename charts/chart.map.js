@@ -235,7 +235,7 @@ function getMapMark(config, metadata){
                     "y": {"signal": "tooltipSignal.y", "offset": 20},
                     "width": {"value": 100},
                     "height": {"value": 20},
-                    "fill": {"value": config.tooltip.color}
+                    "fill": {"value": config.tooltip.bgColor}
                 }
             },
             "marks": [
@@ -246,7 +246,7 @@ function getMapMark(config, metadata){
                             "x": {"value": 6},
                             "y": {"value": 14},
                             "text": {"template": "\u007b{tooltipSignal.datum.unitName}} \u007b{tooltipSignal.datum.v}}"},
-                            "fill": {"value": "black"}
+                            "fill": {"value": config.tooltip.textColor}
                         }
                     }
                 }
