@@ -112,7 +112,7 @@ function checkConfig(config, metadata){
     config = extend(defaults, config);
 
     if (config.legend) {
-        config.padding.right = 60;
+        config.padding.right += 60;
     }
 
     config.height = config.height  - (config.padding.top + config.padding.bottom);
