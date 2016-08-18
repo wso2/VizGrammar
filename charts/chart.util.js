@@ -111,7 +111,7 @@ function checkConfig(config, metadata){
 
     config = extend(defaults, config);
 
-    if (config.legend) {
+    if (config.legend && config.padding.right < 60) {
         config.padding.right += 60;
     }
 
