@@ -56,6 +56,48 @@ var map = function(dataTable, config) {
         "range":  config.colorScale
     };
 
+          if (config.highlight == "single" || config.highlight == "multi") {
+
+        var multiTest;
+
+        if (config.highlight == "multi") {
+          multiTest = "!multi";
+        } else {
+          multiTest = "multi";
+        }
+
+
+        dataTable.push(   
+          {
+            "name": "selectedPoints",
+            "modify": [
+              {"type": "clear", "test": multiTest},
+              {"type": "toggle", "signal": "clickedPoint", "field": "id"}
+            ]
+          });
+
+          signals.push(    {
+              "name": "clickedPoint",
+              "init": 0,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            },
+            {
+              "name": "multi",
+              "init": false,
+              "verbose": true,
+              "streams": [{"type": "click", "expr": "datum._id"}]
+            });
+ 
+        marks[0].properties.update.fillOpacity = [
+            {
+              "test": "indata('selectedPoints', datum._id, 'id')",
+              "value": 1
+            },{"value":config.selectionOpacity}
+        ];
+  
+      }
+
     var scales =  [cScale];
 
     this.spec.width = config.width;
@@ -66,6 +108,7 @@ var map = function(dataTable, config) {
     this.spec.marks = marks;
     this.spec.predicates = predicates;
     this.spec.legends = legends;
+    this.spec.signals = signals;
 
 };
 
