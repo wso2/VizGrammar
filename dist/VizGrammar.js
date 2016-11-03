@@ -1226,7 +1226,6 @@ function getLineMark(config, metadata){
                         "update": {
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
-                            "y2": {"scale": "y", "value": 0},
                             "stroke": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2}
                         },
@@ -1247,7 +1246,6 @@ function getLineMark(config, metadata){
 
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
-                    "y2": {"scale": "y", "value": 0},
                     "stroke": { "value": config.markColor},
                     "strokeWidth": {"value": 2}
                 },
@@ -1352,14 +1350,13 @@ function getLineMark(config, metadata){
               "verbose": true,
               "streams": [{"type": "click", "expr": "datum._id"}]
             });
-
-         
-            marks[0].properties.update.fillOpacity = [
+ 
+        marks[0].properties.update.fillOpacity = [
             {
               "test": "indata('selectedPoints', datum._id, 'id')",
               "value": 1
             },{"value":config.selectionOpacity}
-          ];
+        ];
   
       }
 
