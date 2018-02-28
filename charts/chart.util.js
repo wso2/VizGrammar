@@ -566,12 +566,23 @@ function getRangeMark(config, marks) {
 }
 
 function getLegend(config) {
-  var legends = [
+    legendOrient = "right";
+    if (config.legendOrient){
+        legendOrient = config.legendOrient;
+    }
+
+    legendOffset = 0;
+    if (config.legendOffset){
+        legendOffset = parseInt(config.legendOffset);
+    }
+
+    var legends = [
           {
             "name": "legend",
             "fill": "color",
             "title": config.legendTitle,
-            "offset": 0,
+            "offset": legendOffset,
+            "orient": legendOrient,
             "properties": {
                   "symbols": {
                       "stroke": {"value": "transparent"}
