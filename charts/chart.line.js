@@ -128,6 +128,10 @@ line.prototype.getSpec = function() {
 
 
 function getLineMark(config, metadata){
+    interpolation = "linear";
+    if (config.interpolation){
+      interpolation = config.interpolation;
+    }
 
     var mark;
     if (config.color != -1 && config.mode == "stack") {
@@ -149,7 +153,8 @@ function getLineMark(config, metadata){
                             "y": {"scale": "y", "field": "layout_start"},
                             "y2": {"scale": "y", "field": "layout_end"},
                             "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                            "strokeWidth": {"value": 2}
+                            "strokeWidth": {"value": 2},
+                            "interpolate": {"value": interpolation}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -173,7 +178,8 @@ function getLineMark(config, metadata){
                             "x": {"scale": "x", "field": metadata.names[config.x]},
                             "y": {"scale": "y", "field": metadata.names[config.y]},
                             "stroke": {"scale": "color", "field": metadata.names[config.color]},
-                            "strokeWidth": {"value": 2}
+                            "strokeWidth": {"value": 2},
+                            "interpolate": {"value": interpolation}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -193,7 +199,8 @@ function getLineMark(config, metadata){
                     "x": {"scale": "x", "field": metadata.names[config.x]},
                     "y": {"scale": "y", "field": metadata.names[config.y]},
                     "stroke": { "value": config.markColor},
-                    "strokeWidth": {"value": 2}
+                    "strokeWidth": {"value": 2},
+                    "interpolate": {"value": interpolation}
                 },
                 "hover": {
                     "fillOpacity": {"value": 0.5}

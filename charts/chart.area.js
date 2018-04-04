@@ -133,6 +133,10 @@ area.prototype.getSpec = function() {
 
 
 function getAreaMark(config, metadata){
+    interpolation = "linear";
+    if (config.interpolation){
+      interpolation = config.interpolation;
+    }
 
     var mark;
     if (config.color != -1 && config.mode == "stack") {
@@ -155,7 +159,8 @@ function getAreaMark(config, metadata){
                             "y2": {"scale": "y", "field": "layout_end"},
                             "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "fillOpacity": {"value": config.fillOpacity}
+                            "fillOpacity": {"value": config.fillOpacity},
+                            "interpolate": {"value": interpolation}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -181,7 +186,8 @@ function getAreaMark(config, metadata){
                             "y2": {"scale": "y", "value": 0},
                             "fill": {"scale": "color", "field": metadata.names[config.color]},
                             "strokeWidth": {"value": 2},
-                            "fillOpacity": {"value": config.fillOpacity}
+                            "fillOpacity": {"value": config.fillOpacity},
+                            "interpolate": {"value": interpolation}
                         },
                         "hover": {
                             "strokeOpacity": {"value": 0.5}
@@ -203,7 +209,8 @@ function getAreaMark(config, metadata){
                     "y2": {"scale": "y", "value": 0},
                     "fill": { "value": config.markColor},
                     "strokeWidth": {"value": 2},
-                    "fillOpacity": {"value": config.fillOpacity}
+                    "fillOpacity": {"value": config.fillOpacity},
+                    "interpolate": {"value": interpolation}
                 },
                 "hover": {
                     "fillOpacity": {"value": 0.5}
