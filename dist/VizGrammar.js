@@ -232,6 +232,13 @@ function getPieMidText(config, metadata){
                                       },
                                       {}
                                     ],
+                              "fillOpacity": [
+                                      {
+                                        "test": "indata('arc', datum.a."+metadata.names[config.color]+", 'type')",
+                                        "value": 1
+                                      },
+                                      {"value": 0}
+                                    ],
                               "align": {"value": "center"},
                               "baseline": {"value": "middle"},
                               "fontSize":{"value": config.height/9},
